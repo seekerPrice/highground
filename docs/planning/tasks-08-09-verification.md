@@ -1,6 +1,6 @@
 # Destinations, confirmations and media — review record
 
-Code baseline: `8818a934ce91ed22c49f0891f5dabb65892697ef`. Task 8 is locally accepted; Task 9 implementation is reviewed, with actual live photo upload acceptance pending consent. Hosted and second-phone acceptance remain deferred. Historical review steps below distinguish candidate failures from the final result.
+Code baseline: `8818a934ce91ed22c49f0891f5dabb65892697ef`. Tasks 8/9 are locally accepted under the approved synthetic/virtual-recipient scope; actual Telegram photo upload acceptance remains pending consent. Hosted and second-phone acceptance remain deferred. Historical review steps below distinguish candidate failures from the final result.
 
 ## Early concrete review findings
 
@@ -68,3 +68,10 @@ Live UI inspection revealed Telegram's automatic Google Maps preview was mislead
 Final code baseline for the next milestone: `1a4d7b1345b61dda187b1302138333bcdf18e48f`. Both Matt axes independently rechecked the preview delta and reported **zero outstanding findings**. Root verified the corrected preview through actual Bot API and Chrome: no automatic preview, explicit Malaysian routes/buttons retained, vehicle action target earlier than stock.
 
 Root then ran the complete local gate at this exact candidate: **6 infrastructure tests, 175 API tests, no skips, three upstream warnings**, plus frontend lint, typecheck and production build, all passed. BigQuery used the restored persistent local dataset. All relevant findings were corrected and rechecked before reporting. Task 8 local acceptance is complete. Task 9 live photo upload remains pending explicit upload consent; neither its live neighbour-delivery latency nor actual second-phone acceptance is claimed. Tasks 10/11 may proceed independently under the approved all-task authorization.
+
+
+## Integrated Task 9 local journey
+
+Root ran a separate probe from the frozen `1a4d7b1` source snapshot, without loading in-progress Tasks 10/11. Actual Firestore, GCS, BigQuery and configured Flash/ADK handled the journey; Telegram download bytes and outbound recipients were explicitly synthetic/virtual. The probe passed: original receipt and SHA ledger existed before location confirmation; `unconfirmed_shop` provenance remained immutable after separate `confirmed_shop` facts; validated inside-water assessment at confidence 0.7 produced Danger; the reporter was latched and excluded from fanout; one neighbour alert was captured; replay caused no extra download or alert; exactly one ledger row and original-byte hash verification were observed.
+
+The whole probe took **6.366 seconds**, with **5,673 ms active processing**. These are local synthetic-edge measurements, not actual Telegram neighbour-delivery latency or real-shop accuracy. All isolated collections, bucket, dataset and topic were cleaned. Evidence is retained outside the repository in `setup/photo-journey-result.json` and `probe_photo_journey.py`. This completes Task 9 local journey acceptance under the approved virtual-recipient scope. Actual browser upload, second-phone and hosted acceptance remain separately pending.
