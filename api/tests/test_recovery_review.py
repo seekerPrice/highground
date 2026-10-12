@@ -19,6 +19,7 @@ from api.telegram_webhook import TelegramHandler
 from api.telegram_inbox import FirestoreInbox
 from api.inventory_models import InventoryReply
 from api.main import create_app
+from api.report_api import ReportReader
 from api.i18n import danger_text
 from api.tests.test_reports import BASE,loss
 from api.tests.test_inventory import VIDEO,video
@@ -155,6 +156,11 @@ def test_public_receipt_video_then_declaration_new_clip_and_late_replay(danger_p
         job=h.store.current(123);assert job['report_id']==original and job['baseline']==frozen and job['upload']['message_id']==5
         later=next(r for r in h.uploaded('after_video') if r['media_id']==job['media_id'])
         assert (later['lat'],later['lng'])==(3.,101.)
+        report=ReportReader(h.store,h.records,h.originals).report(original,'Bearer '+h.store.token(original))
+        assert report.assessment_media_id==later['media_id'] and report.assessment_media_id!=early_record['media_id']
+        assert sum(e.media_id==report.assessment_media_id and e.kind=='after_video' for e in report.evidence)==1
+        assert sum(e.kind=='after_video' for e in report.evidence)==2
+        assert any(row.evidence_timestamp_s is not None for row in report.items)
         await h.send(5,video=h.video('later'))
         assert len(h.model.calls)==1
         await h.send(6,text='/cancel')
@@ -173,5 +179,27 @@ def test_public_receipt_video_then_declaration_new_clip_and_late_replay(danger_p
         protected=h.store.collection('recovery_jobs').document(original).get().to_dict()
         assert protected['upload']==job['upload'] and protected['assessment']==job['assessment']
         assert h.store.upload_reference(123,5,'later').get().to_dict()['receipt_only'] is False
+    try:asyncio.run(run())
+    finally:h.close()
+
+
+@pytest.mark.parametrize('bad_selection',['missing','unknown','wrong_kind','malformed','not_receipted'])
+def test_report_reader_fails_closed_on_invalid_assessment_media_selection(bad_selection):
+    h=RecoveryHarness()
+    async def run():
+        await h.initialize();await h.send(1,text='/report');await h.send(2,text='/report confirm');await h.send(3,video=h.video('later'))
+        job=h.store.current(123);ref=h.store.collection('recovery_jobs').document(job['report_id']);selected=job['media_id']
+        from google.cloud import firestore
+        changes={
+            'missing':{'media_id':firestore.DELETE_FIELD},
+            'unknown':{'media_id':'f'*64},
+            'wrong_kind':{'media_id':job['baseline']['media_id']},
+            'malformed':{'media_id':'not-a-media-id'},
+            'not_receipted':{'evidence_media_ids':[job['baseline']['media_id']]},
+        }
+        ref.update(changes[bad_selection])
+        with pytest.raises((ValueError,KeyError)):
+            ReportReader(h.store,h.records,h.originals).report(job['report_id'],'Bearer '+h.store.token(job['report_id']))
+        assert h.records.get(selected).sha256==sha256(h.files['later']).hexdigest()
     try:asyncio.run(run())
     finally:h.close()

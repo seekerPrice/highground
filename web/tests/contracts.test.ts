@@ -35,3 +35,18 @@ test("capability is accepted only in exact single fragment field",()=>{
  const token="x".repeat(43);assert.equal(capability("#key="+token),token);
  for(const fragment of ["","#key=short","#key="+token+"&key=other","#key="+token+"&redirect=evil","#access="+token])assert.equal(capability(fragment),null);
 });
+
+ test("assessment receipt is explicitly bound and distinguishes retained after videos",async()=>{
+ const input=report();const selected=input.evidence.find((e:{kind:string})=>e.kind==="after_video");input.assessment_media_id=selected.media_id;
+ const retained={...selected,media_id:"e".repeat(64)};input.evidence.push(retained);
+ const parsed=parseReport(input,input.report_id);
+ assert.equal(parsed.assessment_media_id,selected.media_id);
+ const labels=await import("../lib/contracts.ts");
+ assert.equal(labels.evidenceTitle(selected,parsed.assessment_media_id),"After video used for assessment");
+ assert.equal(labels.evidenceTitle(retained,parsed.assessment_media_id),"Retained after video — not assessed");
+ assert.equal(labels.assessmentTimestamp(2),"Video used for assessment: 2.0 s");
+ for(const invalid of ["f".repeat(64),input.evidence.find((e:{kind:string})=>e.kind!=="after_video").media_id,"bad"]){
+  assert.throws(()=>parseReport({...input,assessment_media_id:invalid},input.report_id));
+ }
+ const missing={...input};delete missing.assessment_media_id;assert.throws(()=>parseReport(missing,input.report_id));
+ });

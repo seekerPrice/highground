@@ -1,6 +1,6 @@
 """Strict loss-domain validation and capability-scoped public report contracts."""
 from typing import Literal
-from pydantic import AwareDatetime, BaseModel, ConfigDict, Field
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, model_validator
 from api.inventory_models import InventoryAssessment
 
 class DTO(BaseModel):
@@ -60,6 +60,7 @@ class EvidenceReceipt(DTO):
 
 class Report(DTO):
     report_id: str
+    assessment_media_id: str = Field(pattern=r'^[0-9a-f]{64}$')
     created_at: AwareDatetime
     shop_name: str
     is_demo: bool
@@ -76,6 +77,13 @@ class Report(DTO):
     items: list[ReportItem] = Field(max_length=80)
     evidence: list[EvidenceReceipt] = Field(max_length=10)
     disclaimer: str = 'Replacement-price and loss estimates only. Unknown items are excluded from the assessed total. File integrity does not authenticate the scene, time, location or valuation.'
+
+    @model_validator(mode='after')
+    def selected_assessment_receipt(self) -> 'Report':
+        selected=[receipt for receipt in self.evidence if receipt.media_id==self.assessment_media_id]
+        if len(selected)!=1 or selected[0].kind!='after_video':
+            raise ValueError('Assessment video must name one included after-video receipt')
+        return self
 
 class IntegrityResult(DTO):
     media_id: str

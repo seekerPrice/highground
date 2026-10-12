@@ -65,5 +65,6 @@
       "integrity_status": "not_checked"
     }
   ],
-  "disclaimer": "Replacement-price and loss estimates only. Unknown items are excluded from the assessed total. File integrity does not authenticate the scene, time, location or valuation."
+  "disclaimer": "Replacement-price and loss estimates only. Unknown items are excluded from the assessed total. File integrity does not authenticate the scene, time, location or valuation.",
+  "assessment_media_id": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
 }

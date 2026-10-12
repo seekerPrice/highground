@@ -97,19 +97,19 @@ class ReaderStore:
     def authorized(self,identity,token):return self.jobs.get(identity) if token==identity+'-token' else None
 class Records:
     def __init__(self,record):self.record=record
-    def get(self,identity):return self.record
+    def get(self,identity):return self.record[identity] if isinstance(self.record,dict) else self.record
 
 def test_private_api_report_binding_unknown_rows_and_integrity():
     from api.media_models import MediaRecord
     now=datetime.now(UTC);media_id='a'*64;data=b'synthetic bytes'
-    record=MediaRecord(media_id=media_id,shop_id='shop',kind='baseline_video',sender_hash='PRIVATE-SENDER',sha256=sha256(data).hexdigest(),bytes=len(data),mime_type='video/mp4',uploaded_at=now,telegram_date=now,received_at=now,lat=3.,lng=101.,location_attribution='confirmed_shop',is_demo=True,storage_status='done',ledger_status='done',gcs_uri='PRIVATE-STORAGE')
+    record=MediaRecord(media_id=media_id,shop_id='shop',kind='after_video',sender_hash='PRIVATE-SENDER',sha256=sha256(data).hexdigest(),bytes=len(data),mime_type='video/mp4',uploaded_at=now,telegram_date=now,received_at=now,lat=3.,lng=101.,location_attribution='confirmed_shop',is_demo=True,storage_status='done',ledger_status='done',gcs_uri='PRIVATE-STORAGE')
     class Storage:
         calls=0
         def read_original(self,identity):self.calls+=1;return data
     store=ReaderStore();storage=Storage();identity='b'*32;other='c'*32
-    store.jobs[identity]=dict(report_id=identity,shop_id='shop',shop_name='Synthetic',is_demo=True,created_at=now,baseline=BASE,assessment=loss(summary_text='Insurer accepts. Reopen safely.',confidence_note='Authentic recording').model_dump(),upload={'duration':30},recovery_attribution='Owner declared recovery',evidence_media_ids=[media_id])
+    store.jobs[identity]=dict(report_id=identity,shop_id='shop',shop_name='Synthetic',is_demo=True,created_at=now,media_id=media_id,baseline=dict(BASE,media_id='d'*64),assessment=loss(summary_text='Insurer accepts. Reopen safely.',confidence_note='Authentic recording').model_dump(),upload={'duration':30},recovery_attribution='Owner declared recovery',evidence_media_ids=['d'*64,media_id])
     store.jobs[other]=dict(store.jobs[identity],report_id=other,evidence_media_ids=[])
-    reader=ReportReader(store,Records(record),storage);app=FastAPI();app.include_router(create_report_router(Settings(),reader))
+    reader=ReportReader(store,Records({media_id:record,'d'*64:record.model_copy(update={'media_id':'d'*64,'kind':'baseline_video'})}),storage);app=FastAPI();app.include_router(create_report_router(Settings(),reader))
     async def run():
         async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app),base_url='http://test') as api:
             path=f'/api/report/{identity}'
@@ -117,7 +117,8 @@ def test_private_api_report_binding_unknown_rows_and_integrity():
             assert (await api.get(path,headers={'Authorization':'Bearer '+other+'-token'})).status_code==404
             headers={'Authorization':'Bearer '+identity+'-token'}
             result=await api.get(path,headers=headers);assert result.status_code==200
-            dto=result.json();assert dto['coverage']=='partial' and len(dto['items'])==2 and dto['items'][1]['estimated_loss_rm'] is None
+            dto=result.json();assert dto['assessment_media_id']==media_id
+            assert dto['coverage']=='partial' and len(dto['items'])==2 and dto['items'][1]['estimated_loss_rm'] is None
             assert 'Insurer' not in result.text and 'PRIVATE' not in result.text and result.headers['cache-control']=='no-store'
             wrong=await api.get(f'/api/report/{other}/media/{media_id}',headers={'Authorization':'Bearer '+other+'-token'})
             assert wrong.status_code==404 and storage.calls==0

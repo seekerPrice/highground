@@ -37,7 +37,7 @@ class ReportReader:
             receipts.append(EvidenceReceipt(**{k:getattr(record,k) for k in EvidenceReceipt.model_fields if k!='integrity_status'}))
         total=assessment.total_loss_rm
         summary=(f"{assessed} of {len(rows)} baseline items were assessed. "+(f"Assessed estimated loss is RM{total:.2f}. " if total is not None else 'The loss estimate is unavailable. ')+('Unknown losses are excluded; this estimate is partial.' if coverage!='complete' else 'Replacement-price estimates remain uncertain.'))
-        return Report(report_id=report_id,created_at=job['created_at'],shop_name=job['shop_name'],is_demo=job['is_demo'],baseline_estimate_rm=baseline['total_est_value_rm'],estimated_loss_rm=total,
+        return Report(report_id=report_id,assessment_media_id=job['media_id'],created_at=job['created_at'],shop_name=job['shop_name'],is_demo=job['is_demo'],baseline_estimate_rm=baseline['total_est_value_rm'],estimated_loss_rm=total,
             estimate_status='available' if total is not None else 'unavailable',coverage=coverage,assessed_items=assessed,baseline_items=len(rows),confidence=assessment.confidence,
             confidence_note='Visual model assessment only; replacement prices, camera coverage and damage estimates remain uncertain.',summary_text=summary,
             recovery_attribution=job['recovery_attribution'],items=rows,evidence=receipts)

@@ -8,7 +8,7 @@ export interface Stats {status:"available"|"unavailable";synthetic_shops:number;
 export interface Dashboard {generated_at:string;status:"available"|"empty"|"unavailable";is_demo:true;scenario_started_at:string|null;shops:Shop[];events:Event[];destinations:Destination[];sources:Source[];stats:Stats}
 export interface ReportItem {item_id:string;name:string;qty:number;baseline_estimate_rm:number;condition:"ok"|"damaged"|"destroyed"|"missing"|"unassessed";estimated_loss_rm:number|null;evidence_timestamp_s:number|null;uncertainty:string}
 export interface Evidence {media_id:string;kind:"baseline_video"|"update_video"|"after_video"|"waterline_photo";sha256:string;bytes:number;mime_type:string;uploaded_at:string;telegram_date:string;lat:number;lng:number;location_attribution:"confirmed_shop"|"confirmed_shared"|"unconfirmed_shop";is_demo:boolean;integrity_status:"not_checked"}
-export interface Report {report_id:string;created_at:string;shop_name:string;is_demo:boolean;baseline_estimate_rm:number;estimated_loss_rm:number|null;estimate_status:"available"|"unavailable";coverage:"complete"|"partial"|"none";assessed_items:number;baseline_items:number;confidence:number;confidence_note:string;summary_text:string;recovery_attribution:string;items:ReportItem[];evidence:Evidence[];disclaimer:string}
+export interface Report {report_id:string;assessment_media_id:string;created_at:string;shop_name:string;is_demo:boolean;baseline_estimate_rm:number;estimated_loss_rm:number|null;estimate_status:"available"|"unavailable";coverage:"complete"|"partial"|"none";assessed_items:number;baseline_items:number;confidence:number;confidence_note:string;summary_text:string;recovery_attribution:string;items:ReportItem[];evidence:Evidence[];disclaimer:string}
 export interface Integrity {media_id:string;status:"verified"|"mismatch"|"unavailable";sha256:string;note:string}
 
 function object(value:unknown,keys:string[]):Record<string,unknown> {
@@ -42,16 +42,17 @@ export function parseDashboard(input:unknown):Dashboard {
 }
 
 export function parseReport(input:unknown,id:string):Report {
- const r=object(input,["report_id","created_at","shop_name","is_demo","baseline_estimate_rm","estimated_loss_rm","estimate_status","coverage","assessed_items","baseline_items","confidence","confidence_note","summary_text","recovery_attribution","items","evidence","disclaimer"]);
+ const r=object(input,["report_id","assessment_media_id","created_at","shop_name","is_demo","baseline_estimate_rm","estimated_loss_rm","estimate_status","coverage","assessed_items","baseline_items","confidence","confidence_note","summary_text","recovery_attribution","items","evidence","disclaimer"]);
  if(hex(r.report_id,32)!==id)throw new Error("Report identity mismatch");
  const items=list(r.items,80,value=>{const i=object(value,["item_id","condition","estimated_loss_rm","evidence_timestamp_s","uncertainty","name","qty","baseline_estimate_rm"]);const condition=choice(i.condition,["ok","damaged","destroyed","missing","unassessed"]),loss=nullable(i.estimated_loss_rm,number),baseline=number(i.baseline_estimate_rm);if((condition==="missing"||condition==="unassessed")&&loss!==null)throw new Error("Unknown item has invented loss");if(loss!==null&&loss>baseline)throw new Error("Loss exceeds baseline");return {item_id:string(i.item_id,160),condition,estimated_loss_rm:loss,evidence_timestamp_s:nullable(i.evidence_timestamp_s,v=>number(v,0,300)),uncertainty:string(i.uncertainty,300),name:string(i.name,200),qty:number(i.qty,0,1_000_000),baseline_estimate_rm:baseline};});
  const evidence=list(r.evidence,10,value=>{const e=object(value,["media_id","kind","sha256","bytes","mime_type","uploaded_at","telegram_date","lat","lng","location_attribution","is_demo","integrity_status"]);return {media_id:hex(e.media_id,64),kind:choice(e.kind,["baseline_video","update_video","after_video","waterline_photo"]),sha256:hex(e.sha256,64),bytes:integer(e.bytes,1,20_000_000),mime_type:choice(e.mime_type,["video/mp4","image/jpeg","image/png","image/webp"]),uploaded_at:date(e.uploaded_at),telegram_date:date(e.telegram_date),...position(e),location_attribution:choice(e.location_attribution,["confirmed_shop","confirmed_shared","unconfirmed_shop"]),is_demo:boolean(e.is_demo),integrity_status:choice(e.integrity_status,["not_checked"])};});
+ const assessmentMediaId=hex(r.assessment_media_id,64);if(!evidence.some(e=>e.media_id===assessmentMediaId&&e.kind==="after_video"))throw new Error("Assessment video is not an included after-video receipt");
  const assessed=items.filter(i=>i.estimated_loss_rm!==null).length,total=nullable(r.estimated_loss_rm,number),coverage=choice(r.coverage,["complete","partial","none"]);
  if(integer(r.baseline_items)!==items.length||integer(r.assessed_items)!==assessed||new Set(items.map(i=>i.item_id)).size!==items.length||new Set(evidence.map(e=>e.media_id)).size!==evidence.length)throw new Error("Invalid assessment coverage");
  if(coverage!==(assessed===0?"none":assessed===items.length?"complete":"partial")||(assessed===0?total!==null:total===null||Math.abs(total-items.reduce((sum,i)=>sum+(i.estimated_loss_rm??0),0))>.005))throw new Error("Invalid assessed total");
  const isDemo=boolean(r.is_demo);if(evidence.some(e=>e.is_demo!==isDemo))throw new Error("Invalid evidence attribution");
  const status=choice(r.estimate_status,["available","unavailable"]);if((total===null)!==(status==="unavailable"))throw new Error("Invalid estimate status");
- return {report_id:id,created_at:date(r.created_at),shop_name:string(r.shop_name,200),is_demo:isDemo,baseline_estimate_rm:number(r.baseline_estimate_rm),estimated_loss_rm:total,estimate_status:status,coverage,assessed_items:assessed,baseline_items:items.length,confidence:number(r.confidence,0,1),confidence_note:string(r.confidence_note,300),summary_text:string(r.summary_text),recovery_attribution:string(r.recovery_attribution,300),items,evidence,disclaimer:string(r.disclaimer,600)};
+ return {report_id:id,assessment_media_id:assessmentMediaId,created_at:date(r.created_at),shop_name:string(r.shop_name,200),is_demo:isDemo,baseline_estimate_rm:number(r.baseline_estimate_rm),estimated_loss_rm:total,estimate_status:status,coverage,assessed_items:assessed,baseline_items:items.length,confidence:number(r.confidence,0,1),confidence_note:string(r.confidence_note,300),summary_text:string(r.summary_text),recovery_attribution:string(r.recovery_attribution,300),items,evidence,disclaimer:string(r.disclaimer,600)};
 }
 
 export function parseIntegrity(input:unknown,receipt:Evidence):Integrity {
@@ -59,3 +60,9 @@ export function parseIntegrity(input:unknown,receipt:Evidence):Integrity {
  if(hex(r.media_id,64)!==receipt.media_id||hex(r.sha256,64)!==receipt.sha256)throw new Error("Evidence identity mismatch");
  return {media_id:receipt.media_id,status:choice(r.status,["verified","mismatch","unavailable"]),sha256:receipt.sha256,note:string(r.note,600)};
 }
+
+export function evidenceTitle(receipt:Evidence,assessmentMediaId:string):string {
+ if(receipt.kind==="after_video")return receipt.media_id===assessmentMediaId?"After video used for assessment":"Retained after video — not assessed";
+ return {baseline_video:"Before video",update_video:"Inventory update video",waterline_photo:"Recovery water-line photo"}[receipt.kind];
+}
+export function assessmentTimestamp(seconds:number):string {return `Video used for assessment: ${seconds.toFixed(1)} s`;}
