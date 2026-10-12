@@ -252,3 +252,74 @@ def test_warning_separate_routes_and_bound_action_button(domain):
         assert '2022' in body and 'Current opening and route conditions are unconfirmed.' in body and 'Minimum parking level is unconfirmed' in body
         assert all('stock:' not in str(button) for button in controls)
     asyncio.run(run())
+
+
+def test_real_firestore_keyboard_dispatch_and_same_id_preparation_retry(domain):
+    from google.api_core.exceptions import InvalidArgument
+    from api.dispatch import DispatchService
+    from api.dispatch_store import FirestoreDispatchStore
+    from api.dispatch_models import EventRequest
+    from api.tests.test_dispatch import Sinks
+    client,actions,inbox,shop,*_=domain
+    collection=inbox.collection[:-1]+'points'
+    records=json.loads(Path('infra/data/safe_points.json').read_text())
+    for raw in records:client.collection(collection).document(raw['safe_point_id']).set(raw)
+    located=shop.model_copy(update={'lat':records[0]['lat'],'lng':records[0]['lng']})
+    client.collection(actions.shops).document(shop.shop_id).set(located.model_dump())
+    store=FirestoreDispatchStore(client,events=inbox.collection+'events',alerts=actions.alerts,shops=actions.shops)
+    class Sender:
+        def __init__(self):self.sent=[]
+        def send_message(self,chat,text,reply_markup=None):self.sent.append((chat,text,reply_markup));return 1000+chat
+    class OldStore(FirestoreDispatchStore):
+        def prepare_alert(self,alert):
+            # Reproduce the live failure with the actual SDK and emulator.
+            self.client.collection(self.alerts).document(alert['alert_id']).create({key:value for key,value in alert.items() if key!='telegram_chat_id'})
+    sender=Sender()
+    composer=AlertComposer(destinations=DestinationLookup(client,collection=collection,radius_m=20000))
+    request=EventRequest(request_id='keyboard-retry',level='warning',lat=located.lat,lng=located.lng)
+    old=OldStore(client,events=store.events,alerts=store.alerts,shops=store.shops)
+    async def run():
+        broken=DispatchService(old,sender,Sinks(),hash_salt='salt',composer=composer,vehicle_actions=actions)
+        with pytest.raises(InvalidArgument):await broken.process(request)
+        event_id=sha256(b'demo:keyboard-retry').hexdigest()
+        assert store.get_event(event_id)['prepared'] is False and not sender.sent
+        fixed=DispatchService(store,sender,Sinks(),hash_salt='salt',composer=composer,vehicle_actions=actions)
+        result=await fixed.process(request)
+        assert result['event_id']==event_id and result['status']=='complete' and len(sender.sent)==2
+        for identity in store.get_event(event_id)['alert_ids']:
+            stored=client.collection(store.alerts).document(identity).get().to_dict()
+            assert isinstance(stored['reply_markup'],str)
+            recovered=store.get_alert(identity)['reply_markup']
+            assert recovered==json.loads(stored['reply_markup'])
+            controls=[button for row in recovered['inline_keyboard'] for button in row]
+            assert len(controls)==3 and controls[0]['callback_data'].startswith('vehicle:')
+            assert controls[1]['url']==records_to_route(records[0]) and controls[2]['url']==records_to_route(records[1])
+            assert recovered in [wire[2] for wire in sender.sent]
+        await fixed.process(request)
+        assert len(sender.sent)==2
+        danger=await fixed.process(request.model_copy(update={'request_id':'keyboard-danger','level':'danger'}))
+        assert danger['status']=='complete' and len(sender.sent)==4
+        for identity in store.get_event(danger['event_id'])['alert_ids']:
+            recovered=store.get_alert(identity)['reply_markup']
+            assert recovered['inline_keyboard']==[[{'text':'View route','url':records_to_route(records[1])}]]
+            assert recovered in [wire[2] for wire in sender.sent[-2:]]
+    try:asyncio.run(run())
+    finally:
+        for collection in (store.events,store.plans,store.deliveries):
+            for document in client.collection(collection).stream():document.reference.delete()
+
+
+def records_to_route(record):
+    return f"https://www.google.com/maps/dir/?api=1&destination={record['lat']},{record['lng']}"
+
+
+def test_firestore_markup_none_and_legacy_object_read(domain):
+    from api.dispatch_store import FirestoreDispatchStore
+    client,actions,inbox,*_=domain
+    store=FirestoreDispatchStore(client,alerts=actions.alerts)
+    for identity,markup in [('none',None),('legacy',{'remove_keyboard':True})]:
+        client.collection(store.alerts).document(identity).set({'alert_id':identity,'reply_markup':markup})
+        delivery=client.collection(store.deliveries).document(identity)
+        delivery.set({'telegram_chat_id':101})
+        try:assert store.get_alert(identity)['reply_markup']==markup
+        finally:delivery.delete()

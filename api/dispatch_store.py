@@ -2,6 +2,7 @@
 from datetime import UTC, datetime, timedelta
 from hashlib import sha256
 from uuid import uuid4
+import json
 
 from google.cloud import firestore
 from google.api_core.exceptions import AlreadyExists
@@ -99,6 +100,10 @@ class FirestoreDispatchStore:
         ref = self.client.collection(self.alerts).document(alert['alert_id'])
         delivery_ref = self.client.collection(self.deliveries).document(alert['alert_id'])
         public_record = {key:value for key,value in alert.items() if key != 'telegram_chat_id'}
+        # Firestore rejects array-of-arrays, while Telegram requires that exact
+        # inline_keyboard shape. Serialize at rest and restore only on read.
+        if public_record.get('reply_markup') is not None:
+            public_record['reply_markup'] = json.dumps(public_record['reply_markup'], ensure_ascii=False, separators=(',', ':'), allow_nan=False)
         @firestore.transactional
         def create(tx):
             if ref.get(transaction=tx).exists:
@@ -112,6 +117,11 @@ class FirestoreDispatchStore:
         delivery = self.client.collection(self.deliveries).document(alert_id).get().to_dict()
         if not alert or not delivery:
             raise RuntimeError('Private alert delivery state missing')
+        if isinstance(alert.get('reply_markup'), str):
+            markup = json.loads(alert['reply_markup'])
+            if not isinstance(markup, dict):
+                raise ValueError('Stored Telegram markup must be an object')
+            alert['reply_markup'] = markup
         return dict(alert, telegram_chat_id=delivery['telegram_chat_id'])
 
     def begin_send(self, alert_id: str, event_id: str, owner: str) -> bool:
