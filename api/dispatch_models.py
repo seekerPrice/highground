@@ -20,6 +20,10 @@ class EventRequest(BaseModel):
     simulation: bool = False
     episode_id: str | None = Field(default=None, min_length=1, max_length=128, pattern=r'^[A-Za-z0-9_.:-]+$')
     warning_structure: Literal['warning_intro_fallback'] | None = None
+    source_key: str | None = None
+    source_episode_id: str | None = None
+    source_observed_at: AwareDatetime | None = None
+    source_valid_until: AwareDatetime | None = None
     reason: str = Field(default='Simulated warning', min_length=1, max_length=512)
 
 
@@ -92,6 +96,7 @@ class ActionSnapshot(BaseModel):
     parking_destination: Destination | None = None
     shelter_destination: Destination | None = None
     vehicle_action_id: str | None = None
+    stock_action_id: str | None = None
     episode_id: str | None = None
 
     @model_validator(mode='after')

@@ -53,4 +53,4 @@ The foundation and privacy correction passed both axes in final commit 4666575. 
 
 Tasks 8/9 dispatched from reviewed code baseline 8818a93; subsequent documentation-only commits do not change that implementation comparison.
 
-Tasks 8/9 implementation was reviewed through 1a4d7b1 with zero outstanding findings on both axes and a final complete local gate (6 infrastructure + 175 API tests, no skips, frontend checks passed). Task 8 live own-chat acceptance passed; Task 9 live photo upload remains explicitly pending consent. Tasks 10/11 are now dispatched in parallel from that code baseline.
+Tasks 8/9 implementation was reviewed through 1a4d7b1 with zero outstanding findings on both axes and a final complete local gate (6 infrastructure + 175 API tests, no skips, frontend checks passed). Task 8 live own-chat acceptance passed; Task 9 integrated local journey passed with actual service emulators/configured Flash and synthetic Telegram edges under the approved local scope. Actual Telegram photo upload remains explicitly pending consent. Tasks 10/11 are now dispatched in parallel from that code baseline.

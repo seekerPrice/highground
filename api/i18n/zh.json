@@ -88,5 +88,17 @@
   "level_watch": "注意",
   "level_warning": "警告",
   "level_danger": "危险",
-  "assessment_unavailable": "不可用"
+  "assessment_unavailable": "不可用",
+  "inventory_request": "在没有活跃危险时，发送一段 30-45 秒的店铺巡视视频（20 MB 或更小）。仅能估算可见商品。使用 /refresh 更新库存，无需重新注册。",
+  "inventory_invalid": "此视频元数据不受支持。请发送包含有效时长的原生 MP4 视频。",
+  "inventory_oversize": "视频超过 20 MB。在没有活跃危险时，发送一段更短或经过压缩的 30-45 秒视频片段。",
+  "inventory_complete": "可见库存已记录。重置价值和数量均为估算值。如果进水，请先搬抬这些物品：",
+  "inventory_total": "所有可见物品：预计总计 RM{value_rm}。视觉置信度：{confidence}。",
+  "integrity_verified": "文件完整性已验证：存储的字节与记录的 SHA-256 和已完成的证据分类账相符。这并不验证记录的真实性。",
+  "integrity_pending": "文件完整性验证待处理。记录的真实性未经核实。",
+  "stock_done_button": "✅ 完成 — 存货已抬高",
+  "stock_recorded": "存货搬抬已记录为自我报告完成所显示的预估快照。",
+  "stock_already_recorded": "此显示的存货快照已被记录。",
+  "video_update_optional": "30秒快速视频更新（可选）：/refresh",
+  "inventory_processing_unavailable": "无法评估上传内容。未确认任何新库存或估值。请仅在没有活动危险时稍后尝试 /refresh。"
 }

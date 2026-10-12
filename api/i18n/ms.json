@@ -88,5 +88,17 @@
   "level_watch": "Waspada",
   "level_warning": "Amaran",
   "level_danger": "Bahaya",
-  "assessment_unavailable": "tidak tersedia"
+  "assessment_unavailable": "tidak tersedia",
+  "inventory_request": "Apabila tiada Bahaya aktif, hantar video tinjauan kedai selama 30–45 saat (20 MB ke bawah). Hanya barangan yang kelihatan boleh dianggarkan. Gunakan /refresh untuk mengemas kini inventori tanpa mendaftar semula.",
+  "inventory_invalid": "Metadata video ini tidak disokong. Hantar video MP4 asli dengan tempoh masa yang sah.",
+  "inventory_oversize": "Video melebihi 20 MB. Apabila tiada Bahaya aktif, hantar klip 30–45 saat yang lebih pendek atau dimampatkan.",
+  "inventory_complete": "Inventori yang kelihatan telah direkodkan. Nilai penggantian dan kuantiti adalah anggaran. Sekiranya air naik, angkat barangan ini terlebih dahulu:",
+  "inventory_total": "Semua item yang kelihatan: anggaran jumlah RM{value_rm}. Keyakinan visual: {confidence}.",
+  "integrity_verified": "Integriti fail disahkan: bait yang disimpan sepadan dengan SHA-256 yang direkodkan dan lejar bukti yang lengkap. Ini tidak mengesahkan ketulenan rakaman.",
+  "integrity_pending": "Pengesahan integriti fail belum selesai. Ketulenan rakaman tidak disahkan.",
+  "stock_done_button": "✅ Selesai — stok telah diangkat",
+  "stock_recorded": "Pengangkatan stok direkodkan sebagai penyempurnaan laporan kendiri daripada snapshot anggaran yang dipaparkan.",
+  "stock_already_recorded": "Snapshot stok yang dipaparkan ini telah pun direkodkan.",
+  "video_update_optional": "Kemas kini video pantas 30 saat (pilihan): /refresh",
+  "inventory_processing_unavailable": "Muat naik tersebut tidak dapat dinilai. Tiada inventori atau penilaian baharu disahkan. Cuba /refresh kemudian hanya apabila tiada Bahaya yang aktif."
 }

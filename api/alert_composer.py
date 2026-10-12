@@ -135,6 +135,7 @@ class AlertComposer:
                 _localized(language, 'action_target_note'), _localized(language, 'rm_estimate_note'),
 
             ])
+            parts.append(_localized(language, 'video_update_optional'))
             parking, shelter = snapshot.parking_destination, snapshot.shelter_destination
             if parking:
                 parts.append(_localized(language, 'parking_destination_line', year=(parking.source_date or '')[:4], name=parking.name, route_link=parking.route_link))
@@ -159,6 +160,8 @@ class AlertComposer:
             raise ValueError('Alert exceeds Telegram text limit')
         rows = []
         if event['level'] == 'warning':
+            if snapshot.stock_action_id and snapshot.items:
+                rows.append([{'text': _localized(language, 'stock_done_button'), 'callback_data': 'stock:' + snapshot.stock_action_id}])
             if snapshot.vehicle_action_id and vehicle_action_enabled:
                 rows.append([{'text': _localized(language, 'vehicle_moved_button'), 'callback_data': 'vehicle:' + snapshot.vehicle_action_id}])
             for destination, label in [(snapshot.parking_destination, 'parking_route_button'), (snapshot.shelter_destination, 'shelter_route_button')]:

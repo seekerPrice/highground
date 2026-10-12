@@ -10,8 +10,10 @@ from api.tools.geo import distance_m
 from api.media_models import MediaIngestError, MediaRequest
 
 class PhotoStore:
-    def __init__(self,client: firestore.Client,hash_salt:str,prefix:str=''):
+    def __init__(self,client: firestore.Client,hash_salt:str,prefix:str='',risks=None):
         self.client,self.hash_salt,self.prefix=client,hash_salt,prefix
+        from api.active_risk import ActiveRiskStore
+        self.risk_store=risks or ActiveRiskStore(client,risks=prefix+'active_risks',shops=prefix+'shops')
     def collection(self,name: str) -> firestore.CollectionReference:return self.client.collection(self.prefix+name)
     def shop_for_sender(self,chat_id:int)->dict|None:
         matches=[]
@@ -99,9 +101,7 @@ class PhotoStore:
             if distance_m(lat,lng,record['lat'],record['lng'])<=500:result.append(record)
         return result
     def danger_active(self,shop_id:str)->bool:
-        # Task10 owns authoritative active-Danger/recovery updates; no time-based clearing here.
-        data=self.collection('shops').document(shop_id).get().to_dict() or {}
-        return data.get('active_danger') is True
+        return self.risk_store.get(shop_id).active_danger
     def request_shared(self,report_id:str,sender:int)->None:
         ref=self.collection('photo_reports').document(report_id)
         identity=session_user_id(sender,self.hash_salt)

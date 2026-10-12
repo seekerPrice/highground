@@ -36,7 +36,7 @@ These apply to the affected task; they do not globally block Task 1 scaffolding.
 
 ## Execution contract
 
-Astra coordinates Sol, inspects actual changes and local checks, sends defects back and rechecks corrections before completion is reported. Matt review runs independent Standards and Spec axes; findings return to Sol and are rechecked. A checkbox is marked only with observed evidence. Skill-required review agents run only for actual implementation review, not to create premature implementation. Task 1 implementation, local acceptance and both review axes are complete. Foundation Tasks 2/3/4/6 passed local checks and both independent Matt axes after the privacy correction (final 69 API tests). Tasks 3/4/6 local acceptance is complete; Task 2 cloud provisioning remains deferred. Tasks 5/7 local acceptance and both Matt axes passed against final candidate 8818a93. Tasks 8/9 implementation and both Matt axes passed through 1a4d7b1; the complete local gate passed 6 infrastructure and 175 API tests with frontend checks. Task 8 live own-chat acceptance passed; Task 9 integrated local acceptance passed with actual service emulators/configured Flash and explicitly virtual Telegram edges. Actual Telegram photo upload remains pending consent. Tasks 10/11 are now in progress in the two Sol lanes.
+Astra coordinates Sol, inspects actual changes and local checks, sends defects back and rechecks corrections before completion is reported. Matt review runs independent Standards and Spec axes; findings return to Sol and are rechecked. A checkbox is marked only with observed evidence. Skill-required review agents run only for actual implementation review, not to create premature implementation. Task 1 implementation, local acceptance and both review axes are complete. Foundation Tasks 2/3/4/6 passed local checks and both independent Matt axes after the privacy correction (final 69 API tests). Tasks 3/4/6 local acceptance is complete; Task 2 cloud provisioning remains deferred. Tasks 5/7 local acceptance and both Matt axes passed against final candidate 8818a93. Tasks 8/9 implementation and both Matt axes passed through 1a4d7b1; the complete local gate passed 6 infrastructure and 175 API tests with frontend checks. Task 8 live own-chat acceptance passed; Task 9 integrated local acceptance passed with actual service emulators/configured Flash and explicitly virtual Telegram edges. Actual Telegram photo upload remains pending consent. Tasks 10/11 local acceptance is complete at 8d28cc8: 243 API tests, final Standards 0 and Spec 0, plus actual local polling and configured-Pro service integration with synthetic Telegram edges. Tasks 12/13/15 are the next parallel Must milestone; hosting and real second-phone/media-upload acceptance remain deferred.
 
 The active technical graph is in dependency-plan.md; Task numbers remain traceability labels. Independent work may proceed in parallel without new Task N approval. Dates are targets and work may finish earlier; Shoulds may start earlier than Friday only after all Must behaviour is locally verified; hosting is deferred. Stretch is pitch-only. Review uses each task-start committed baseline; Task 1 baseline is bb1b098. User authorization includes the review/correction loop.
 
@@ -169,26 +169,26 @@ Scope: Must/foundation. Deliverable: Uploaded photos preserve downloaded bytes, 
 Scope: Must/foundation. Deliverable: Scheduled real-source polling and escalating events use deterministic safety handling.
 
 - [x] Astra dispatched the bounded task brief from reviewed baseline 1a4d7b1; parallel lanes coordinate shared risk/episode interfaces and files.
-- [ ] Sol implements only this task.
-- [ ] Relevant local checks run; results captured.
-- [ ] Astra inspects files and results, returns defects to Sol, and rechecks corrections.
-- [ ] Matt Standards review completed; relevant findings corrected and rechecked.
-- [ ] Matt Spec review completed; relevant findings corrected and rechecked.
-- [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
-- [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
+- [x] Sol implemented the bounded task slice and froze it for review.
+- [x] The final 243-test API gate passed at 8d28cc8; actual polling/model service probes and limits are recorded in tasks-10-11-verification.md.
+- [x] Astra inspected actual files, returned concrete defects and independently rechecked corrections.
+- [x] Matt Standards review completed; final correction recheck has 0 outstanding findings.
+- [x] Matt Spec review completed; final correction recheck has 0 outstanding findings.
+- [x] Local acceptance met with recorded evidence; hosting and external acceptance limits remain deferred.
+- [x] Technical prerequisites for dependent Must work met; pending external acceptance remains explicitly recorded.
 
 ### Task 11 — Baseline inventory + lift-first
 
 Scope: Must/foundation. Deliverable: Video becomes an estimated inventory and ranked lift-first list that warning confirmations reference.
 
 - [x] Astra dispatched the bounded task brief from reviewed baseline 1a4d7b1; parallel lanes coordinate shared risk/episode interfaces and files.
-- [ ] Sol implements only this task.
-- [ ] Relevant local checks run; results captured.
-- [ ] Astra inspects files and results, returns defects to Sol, and rechecks corrections.
-- [ ] Matt Standards review completed; relevant findings corrected and rechecked.
-- [ ] Matt Spec review completed; relevant findings corrected and rechecked.
-- [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
-- [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
+- [x] Sol implemented the bounded task slice and froze it for review.
+- [x] The final 243-test API gate passed at 8d28cc8; actual polling/model service probes and limits are recorded in tasks-10-11-verification.md.
+- [x] Astra inspected actual files, returned concrete defects and independently rechecked corrections.
+- [x] Matt Standards review completed; final correction recheck has 0 outstanding findings.
+- [x] Matt Spec review completed; final correction recheck has 0 outstanding findings.
+- [x] Local acceptance met with recorded evidence; hosting and external acceptance limits remain deferred.
+- [x] Technical prerequisites for dependent Must work met; pending external acceptance remains explicitly recorded.
 
 ### Task 12 — After-flood report
 

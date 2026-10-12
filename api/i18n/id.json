@@ -88,5 +88,17 @@
   "level_watch": "Waspada",
   "level_warning": "Peringatan",
   "level_danger": "Bahaya",
-  "assessment_unavailable": "tidak tersedia"
+  "assessment_unavailable": "tidak tersedia",
+  "inventory_request": "Saat tidak ada Bahaya aktif, kirimkan video penelusuran toko berdurasi 30–45 detik (20 MB atau kurang). Hanya barang yang terlihat yang dapat diperkirakan. Gunakan /refresh untuk memperbarui inventaris tanpa mendaftar ulang.",
+  "inventory_invalid": "Metadata video ini tidak didukung. Kirimkan video MP4 asli dengan durasi yang valid.",
+  "inventory_oversize": "Ukuran video melebihi 20 MB. Saat tidak ada Bahaya aktif, kirimkan klip 30–45 detik yang lebih pendek atau terkompresi.",
+  "inventory_complete": "Inventaris yang terlihat telah dicatat. Nilai penggantian dan jumlah merupakan perkiraan. Jika air naik, amankan ini terlebih dahulu:",
+  "inventory_total": "Semua barang yang terlihat: perkiraan total RM{value_rm}. Keyakinan visual: {confidence}.",
+  "integrity_verified": "Integritas berkas terverifikasi: bita yang tersimpan cocok dengan SHA-256 yang dicatat dan buku besar bukti yang telah selesai. Ini tidak memverifikasi keaslian rekaman.",
+  "integrity_pending": "Verifikasi integritas berkas sedang menunggu. Keaslian rekaman belum diverifikasi.",
+  "stock_done_button": "✅ Selesai — stok telah diamankan",
+  "stock_recorded": "Pengamanan stok dicatat sebagai penyelesaian yang dilaporkan sendiri dari cuplikan perkiraan yang ditampilkan.",
+  "stock_already_recorded": "Cuplikan stok yang ditampilkan ini sudah pernah dicatat.",
+  "video_update_optional": "Pembaruan video singkat 30 detik (opsional): /refresh",
+  "inventory_processing_unavailable": "Unggahan tidak dapat dinilai. Tidak ada inventaris atau penilaian baru yang dikonfirmasi. Coba /refresh nanti hanya ketika tidak ada Bahaya aktif."
 }
