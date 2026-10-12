@@ -131,7 +131,7 @@
       "title": "Dashboard",
       "url": "https://github.com/seekerPrice/highground/issues/16",
       "issue": 16,
-      "label": "needs-info",
+      "label": "ready-for-agent",
       "linked_to_spec": true,
       "dependency_linked": true
     },

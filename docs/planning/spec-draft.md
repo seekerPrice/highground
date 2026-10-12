@@ -1,6 +1,6 @@
 # HighGround implementation specification — DRAFT
 
-Derived from docs/spec/01-build-spec.md, the exact complete handover copy and source of truth, plus current user instructions. This draft is reviewable, not an approved replacement. The user authorized GitHub spec/ticket publication; unresolved decisions attach to affected tasks and do not block unrelated Task 1 scaffolding. Requirements below retain Section 12 numbering. Changes identified as PROPOSED require resolution before implementation of affected behaviour. GitHub Issues is the selected tracker; explicit Task N gates remain.
+Derived from docs/spec/01-build-spec.md, the exact complete handover copy and source of truth, plus current user instructions. This draft is reviewable, not an approved replacement. The user authorized GitHub spec/ticket publication; unresolved decisions attach to affected tasks and do not block unrelated Task 1 scaffolding. Requirements below retain Section 12 numbering. Approved Q1–Q3 amendments are recorded in docs/planning/approved-decisions.md; remaining items marked PROPOSED require resolution before affected implementation. Task 1 is explicitly authorized. GitHub Issues is the selected tracker; explicit Task N gates remain.
 
 ## Problem Statement
 
@@ -10,7 +10,7 @@ Flood-prone Malaysian shops need actionable information in the languages used by
 
 A Telegram bot collects a confirmed shop location, recipient languages, vehicle details and baseline video. Gemini produces an estimated inventory; deterministic rules select lift-first items. Valid official observations and contextual nearby photo reports lead to Watch, Warning or Danger. Warning explains prioritised stock and vehicle actions with sourced destination links. Danger always uses fixed language templates. Owners can confirm protective actions and later produce an estimated before/after loss report with upload-integrity evidence. A deployed dashboard displays events, destinations and self-reported protection counters.
 
-The real-source polling capability must expose source health honestly. The inspected flood feed is stale; the product cannot currently claim validated live official flood warnings. The demonstration may use clearly labelled simulated events, subject to agreement on the unresolved live-source requirement.
+The real-source polling capability must expose source health honestly. The inspected flood feed is stale; the product cannot currently claim validated live official flood warnings. The demonstration may use clearly labelled simulated events, under approved Q2. Fresh official flood input remains unresolved.
 
 ## User Stories
 
@@ -61,18 +61,18 @@ The real-source polling capability must expose source health honestly. The inspe
 - No GitHub CI, Actions, Dependabot, other GitHub automation or repository-connected Cloud Build triggers. Local tests/build/deploy only. GitHub repository and Issues are authorized.
 - Astra plans and coordinates each task, Sol implements, Astra inspects/corrects/rechecks, and Matt Standards/Spec review completes before task completion. User confirmation gates each next task.
 
-### PROPOSED conflict resolutions — not yet approved
+### Approved amendments and remaining proposals
 
-- Move Task 15 to Thursday after Task 14 and redeploy, because dashboard L5 is Must. Friday begins with Tasks 16–17.
-- Use two deterministic action deadlines, with vehicle strictly earlier than stock. The policy and wording must avoid pretending to predict road-flooding time.
-- Reconcile the universal emergency footer inside the fixed Danger templates. Do not append generated notices or other material. Define a separate fixed no-destination variant.
-- Revise destination wording only after agreement: the source template currently says “Nearest safe point”; proposed terminology is a listed/designated destination with appropriate uncertainty. This draft does not silently rewrite approved safety phrases.
-- Watch uses short text until the Should offline card is deployed.
-- Water-depth dots and the memory map remain pitch-only despite their mention in Must L5; other Must dashboard layers ship.
-- Clarify the specified “Verified evidence” badge as file-integrity verification only; proposed replacement label is “File integrity verified.”
-- Align the displayed/accessible items, inventory snapshot and confirmation value so that top-five/top-eight prompt differences cannot overcount protection.
-- Explicitly exempt policy originals from immutable retention when the Should deletion rule applies; the hash/ledger remains, but deleted originals cannot pass a current byte comparison.
-- Reject stale flood readings and surface source unavailability. Whether a labelled simulated demo plus working poller satisfies the live-feed requirement needs agreement; a fresh official source is still unresolved.
+- APPROVED Q1: Task 15 follows Task 14 and is included in the Must deployment target. Dates are targets, so earlier progress is allowed; Shoulds still require deployed acceptance of Tasks 1–17. Individual Task N gates and final deadlines remain.
+- APPROVED Q3: Two deterministic action targets, vehicle strictly before stock, never predicted flood-arrival times. Configuration is settled when that task is implemented.
+- APPROVED Q3: Reconcile the emergency footer inside fixed Danger templates and use a fixed no-destination variant. Exact wording/placeholders/translations are checked before use; no generated additions.
+- APPROVED Q3: Destination wording must not guarantee safety. The source template currently says “Nearest safe point”; exact replacement wording is established before use, not silently rewritten here.
+- PROPOSED: Watch uses short text until the Should offline card is deployed.
+- PROPOSED: Water-depth dots and the memory map remain pitch-only despite their mention in Must L5; other Must dashboard layers ship.
+- PROPOSED: Clarify the specified “Verified evidence” badge as file-integrity verification only; proposed replacement label is “File integrity verified.”
+- PROPOSED: Align the displayed/accessible items, inventory snapshot and confirmation value so that top-five/top-eight prompt differences cannot overcount protection.
+- PROPOSED: Explicitly exempt policy originals from immutable retention when the Should deletion rule applies; the hash/ledger remains, but deleted originals cannot pass a current byte comparison.
+- APPROVED Q2: Reject stale readings, expose source unavailability and use clearly labelled simulations in the demo. This does not prove live official flood warnings work; a fresh official source is unresolved.
 
 ### Unresolved interfaces and records
 
@@ -80,15 +80,15 @@ Agree before the relevant task: source event identity/lifecycle/freshness; distr
 
 ## Testing Decisions
 
-PROPOSED seams for user review: exercise the bot/event boundary through persisted domain state and captured outbound Telegram effects, and the deployed report/dashboard HTTP boundary. These are the highest useful seams for observable behaviour. Keep focused pure-rule tests for mandated triage, ranking, hashing and fixed templates; do not test implementation trivia. There is no existing application test suite to copy.
+Task 1 agreed seams: public GET /healthz contract and the actual blank dashboard build/run/browser view. No future services are mocked. Future-task proposed seams: exercise the bot/event boundary through persisted domain state and captured outbound Telegram effects, and the deployed report/dashboard HTTP boundary. These are the highest useful seams for observable behaviour. Keep focused pure-rule tests for mandated triage, ranking, hashing and fixed templates; do not test implementation trivia. There was no application test suite at Task 1 start.
 
 Required coverage: real API fixtures; null/stale/error observations and marine warning classification; location/radius selection; deterministic Danger in all eight languages including malformed model output and missing place; earlier vehicle deadline; rank/value arithmetic; immutable hash match/mismatch; duplicate updates and confirmations; restart recovery and partial-write retry; report privacy and deployed core M1/M3/M4/M5/M6. Compare normal, error and retry outcomes rather than only happy paths. Record measured neighbour-alert latency against the under-ten-second target; do not claim it without timing evidence.
 
-All checks run locally. Cloud deployment acceptance is manual/scripted from the developer's machine. Matt review uses an agreed, resolvable fixed Git baseline and non-empty diff; separate Standards and Spec reviewers report independently, then Astra sends necessary corrections to Sol and rechecks. Baseline protocol still needs agreement.
+All checks run locally. Cloud deployment acceptance is manual/scripted from the developer's machine. Matt review uses an agreed, resolvable fixed Git baseline and non-empty diff; separate Standards and Spec reviewers report independently, then Astra sends necessary corrections to Sol and rechecks. Task 1 review baseline is the committed task-start tree bb1b098.
 
 ## Out of Scope
 
-Stretch implementation: flood memory map, drain watch, reopen checks, scam check, open-shops map, voice and live location. Also excluded: Vertex custom risk model, Earth Engine, WhatsApp, SMS delivery, insurer portal, web login and payments. Pitch-only statements must be labelled future work. This specification draft authorizes no Task 1 implementation.
+Stretch implementation: flood memory map, drain watch, reopen checks, scam check, open-shops map, voice and live location. Also excluded: Vertex custom risk model, Earth Engine, WhatsApp, SMS delivery, insurer portal, web login and payments. Pitch-only statements must be labelled future work. Task 1 implementation is explicitly authorized; no later task is authorized.
 
 ## Further Notes
 
@@ -96,4 +96,4 @@ The full feed inspected 13 October 2026 had 1,276 records, 725 null observation 
 
 The handover deadline and judging claims still need accessible official rules; the landing page supplied no readable rules in inspection. Plan remains four build days, code freeze Saturday 17 October at 14:00 MYT, and submission Sunday 18 October at 22:00 MYT, subject to verified portal rules.
 
-Next grilling frontier: schedule conflict, stale-source product behaviour, fixed Danger/no-destination wording, deterministic deadline policy and public exposure. Infrastructure account facts should be inspected where possible rather than put to the user as unnecessary questions. No source/spec contradiction is silently resolved by this draft.
+Next task-level decisions: exact Danger/no-destination translations, freshness/geometry handling, target configuration and public exposure. Q1–Q3 principles are already accepted. Infrastructure account facts should be inspected where possible rather than put to the user as unnecessary questions. No source/spec contradiction is silently resolved by this draft.

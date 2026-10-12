@@ -13,26 +13,27 @@ This is the active internal planning checklist; it is not permission to implemen
 
 ## Decisions and tracking gates
 
-These apply to the affected task; they do not globally block Task 1 scaffolding. Task 1 still awaits the explicit user instruction.
+These apply to the affected task; they do not globally block Task 1 scaffolding. Task 1 is now explicitly authorized; later tasks still await their own user gates.
 
 - [x] User confirmed Task N gates remain; prepare setup/spec/tickets now.
 - [x] User selected GitHub Issues and authorized Git setup; all tests/builds/deploys remain local with no GitHub CI.
 - [x] User approved AGENTS.md and default labels; parent activated agent/tracker/domain/label configuration and verified all five GitHub labels.
 - [x] Astra read the active configuration and confirmed Task N gates, fixed stack, local-only verification and no global future-decision blocker.
-- [ ] Agree Thursday Task 15 schedule change so every Must is deployed.
-- [ ] Agree stale-feed behaviour and live-data claim; fresh official flood input remains unresolved.
-- [ ] Settle fixed Danger template wording, no-destination fallback, action deadline policy and exact confirmation semantics.
+- [x] Q1 accepted: Task 15 follows Task 14 for the Must deployment target; dates allow earlier progress.
+- [x] Q2 accepted: stale/unavailable source status and explicitly labelled demo simulations; no claim of validated live official flood warnings. Fresh source discovery remains open for Task 3.
+- [x] Q3 accepted: fixed Danger footer/fallback and two deterministic action targets, vehicle first; no safety/arrival-time guarantees.
+- [ ] Settle exact translations/placeholders, target configuration and confirmation semantics in their respective tasks.
 - [ ] Confirm public/demo/report exposure policy and availability of project/bot/testers/sourced places.
 - [ ] Confirm proposed external-behaviour test seams before affected implementation; preserve the user-mandated Section 12 task granularity.
 - [x] Parent published specification issue #1 and Task 1–22 issues #2–23; unresolved decisions remain attached to affected tasks. Publication does not authorize implementation.
-- [x] Astra checked published Task 1 and Task 18 for parent linkage, Task N gates, no-CI rules and Friday/deployed prerequisites; no implementation is claimed.
-- [ ] Establish an agreed review baseline before implementation and use actual non-empty diffs for Matt review.
+- [x] Astra checked published Task 1 and Task 18 for parent linkage, Task N gates, no-CI rules and deployed prerequisites (calendar gate later removed by user); no implementation is claimed.
+- [x] Capture Task 1 review baseline bb1b098 (same tree as task-start GitButler workspace HEAD); use its non-empty committed diff for Matt review.
 
 ## Execution contract
 
-Astra coordinates Sol, inspects actual changes and local checks, sends defects back and rechecks corrections before completion is reported. Matt review runs independent Standards and Spec axes; findings return to Sol and are rechecked. A checkbox is marked only with observed evidence. Skill-required review agents run only for actual implementation review, not to create premature implementation. No Sol implementation has begun.
+Astra coordinates Sol, inspects actual changes and local checks, sends defects back and rechecks corrections before completion is reported. Matt review runs independent Standards and Spec axes; findings return to Sol and are rechecked. A checkbox is marked only with observed evidence. Skill-required review agents run only for actual implementation review, not to create premature implementation. Task 1 is in progress under Astra coordination; no later task is authorized.
 
-The ordered workflow remains Tasks 1–22, with explicit user confirmation before each next task. Thursday includes all Musts; Friday Shoulds require deployed Tasks 1–17. Stretch is pitch-only. Review policy proposal: each task uses its approved baseline, with full integration review after Task 17; agree the baseline protocol before coding.
+The ordered workflow remains Tasks 1–22, with explicit user confirmation before each next task. Dates are targets and work may finish earlier; Shoulds may start earlier than Friday only after Tasks 1–17 are deployed and accepted. Stretch is pitch-only. Review uses each task-start committed baseline; Task 1 baseline is bb1b098. User authorization includes the review/correction loop.
 
 ## Per-task gates
 
@@ -40,10 +41,10 @@ The ordered workflow remains Tasks 1–22, with explicit user confirmation befor
 
 Scope: Must/foundation. Deliverable: Local API health and blank dashboard run from a documented monorepo.
 
-- [ ] Astra task brief and acceptance agreed; blockers satisfied.
-- [ ] Sol implements only this task.
-- [ ] Relevant local checks run; results captured.
-- [ ] Astra inspects files and results, returns defects to Sol, and rechecks corrections.
+- [x] Astra task brief written; user-authorized scope and acceptance clear; blockers satisfied.
+- [x] Sol implemented only Task 1 scaffold.
+- [x] Relevant local checks passed; results recorded in task-01-verification.md.
+- [x] Astra inspected actual source, real health HTTP response and rendered browser page; Sol lint correction passed the final gate.
 - [ ] Matt Standards review completed; relevant findings corrected and rechecked.
 - [ ] Matt Spec review completed; relevant findings corrected and rechecked.
 - [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
@@ -259,7 +260,7 @@ Scope: Must/foundation. Deliverable: Deployed Must journey survives expected fai
 
 ### Task 18 — Offline card
 
-Scope: Should — Friday and deployed Tasks 1–17 required. Deliverable: At Watch or on request, owner receives a multilingual image that can be saved offline.
+Scope: Should — deployed Tasks 1–17 required; earlier completion allowed. Deliverable: At Watch or on request, owner receives a multilingual image that can be saved offline.
 
 - [ ] Astra task brief and acceptance agreed; blockers satisfied.
 - [ ] Sol implements only this task.
@@ -272,7 +273,7 @@ Scope: Should — Friday and deployed Tasks 1–17 required. Deliverable: At Wat
 
 ### Task 19 — Insurance check
 
-Scope: Should — Friday and deployed Tasks 1–17 required. Deliverable: Owner uploads a policy and receives cautious extracted coverage and estimated shortfall information.
+Scope: Should — deployed Tasks 1–17 required; earlier completion allowed. Deliverable: Owner uploads a policy and receives cautious extracted coverage and estimated shortfall information.
 
 - [ ] Astra task brief and acceptance agreed; blockers satisfied.
 - [ ] Sol implements only this task.
@@ -285,7 +286,7 @@ Scope: Should — Friday and deployed Tasks 1–17 required. Deliverable: Owner 
 
 ### Task 20 — Waste sorting
 
-Scope: Should — Friday and deployed Tasks 1–17 required. Deliverable: Loss report provides item disposal categories and aggregate estimated cleanup volumes.
+Scope: Should — deployed Tasks 1–17 required; earlier completion allowed. Deliverable: Loss report provides item disposal categories and aggregate estimated cleanup volumes.
 
 - [ ] Astra task brief and acceptance agreed; blockers satisfied.
 - [ ] Sol implements only this task.
@@ -298,7 +299,7 @@ Scope: Should — Friday and deployed Tasks 1–17 required. Deliverable: Loss r
 
 ### Task 21 — /check
 
-Scope: Should — Friday and deployed Tasks 1–17 required. Deliverable: Any user shares a location to view current nearby warnings and listed destinations.
+Scope: Should — deployed Tasks 1–17 required; earlier completion allowed. Deliverable: Any user shares a location to view current nearby warnings and listed destinations.
 
 - [ ] Astra task brief and acceptance agreed; blockers satisfied.
 - [ ] Sol implements only this task.
@@ -311,7 +312,7 @@ Scope: Should — Friday and deployed Tasks 1–17 required. Deliverable: Any us
 
 ### Task 22 — Learning loop
 
-Scope: Should — Friday and deployed Tasks 1–17 required. Deliverable: Owner feedback produces transparent outcome metrics and constrained area calibration.
+Scope: Should — deployed Tasks 1–17 required; earlier completion allowed. Deliverable: Owner feedback produces transparent outcome metrics and constrained area calibration.
 
 - [ ] Astra task brief and acceptance agreed; blockers satisfied.
 - [ ] Sol implements only this task.

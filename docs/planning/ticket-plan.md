@@ -4,18 +4,18 @@ The user authorized GitHub issue preparation/publication and confirmed Task N ga
 
 Every task after Task 1 is blocked by the preceding task **as a sequencing rule**; this does not claim every preceding task is a technical dependency. The ordered chain is a deliberate user constraint that overrides generic advice to parallelize independent tickets. Every task includes Astra coordination, Sol corrections, relevant local tests and Matt Standards/Spec review against the agreed baseline.
 
-PROPOSED schedule correction: Task 15 follows Task 14 on Thursday; Tasks 16–17 start Friday. Tasks 18–22 are Friday-only Shoulds and may start only after Tasks 1–17 pass on deployed URLs. Stretch features are pitch-only. Do not silently substitute a synthetic feed for a live official feed.
+APPROVED order: Task 15 follows Task 14 for the Must deployment target. Dates allow earlier progress; Task N gates remain. Tasks 18–22 may start only after Tasks 1–17 pass on deployed URLs. Stretch features are pitch-only. Do not silently substitute a synthetic feed for a live official feed.
 
 
 ## 01 — Repo + scaffolding
 
-**Blocked by:** No implementation-task blockers; wait for user Task 1 instruction. Future-task decisions do not block scaffolding.
+**Blocked by:** No implementation-task blockers; user explicitly authorized Task 1. Future-task decisions do not block scaffolding.
 
 **What it delivers:** Local API health and blank dashboard run from a documented monorepo.
 
 **Acceptance:** API health returns success; frontend opens locally; example environment contains no secrets; no prohibited automation.
 
-**Proposed issue label:** ready-for-agent — subject to blockers and explicit Task N instruction; not started.
+**Status:** In progress under Astra coordination with 6.1 Sol; local checks and reviews pending.
 
 ## 02 — GCP setup script
 
@@ -75,7 +75,7 @@ PROPOSED schedule correction: Task 15 follows Task 14 on Thursday; Tasks 16–17
 
 **Acceptance:** Radius selection works; recipients receive their language; Pub/Sub is visibly used; BigQuery records sends; Danger bypasses generated text; demo access policy is applied.
 
-**Proposed issue label:** needs-info — Confirm fixed Danger variant, action deadlines and public demo access policy.
+**Proposed issue label:** needs-info — Danger/fallback and two-target policy accepted; settle exact fixed strings, target configuration and public demo access.
 
 ## 08 — Safe points + vehicle rescue
 
@@ -105,7 +105,7 @@ PROPOSED schedule correction: Task 15 follows Task 14 on Thursday; Tasks 16–17
 
 **Acceptance:** Scheduler OIDC enforced; stale observations excluded; escalation deduplicated; all language Danger paths emit only approved fixed content and route button.
 
-**Proposed issue label:** needs-info — Resolve Danger footer/fallback and stale observation policy.
+**Proposed issue label:** needs-info — Implement approved fixed footer/fallback and stale exclusion; exact strings/freshness configuration require task-level decision.
 
 ## 11 — Baseline inventory + lift-first
 
@@ -155,7 +155,7 @@ PROPOSED schedule correction: Task 15 follows Task 14 on Thursday; Tasks 16–17
 
 **Acceptance:** Shop levels, sourced places, parking, event radii and danger zones render; polling updates every three seconds; counters do not duplicate; no private recipient data; unavailable Stretch layers omitted.
 
-**Proposed issue label:** needs-info — Agree Thursday scheduling to satisfy Must deadline; omit Stretch depth dots.
+**Proposed issue label:** needs-info — Thursday deployment target/order accepted; exact Must layers exclude pitch-only Stretch depth dots.
 
 ## 16 — Seed demo data + redeploy
 
@@ -179,7 +179,7 @@ PROPOSED schedule correction: Task 15 follows Task 14 on Thursday; Tasks 16–17
 
 ## 18 — Offline card
 
-**Blocked by:** Task 17 complete (ordered execution gate). Friday only; all Tasks 1–17 deployed and accepted.
+**Blocked by:** Task 17 complete (ordered execution gate). All Tasks 1–17 deployed and accepted; calendar does not prevent earlier progress.
 
 **What it delivers:** At Watch or on request, owner receives a multilingual image that can be saved offline.
 
@@ -189,7 +189,7 @@ PROPOSED schedule correction: Task 15 follows Task 14 on Thursday; Tasks 16–17
 
 ## 19 — Insurance check
 
-**Blocked by:** Task 18 complete (ordered execution gate). Friday only; all Tasks 1–17 deployed and accepted.
+**Blocked by:** Task 18 complete (ordered execution gate). All Tasks 1–17 deployed and accepted; calendar does not prevent earlier progress.
 
 **What it delivers:** Owner uploads a policy and receives cautious extracted coverage and estimated shortfall information.
 
@@ -199,7 +199,7 @@ PROPOSED schedule correction: Task 15 follows Task 14 on Thursday; Tasks 16–17
 
 ## 20 — Waste sorting
 
-**Blocked by:** Task 19 complete (ordered execution gate). Friday only; all Tasks 1–17 deployed and accepted.
+**Blocked by:** Task 19 complete (ordered execution gate). All Tasks 1–17 deployed and accepted; calendar does not prevent earlier progress.
 
 **What it delivers:** Loss report provides item disposal categories and aggregate estimated cleanup volumes.
 
@@ -209,7 +209,7 @@ PROPOSED schedule correction: Task 15 follows Task 14 on Thursday; Tasks 16–17
 
 ## 21 — /check
 
-**Blocked by:** Task 20 complete (ordered execution gate). Friday only; all Tasks 1–17 deployed and accepted.
+**Blocked by:** Task 20 complete (ordered execution gate). All Tasks 1–17 deployed and accepted; calendar does not prevent earlier progress.
 
 **What it delivers:** Any user shares a location to view current nearby warnings and listed destinations.
 
@@ -219,7 +219,7 @@ PROPOSED schedule correction: Task 15 follows Task 14 on Thursday; Tasks 16–17
 
 ## 22 — Learning loop
 
-**Blocked by:** Task 21 complete (ordered execution gate). Friday only; all Tasks 1–17 deployed and accepted.
+**Blocked by:** Task 21 complete (ordered execution gate). All Tasks 1–17 deployed and accepted; calendar does not prevent earlier progress.
 
 **What it delivers:** Owner feedback produces transparent outcome metrics and constrained area calibration.
 

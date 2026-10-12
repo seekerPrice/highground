@@ -2,11 +2,13 @@
 
 ## Authority and scope
 
-Follow the user's current instructions and the source at docs/spec/01-build-spec.md. The approved GitHub spec and task issue record resolved decisions; planning drafts do not override the source. If sources conflict, surface the conflict before implementing that behaviour.
+Follow the user's current instructions and the source at docs/spec/01-build-spec.md, with approved amendments in docs/planning/approved-decisions.md. The GitHub spec and task issues record resolved decisions; planning drafts do not override the source. If sources conflict, surface the conflict before implementing that behaviour.
 
 Work on one Section 12 task at a time. Wait for the user's Task N instruction and confirmation before advancing. Astra (gpt-6-astra) coordinates 6.1 Sol (gpt-6.1-sol): brief Sol, inspect actual changes and local checks, return defects to Sol, recheck corrections, then report. Run Matt Standards and Spec reviews against an agreed fixed baseline; keep the two axes distinct and correct/recheck findings.
 
-Use only the Section 5 stack. Keep modules small and typed; validate external and model responses. Avoid abstractions without a current requirement. All Musts must be deployed Thursday 15 October 2026. Shoulds are Friday-only after Tasks 1–17 work on deployed URLs. Stretch is pitch-only.
+For ordinary project decisions presented with a recommended option, the user authorizes adopting that option after five minutes without a reply. Record the choice and its reasoning. This does not remove explicit Task N gates or supply missing credentials or facts. Do not delay routine choices that are already authorized.
+
+Use only the Section 5 stack. Keep modules small and typed; validate external and model responses. Avoid abstractions without a current requirement. Calendar allocations are targets, not earliest-start restrictions: finish and advance earlier when the user authorizes the next task. All Musts, including Task 15's dashboard, target deployment by Thursday 15 October 2026. Shoulds may start earlier than Friday only after Tasks 1–17 work on deployed URLs and the user authorizes the task. Keep task order and Task N gates. Stretch is pitch-only. Earlier progress does not extend the code-freeze or submission deadlines.
 
 ## Safety, honesty and privacy
 
