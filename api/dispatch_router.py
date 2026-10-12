@@ -3,11 +3,26 @@ import hmac
 from contextlib import asynccontextmanager
 
 from fastapi import APIRouter, HTTPException, Request
-from pydantic import ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from typing import Literal
+from api.models import Level
 
 from api.dispatch import DispatchService, create_dispatch_service
 from api.dispatch_models import EventRequest
 from api.dispatch_store import RequestConflict
+
+
+class SimulationRequest(BaseModel):
+    """Public DTO deliberately excludes trusted internal dispatch controls."""
+    model_config = ConfigDict(extra='forbid', strict=True, allow_inf_nan=False)
+    request_id: str = Field(min_length=1, max_length=128, pattern=r'^[A-Za-z0-9_.:-]+$')
+    source: Literal['demo'] = 'demo'
+    level: Level
+    lat: float = Field(ge=-90, le=90)
+    lng: float = Field(ge=-180, le=180)
+    radius_m: int = Field(default=1000, ge=1, le=10000)
+    confidence: float = Field(default=1, ge=0, le=1)
+    reason: str = Field(default='Simulated warning', min_length=1, max_length=512)
 
 
 def create_dispatch_router(settings, service: DispatchService | None = None) -> APIRouter:
@@ -40,9 +55,11 @@ def create_dispatch_router(settings, service: DispatchService | None = None) -> 
             if len(payload) > 16_000:
                 raise HTTPException(413, 'Event request too large')
         try:
-            event = EventRequest.model_validate_json(bytes(payload))
-            if 'radius_m' not in event.model_fields_set:
-                event = EventRequest.model_validate(event.model_dump() | {'radius_m': configuration.default_alert_radius_m})
+            public = SimulationRequest.model_validate_json(bytes(payload))
+            facts = public.model_dump()
+            if 'radius_m' not in public.model_fields_set:
+                facts['radius_m'] = configuration.default_alert_radius_m
+            event = EventRequest.model_validate(facts)
             if event.source != 'demo':
                 raise ValueError('Demo endpoint accepts simulated events only')
         except (ValueError, ValidationError):

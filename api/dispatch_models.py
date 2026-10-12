@@ -15,6 +15,11 @@ class EventRequest(BaseModel):
     lng: float = Field(ge=-180, le=180)
     radius_m: int = Field(default=1000, ge=1, le=10_000)
     confidence: float = Field(default=1, ge=0, le=1)
+    reporter_shop_id: str | None = Field(default=None, min_length=1, max_length=128)
+    processing_started_at: AwareDatetime | None = None
+    simulation: bool = False
+    episode_id: str | None = Field(default=None, min_length=1, max_length=128, pattern=r'^[A-Za-z0-9_.:-]+$')
+    warning_structure: Literal['warning_intro_fallback'] | None = None
     reason: str = Field(default='Simulated warning', min_length=1, max_length=512)
 
 
@@ -60,6 +65,16 @@ class Destination(BaseModel):
     lng: float = Field(ge=-180, le=180)
     source: str = Field(min_length=1, max_length=500)
 
+    safe_point_id: str | None = None
+    type: Literal['pps', 'parking', 'high_ground'] | None = None
+    source_date: str | None = None
+    designation_context: str | None = None
+    coordinate_source: str | None = None
+    opening_status: Literal['unknown', 'closed'] = 'unknown'
+    min_level: int | None = Field(default=None, ge=1, le=100)
+    min_level_source: str | None = None
+    coordinate_provenance: str | None = None
+
     @property
     def route_link(self) -> str:
         return f'https://www.google.com/maps/dir/?api=1&destination={self.lat},{self.lng}'
@@ -74,6 +89,10 @@ class ActionSnapshot(BaseModel):
     vehicle_target_at: AwareDatetime | None = None
     stock_target_at: AwareDatetime | None = None
     destination: Destination | None = None
+    parking_destination: Destination | None = None
+    shelter_destination: Destination | None = None
+    vehicle_action_id: str | None = None
+    episode_id: str | None = None
 
     @model_validator(mode='after')
     def ordered_targets(self) -> 'ActionSnapshot':

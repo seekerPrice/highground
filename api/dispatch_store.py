@@ -23,17 +23,22 @@ class FirestoreDispatchStore:
 
     def ensure_event(self, request: EventRequest, now: datetime) -> dict:
         event_id = sha256(f'{request.source}:{request.request_id}'.encode()).hexdigest()
-        fingerprint = sha256(request.model_dump_json().encode()).hexdigest()
+        fingerprint = sha256(request.model_dump_json(exclude={'processing_started_at'}).encode()).hexdigest()
         ref = self.client.collection(self.events).document(event_id)
         record = dict(request.model_dump(), event_id=event_id, fingerprint=fingerprint,
-                      created_at=now, is_demo=request.source == 'demo', prepared=False,
+                      created_at=now, processing_started_at=request.processing_started_at or now,
+                      is_demo=request.source == 'demo' or request.simulation, prepared=False,
                       alert_ids=[], status='pending', pubsub='pending', bigquery='pending')
         try:
             ref.create(record)
         except AlreadyExists:
             record = ref.get().to_dict()
             if record.get('fingerprint') != fingerprint:
-                raise RequestConflict('Request identity was already used for different facts')
+                # Old records predate optional internal fields. Compare semantic
+                # facts, never receipt metadata; a retry cannot change first receipt.
+                facts = request.model_dump(exclude={'processing_started_at'})
+                if any(record.get(key, EventRequest.model_fields[key].default) != value for key, value in facts.items()):
+                    raise RequestConflict('Request identity was already used for different facts')
         return record
 
     def get_event(self, event_id: str) -> dict:

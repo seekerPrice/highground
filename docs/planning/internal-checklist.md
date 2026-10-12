@@ -27,7 +27,8 @@ These apply to the affected task; they do not globally block Task 1 scaffolding.
 - [x] User approved 90-minute freshness and 15/30-minute action targets.
 - [x] Constrained Warning composition adopted under the user's five-minute default; configured Gemini selects approved localized structures with deterministic facts and fixed fallback. Free-form narrowing is explicit in approved-decisions.md.
 - [x] Root established dedicated project/billing, bot access and local emulators; configured Vertex models passed real calls.
-- [ ] Consenting tester journey and sourced destination review remain; hosting is deferred.
+- [x] Six explicitly synthetic shops, the consenting own-chat and virtual recipients are the approved local acceptance scope; adopted after the five-minute decision window. Actual second-phone and hosted acceptance remain pending.
+- [x] Two historical destination sources and coordinates reviewed; current opening and parking floor remain unknown and are labelled accordingly.
 - [ ] Confirm proposed external-behaviour test seams before affected implementation; preserve the user-mandated Section 12 task granularity.
 - [x] Parent published specification issue #1 and Task 1–22 issues #2–23; unresolved decisions remain attached to affected tasks. Publication was followed by explicit user authorization to implement all tasks.
 - [x] Astra checked published Task 1 and Task 18 for parent linkage, Task N gates, no-CI rules and deployed prerequisites (calendar gate later removed by user); no implementation is claimed.
@@ -141,9 +142,9 @@ Scope: Must/foundation. Deliverable: A simulated event reaches eligible recipien
 Scope: Must/foundation. Deliverable: Alerts include sourced parking/evacuation destinations and record vehicle confirmations.
 
 - [x] Astra brief tasks-08-09-brief.md recorded; dispatched in parallel from reviewed baseline 8818a93 with shared-file ownership.
-- [ ] Sol implements only this task.
-- [ ] Relevant local checks run; results captured.
-- [ ] Astra inspects files and results, returns defects to Sol, and rechecks corrections.
+- [x] Sol implemented the bounded Task 8 candidate; shared Task 9 webhook wiring is included.
+- [x] Focused checks recorded in tasks-08-09-verification.md; complete local gate remains pending.
+- [x] Astra inspected actual Task 8 files, rechecked corrections and independently passed 30 vehicle/webhook tests.
 - [ ] Matt Standards review completed; relevant findings corrected and rechecked.
 - [ ] Matt Spec review completed; relevant findings corrected and rechecked.
 - [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
@@ -154,9 +155,9 @@ Scope: Must/foundation. Deliverable: Alerts include sourced parking/evacuation d
 Scope: Must/foundation. Deliverable: Uploaded photos preserve downloaded bytes, record hashes and produce validated nearby alerts.
 
 - [x] Astra brief tasks-08-09-brief.md recorded; dispatched in parallel from reviewed baseline 8818a93 with shared-file ownership.
-- [ ] Sol implements only this task.
-- [ ] Relevant local checks run; results captured.
-- [ ] Astra inspects files and results, returns defects to Sol, and rechecks corrections.
+- [x] Sol implemented the bounded Task 9 candidate and froze it for integrated acceptance.
+- [x] Focused and actual configured multimodal checks recorded; full all-emulator gate remains pending after BigQuery OOM recovery.
+- [x] Astra inspected actual files, returned/rechecked corrections and independently passed 22 photo/persisted-payload tests (one BigQuery test explicitly deselected).
 - [ ] Matt Standards review completed; relevant findings corrected and rechecked.
 - [ ] Matt Spec review completed; relevant findings corrected and rechecked.
 - [ ] Acceptance met, deployment verified where required, and completion reported with evidence.

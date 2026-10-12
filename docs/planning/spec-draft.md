@@ -79,7 +79,7 @@ The real-source polling capability must expose source health honestly. The inspe
 - A fresh official flood feed and authoritative timezone attribution for naive source timestamps remain unavailable. Weather district mapping needs verified geography; no substring-based land inference from marine text.
 - Historical destination designations and coordinates are sourced separately. Current opening status and parking floor restrictions remain unknown unless supported by an official current source; labels must preserve that uncertainty.
 - Machine-generated translations are committed but remain `_reviewed:false` until native-speaker review. Fixed-template structure does not establish translation quality.
-- Two consenting phone testers and real shop videos are still needed for the specified real-user acceptance. Synthetic fixtures and a real model schema/media probe can verify software paths but cannot establish valuation accuracy for a real shop.
+- The approved local acceptance scope is six synthetic shops, the consenting own-chat and virtual recipients. Actual two-phone acceptance and real shop videos remain pending for real-user validation; these do not block the approved local Must gate. Synthetic fixtures and a real model schema/media probe cannot establish valuation accuracy for a real shop.
 - Local emulators verify application behaviour, not production IAM, GCS signed-URL enforcement, cloud resource provisioning or Cloud Run/Scheduler acceptance. These stay pending until hosting is authorized.
 - The publicly inspected portal confirms track fit but currently supplies no additional accessible submission resources or authoritative deadline update; handover deadlines remain the planning reference.
 

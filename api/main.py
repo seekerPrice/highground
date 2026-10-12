@@ -41,7 +41,7 @@ def create_app(settings: Settings | None = None, handler: TelegramHandler | None
         except (ValueError, ValidationError, RecursionError):
             raise HTTPException(400, "Invalid Telegram update") from None
         active = application.state.telegram_handler
-        if update.message is not None and update.message.date is None and (active is None or active.onboarding is not None):
+        if update.message is not None and update.message.date is None and (active is None or active.onboarding is not None or active.photos is not None):
             raise HTTPException(400, "Telegram message timestamp is required")
         try:
             active = application.state.telegram_handler
@@ -58,7 +58,21 @@ def create_app(settings: Settings | None = None, handler: TelegramHandler | None
                 client = create_firestore_client(configuration)
                 store = OnboardingStore(client)
                 onboarding = Onboarding(store, create_session_service(configuration), hash_salt=configuration.hash_salt, bot_username=configuration.telegram_bot_username, geocoder=Geocoder(store, user_agent=configuration.geocoding_user_agent, base_url=configuration.geocoding_base_url))
-                active = TelegramHandler(FirestoreInbox(client), TelegramAPI(configuration.telegram_bot_token), onboarding)
+                from api.vehicle_confirmations import VehicleActionStore, VehicleConfirmationService
+                from api.tools.cloud_events import create_event_sinks
+
+                # Analytics clients remain lazy until a completion actually needs a sink.
+                class ConfirmationSinks:
+                    def __init__(self):
+                        self.active = None
+                    def insert_confirmation(self, record):
+                        if self.active is None:
+                            self.active = create_event_sinks(configuration)
+                        self.active.insert_confirmation(record)
+                confirmations = VehicleConfirmationService(VehicleActionStore(client), ConfirmationSinks(), hash_salt=configuration.hash_salt)
+                from api.photo_reports import LazyPhotoReportService
+                photos = LazyPhotoReportService(configuration, dispatch_service=dispatch_service)
+                active = TelegramHandler(FirestoreInbox(client), TelegramAPI(configuration.telegram_bot_token), onboarding, confirmations, photos)
                 application.state.telegram_handler = active
             await active.handle(update)
         except Exception:

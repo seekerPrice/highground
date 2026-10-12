@@ -1,0 +1,23 @@
+# Tasks 12 and 13 — recovery estimate and private report
+
+Prepared for later Must implementation after baseline inventory, shared ingestion and active-Danger/recovery contracts are ready. This is not completed work. Keep FastAPI/ADK/Vertex, Firestore/private Storage, and Next.js/Tailwind. Use frontend-design.md for the report's visual direction; no Should/Stretch panels.
+
+## Recovery service and conversation
+
+`/report` or the after-flood button starts an explicit recovery declaration step, not an automatic clearance. Official Danger requires fresh explicit source recovery; photo-only Danger permits the approved owner-declared recovery path only when no official Danger applies. Only an authorised shop owner can start this workflow. Recheck immediately before asking for an after-video and after asynchronous work so a racing Danger prevents further capture/property prompts. An unsolicited upload can still be preserved without an unsafe follow-up.
+
+Reuse immutable ingestion and the actual ADK loss-agent path with configured Pro. Capture the selected baseline inventory/media identity before comparison; a concurrent inventory refresh cannot change the comparison halfway through. Validate a strict comparison schema against that baseline: no invented item IDs, finite nonnegative estimated losses, each item loss no greater than its baseline estimate, aggregate equal to validated item losses and no greater than baseline total. Missing from the camera view is uncertain absence, not automatic destruction or full loss. Preserve evidence timestamps and confidence/coverage limits; the summary must not invent an insurer's acceptance or compensation amount.
+
+Persist a resumable report operation keyed to the owner/workflow/upload, so duplicate updates, model retries and restarts reuse the same logical report. Store model assessment separately from deterministic validated amounts and retain source media links. Invalid/truncated output gets one bounded retry and an understandable recoverable state, never a fabricated successful report.
+
+M6 also includes an optional recovery water-line photo. Reuse Task 9 ingestion with the explicit `waterline_photo` kind and associate it with this recovery report's evidence, including confirmed location and confidence/attribution limits. Apply the same active-Danger prompt guard. Context routing must not treat a recovery photo as a new neighbour flood report. The flood-memory map and water-depth mapping remain Stretch/pitch-only; accepting this evidence does not implement those features.
+
+Generate an unguessable bearer capability for report access. Do not expose private report data through sequential IDs, shop IDs or a public collection scan. Keep raw recipient IDs, agent sessions and private storage internals out of the report response. Avoid recording bearer tokens or token-bearing request paths in application logs. A capability authorises its own report and related media only.
+
+## API and report page
+
+Define typed public report, item-comparison and evidence DTOs, with estimate/simulation/confidence attribution. The backend report route and every media/verification route enforce the same report-to-media ownership boundary. Media stays private; local authenticated streaming/proxying must not imply that emulator signed URLs enforce expiry. Bound reads to the ingestion limit and detect oversized or mismatched stored bytes. `File integrity verified` appears only after recomputing the stored bytes' hash against the recorded evidence facts; it does not authenticate the depicted scene, time, location or valuation.
+
+Build `/report/[id]` as a printable owner document following frontend-design.md: comparison table, estimated total, uncertainty/coverage explanation, before/after evidence receipts, explicit verification control and print CSS. Render user/model text safely. Provide distinct loading, unavailable/invalid capability, media unavailable, integrity mismatch and transient failure states. Keep capability access scoped when fetching media. Do not fetch remote fonts at build time.
+
+Verify owner versus worker/outsider access, report/media cross-binding, replay/restart, baseline refresh races, missing-item uncertainty, invalid totals, oversized/integrity-failed originals, dangerous recovery/prompt races and strict model output. Run one actual configured-model synthetic pair probe with clear generated/still-derived attribution; it proves neither real-shop valuation accuracy nor temporal walkthrough understanding. Inspect real desktop/mobile rendering and printed output, including long item names and failures. Record actual results, then Astra correction review and separate Matt Standards/Spec axes.

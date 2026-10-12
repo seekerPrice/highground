@@ -45,6 +45,8 @@ Current milestone: onboarding lane owns Task 5 and shared webhook/settings/catal
 
 Record local implementation/acceptance separately from deferred provisioning and deployment. Never keep local Should work artificially blocked on a cloud action the user explicitly deferred, once the full local Must gate has passed.
 
+Approved local test scope: six explicitly synthetic shops, the consenting own-chat and virtual recipients. Keep actual second-phone and hosted acceptance pending separately; do not describe virtual sends as real-neighbour Telegram delivery. See approved-decisions.md for the recorded decision window.
+
 Baseline for the Tasks 2/3/4/6 foundation: 142178f. Candidate: 9df978d. Each lane runs focused local checks and sends concrete failures to Astra. Astra inspects files/results, directs corrections, and rechecks affected behaviour. Candidate commits receive independent Matt Standards/Spec review when execution agents release slots. Missing external credentials never count as successful external verification; continue other unblocked work while root resolves facts.
 
 The foundation and privacy correction passed both axes in final commit 4666575. That commit is the Tasks 5/7 review baseline; final candidate 8818a93 passed both Matt axes after the distance correction. Local synthetic fixtures do not substitute for native translation review, two consenting phone testers, real-shop valuation accuracy or production IAM checks.

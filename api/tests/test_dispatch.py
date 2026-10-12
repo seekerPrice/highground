@@ -184,13 +184,13 @@ def test_router_operator_mode_validation_and_conflict():
     async def run(settings,headers=None,payload=None):
         app=FastAPI();app.include_router(create_dispatch_router(settings,active))
         async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app),base_url='http://test') as client:
-            return await client.post('/demo/simulate-warning',headers=headers,json=payload or request().model_dump())
+            return await client.post('/demo/simulate-warning',headers=headers,json=payload or request().model_dump(include={'request_id','source','level','lat','lng','radius_m','confidence','reason'}))
     settings=Settings(demo_mode=True,operator_token='synthetic-token')
     assert asyncio.run(run(settings)).status_code==403
     assert asyncio.run(run(Settings(operator_token='synthetic-token'),{'Authorization':'Bearer synthetic-token'})).status_code==403
     headers={'Authorization':'Bearer synthetic-token'}
     assert asyncio.run(run(settings,headers)).status_code==200
-    assert asyncio.run(run(settings,headers,request('warning').model_dump())).status_code==409
+    assert asyncio.run(run(settings,headers,request('warning').model_dump(include={'request_id','source','level','lat','lng','radius_m','confidence','reason'}))).status_code==409
     assert asyncio.run(run(settings,headers,request().model_dump()|{'source':'jps'})).status_code==400
 
 
@@ -306,6 +306,10 @@ def test_factory_danger_without_vertex_configuration_never_initializes_model(mon
     import api.tools.cloud_events as cloud
     import api.tools.telegram as telegram
     store=Store([shop()]);bot=Bot();sinks=Sinks()
+    import api.destinations as destinations
+    monkeypatch.setattr(destinations.DestinationLookup, 'nearest', lambda *args: None)
+    import api.vehicle_confirmations as confirmations
+    monkeypatch.setattr(confirmations.VehicleActionStore, 'supersede', lambda *args, **kwargs: None)
     monkeypatch.setattr(firestore,'create_firestore_client',lambda settings:object())
     monkeypatch.setattr(dispatch,'FirestoreDispatchStore',lambda client:store)
     monkeypatch.setattr(cloud,'create_event_sinks',lambda settings:sinks)
