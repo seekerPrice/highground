@@ -273,7 +273,8 @@ Scope: Must/foundation. Deliverable: Deployed Must journey survives expected fai
 
 Scope: Should — full local Must acceptance required; hosting deferred. Deliverable: At Watch or on request, owner receives a multilingual image that can be saved offline.
 
-- [ ] Astra task brief and acceptance agreed; blockers satisfied.
+- [x] Preparatory file/interface/test brief written in tasks-18-22-brief.md; source and current modules inspected. Planning only.
+- [ ] Astra task brief and acceptance agreed; blockers satisfied. Full local Must/PDF gate and task-specific decisions remain open; no Sol dispatch or implementation.
 - [ ] Sol implements only this task.
 - [ ] Relevant local checks run; results captured.
 - [ ] Astra inspects files and results, returns defects to Sol, and rechecks corrections.
@@ -286,7 +287,8 @@ Scope: Should — full local Must acceptance required; hosting deferred. Deliver
 
 Scope: Should — full local Must acceptance required; hosting deferred. Deliverable: Owner uploads a policy and receives cautious extracted coverage and estimated shortfall information.
 
-- [ ] Astra task brief and acceptance agreed; blockers satisfied.
+- [x] Preparatory file/interface/test brief written in tasks-18-22-brief.md; source and current modules inspected. Planning only.
+- [ ] Astra task brief and acceptance agreed; blockers satisfied. Full local Must/PDF gate and task-specific decisions remain open; no Sol dispatch or implementation.
 - [ ] Sol implements only this task.
 - [ ] Relevant local checks run; results captured.
 - [ ] Astra inspects files and results, returns defects to Sol, and rechecks corrections.
@@ -299,7 +301,8 @@ Scope: Should — full local Must acceptance required; hosting deferred. Deliver
 
 Scope: Should — full local Must acceptance required; hosting deferred. Deliverable: Loss report provides item disposal categories and aggregate estimated cleanup volumes.
 
-- [ ] Astra task brief and acceptance agreed; blockers satisfied.
+- [x] Preparatory file/interface/test brief written in tasks-18-22-brief.md; source and current modules inspected. Planning only.
+- [ ] Astra task brief and acceptance agreed; blockers satisfied. Full local Must/PDF gate and task-specific decisions remain open; no Sol dispatch or implementation.
 - [ ] Sol implements only this task.
 - [ ] Relevant local checks run; results captured.
 - [ ] Astra inspects files and results, returns defects to Sol, and rechecks corrections.
@@ -312,7 +315,8 @@ Scope: Should — full local Must acceptance required; hosting deferred. Deliver
 
 Scope: Should — full local Must acceptance required; hosting deferred. Deliverable: Any user shares a location to view current nearby warnings and listed destinations.
 
-- [ ] Astra task brief and acceptance agreed; blockers satisfied.
+- [x] Preparatory file/interface/test brief written in tasks-18-22-brief.md; source and current modules inspected. Planning only.
+- [ ] Astra task brief and acceptance agreed; blockers satisfied. Full local Must/PDF gate and task-specific decisions remain open; no Sol dispatch or implementation.
 - [ ] Sol implements only this task.
 - [ ] Relevant local checks run; results captured.
 - [ ] Astra inspects files and results, returns defects to Sol, and rechecks corrections.
@@ -325,7 +329,8 @@ Scope: Should — full local Must acceptance required; hosting deferred. Deliver
 
 Scope: Should — full local Must acceptance required; hosting deferred. Deliverable: Owner feedback produces transparent outcome metrics and constrained area calibration.
 
-- [ ] Astra task brief and acceptance agreed; blockers satisfied.
+- [x] Preparatory file/interface/test brief written in tasks-18-22-brief.md; source and current modules inspected. Planning only.
+- [ ] Astra task brief and acceptance agreed; blockers satisfied. Full local Must/PDF gate and task-specific decisions remain open; no Sol dispatch or implementation.
 - [ ] Sol implements only this task.
 - [ ] Relevant local checks run; results captured.
 - [ ] Astra inspects files and results, returns defects to Sol, and rechecks corrections.
