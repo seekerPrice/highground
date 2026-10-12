@@ -100,5 +100,18 @@
   "stock_recorded": "Pengamanan stok dicatat sebagai penyelesaian yang dilaporkan sendiri dari cuplikan perkiraan yang ditampilkan.",
   "stock_already_recorded": "Cuplikan stok yang ditampilkan ini sudah pernah dicatat.",
   "video_update_optional": "Pembaruan video singkat 30 detik (opsional): /refresh",
-  "inventory_processing_unavailable": "Unggahan tidak dapat dinilai. Tidak ada inventaris atau penilaian baru yang dikonfirmasi. Coba /refresh nanti hanya ketika tidak ada Bahaya aktif."
+  "inventory_processing_unavailable": "Unggahan tidak dapat dinilai. Tidak ada inventaris atau penilaian baru yang dikonfirmasi. Coba /refresh nanti hanya ketika tidak ada Bahaya aktif.",
+  "recovery_owner_required": "Hanya pemilik toko terdaftar yang dapat memulai atau mengubah laporan pemulihan.",
+  "recovery_baseline_required": "Inventaris dasar yang terlihat diperlukan sebelum laporan pemulihan. Gunakan /inventory saat tidak ada Bahaya aktif.",
+  "recovery_declaration": "Nyatakan bahwa banjir telah usai dengan tombol atau /report confirm. Ini adalah pernyataan Anda, bukan bukti independen penyelesaian banjir. /cancel keluar dari alur kerja ini.",
+  "recovery_declare_button": "Banjir telah usai — Saya menyatakan pemulihan",
+  "recovery_after_request": "Saat tidak ada Bahaya aktif, kirimkan video pascabanjir berdurasi 30–45 detik (20 MB atau kurang). Garis dasar beku Anda akan dipertahankan. Foto garis air opsional dapat dilampirkan; /cancel untuk keluar.",
+  "recovery_blocked": "Pemulihan belum disetujui. Bahaya resmi, tidak dikenal, atau disimulasikan memerlukan jalur pemulihan resminya.",
+  "recovery_processing_unavailable": "Estimasi pemulihan tidak tersedia. Coba lagi unggahan yang sama ini nanti, atau gunakan /report untuk memulai percobaan baru dengan video lain saat tidak ada Bahaya aktif.",
+  "recovery_complete": "Laporan pemulihan dicatat dengan bukti privat. Ini adalah estimasi, bukan penilaian asuransi. Gunakan /waterline untuk melampirkan foto garis air opsional, atau /inventory untuk garis dasar baru.",
+  "recovery_estimate": "Taksiran estimasi kerugian: RM{value_rm}. Barang tidak dikenal dikecualikan.",
+  "recovery_estimate_unavailable": "Estimasi kerugian tidak tersedia: tidak ada barang garis dasar yang dapat dinilai. Kerugian tidak dikenal bukan berarti nol.",
+  "recovery_photo_received": "Foto garis air dilampirkan sebagai bukti privat di lokasi toko Anda yang dikonfirmasi. Tidak ada kedalaman air atau keaslian rekaman yang disimpulkan.",
+  "recovery_photo_request": "Saat tidak ada Bahaya aktif, kirimkan foto garis air opsional dari lokasi toko Anda yang dikonfirmasi. /cancel untuk keluar.",
+  "recovery_exited": "Masukan pemulihan ditutup. Gunakan /report untuk memulai kembali."
 }

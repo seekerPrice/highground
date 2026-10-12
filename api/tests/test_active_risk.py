@@ -2,6 +2,7 @@ import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC,datetime,timedelta
 from uuid import uuid4
+from hashlib import sha256
 import os
 import pytest
 from api.active_risk import ActiveRiskStore
@@ -407,3 +408,35 @@ def test_dispatch_mutating_risk_factory_uses_configured_cutoff(domain,monkeypatc
     monkeypatch.setattr(telegram,'TelegramAPI',lambda token:Bot())
     service=create_dispatch_service(Settings(gcp_project='highground-task10-tests',hash_salt='synthetic',telegram_bot_token='synthetic',official_max_age_minutes=5))
     assert service.active_risk.max_age==timedelta(minutes=5)
+
+
+def test_duplicate_poll_observations_do_not_upgrade_shared_read_locks(domain,monkeypatch):
+    """Three processes' duplicate reads need no competing write-lock upgrade."""
+    from threading import Barrier
+    from google.cloud.firestore_v1.document import DocumentReference
+    client,_,poll=domain;now=datetime.now(UTC)-timedelta(seconds=2)
+    warning=Warning(source='jps',source_id='station',level='warning',observed_at=now,geography=Geography(latitude=3.,longitude=101.),reason='Official indicator')
+    result=SourceResult(source='jps',status='current',checked_at=now,warnings=(warning,),records_current=1)
+    poll.observe(result)
+    reference=client.collection(poll.states).document(sha256(b'jps:station').hexdigest())
+    before=reference.get();gate=Barrier(3,timeout=5);original_get=DocumentReference.get;original_transaction=client.transaction
+    def synchronized_get(self,*args,**kwargs):
+        snapshot=original_get(self,*args,**kwargs)
+        if self.path==reference.path and kwargs.get('transaction') is not None:gate.wait()
+        return snapshot
+    monkeypatch.setattr(DocumentReference,'get',synchronized_get)
+    # Expose the first real lock conflict promptly, rather than masking it with
+    # ten emulator retries. Production's retry budget remains unchanged.
+    monkeypatch.setattr(client,'transaction',lambda *args,**kwargs:original_transaction(max_attempts=1))
+    def observe_duplicate(_):
+        try:poll.observe(result);return None
+        except ValueError as error:return type(error.__cause__).__name__+': '+str(error.__cause__)
+    with ThreadPoolExecutor(max_workers=3) as executor:errors=list(executor.map(observe_duplicate,range(3)))
+    assert errors==[None,None,None]
+    assert reference.get().update_time==before.update_time
+    assert len(poll.pending())==1
+    # A later poll check of this same observation refreshes source health only.
+    monkeypatch.setattr(DocumentReference,'get',original_get)
+    poll.observe(result.model_copy(update={'checked_at':now+timedelta(seconds=1)}))
+    assert reference.get().update_time==before.update_time
+    assert client.collection(poll.status).document('jps').get().to_dict()['checked_at']==(now+timedelta(seconds=1)).isoformat().replace('+00:00','Z')

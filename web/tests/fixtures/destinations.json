@@ -1,0 +1,38 @@
+[
+  {
+    "safe_point_id": "pasar-moden-sri-muda-parking",
+    "name": "Pasar Moden Sri Muda Seksyen 25",
+    "type": "parking",
+    "lat": 3.0314414,
+    "lng": 101.5356055,
+    "address_text": "Pasar Moden Sri Muda, Seksyen 25, Shah Alam, Selangor",
+    "source": "https://www.astroawani.com/berita-malaysia/persediaan-banjir-parkir-bertingkat-di-pasar-moden-sri-muda-dibuka-390371",
+    "source_date": "2022-11-09",
+    "designation_context": "attributed_report",
+    "coordinate_source": "https://mywc.kpkt.gov.my/toilet/pasar-moden-sri-muda-seksyen-25",
+    "coordinate_provenance": "KPKT facility map coordinates; not a parking entrance or floor designation",
+    "verified": true,
+    "opening_status": "unknown",
+    "min_level": null,
+    "min_level_source": null,
+    "is_demo": false
+  },
+  {
+    "safe_point_id": "dewan-kenanga-pps",
+    "name": "Dewan Kenanga, Seksyen 28",
+    "type": "pps",
+    "lat": 3.0051556,
+    "lng": 101.560237,
+    "address_text": "Jalan Dengkil 28/21, Seksyen 28, Shah Alam, Selangor",
+    "source": "https://www.nadma.gov.my/bi/media-en/news/3850-satu-pps-lebih-kapasiti-dua-hampir-penuh",
+    "source_date": "2025-04-12",
+    "designation_context": "official_listing",
+    "coordinate_source": "https://www.waze.com/live-map/directions/my/selangor/shah-alam/mbsa-council-section-28-%28kenanga-hall%29?to=place.ChIJJ8t8tvqyzTERiGcT6545ctQ",
+    "coordinate_provenance": "Map-provider facility coordinates matching the state assembly address; not a surveyed entrance",
+    "verified": true,
+    "opening_status": "unknown",
+    "min_level": null,
+    "min_level_source": null,
+    "is_demo": false
+  }
+]

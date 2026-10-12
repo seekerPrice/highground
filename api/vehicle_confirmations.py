@@ -155,7 +155,12 @@ class VehicleConfirmationService:
                                        sender_hash=identity, now=datetime.now(UTC))
 
     async def flush(self, confirmation_id: str) -> None:
-        claimed = await asyncio.to_thread(self.store.claim_sink, confirmation_id, datetime.now(UTC))
+        try:
+            claimed = await asyncio.to_thread(self.store.claim_sink, confirmation_id, datetime.now(UTC))
+        except Exception:
+            # Analytics is optional after the durable domain confirmation. A
+            # failed claim leaves its pending record for a later bounded resume.
+            return
         if claimed is None:
             return
         owner, record = claimed
@@ -166,7 +171,12 @@ class VehicleConfirmationService:
         except Exception:
             pass  # Pending outbox remains recoverable; never count physical rows.
         finally:
-            await asyncio.to_thread(self.store.finish_sink, confirmation_id, owner, succeeded=succeeded)
+            try:
+                await asyncio.to_thread(self.store.finish_sink, confirmation_id, owner, succeeded=succeeded)
+            except Exception:
+                # Preserve the lease on ambiguous completion. Resume may retry
+                # after expiry; aggregates dedupe the immutable logical ID.
+                pass
 
     async def resume_pending(self, limit: int = 20) -> None:
         from google.cloud.firestore_v1.base_query import FieldFilter

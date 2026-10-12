@@ -197,3 +197,47 @@ def test_message_disables_auto_preview_preserving_explicit_route_and_button():
     assert api.send_message(9, "Listed destination: " + route, reply_markup=markup) == 1
     assert wire == [{"chat_id": 9, "text": "Listed destination: " + route,
                      "reply_markup": markup, "link_preview_options": {"is_disabled": True}}]
+
+
+def test_recovery_presend_recheck_failure_is_retryable_before_any_send(inbox):
+    from api.inventory_models import InventoryReply
+    class Onboarding:
+        async def process(self,*args):return InventoryReply(text='Synthetic reply',kind='prompt')
+    class Recovery:
+        calls=0
+        async def recheck_reply(self,sender,reply):
+            self.calls+=1
+            if self.calls==1:raise RuntimeError('Synthetic transient persistence failure')
+            return reply
+    calls=[];handler=make_handler(inbox,calls);handler.onboarding=Onboarding();handler.recovery=Recovery()
+    payload=json.loads(json.dumps(PAYLOAD));payload['message']['date']=int(datetime.now(timezone.utc).timestamp())
+    app=create_app(SETTINGS,handler)
+    assert request(app,'POST','/telegram/webhook',headers=HEADERS,json=payload).status_code==503
+    assert calls==[]
+    assert next(inbox.client.collection(inbox.collection).stream()).to_dict()['status']=='retryable'
+    assert request(app,'POST','/telegram/webhook',headers=HEADERS,json=payload).status_code==200
+    assert len(calls)==1
+
+
+@pytest.mark.parametrize('send_failure',[False,True])
+def test_recovery_callback_ack_and_ambiguous_send_not_replayed(inbox,send_failure):
+    from api.inventory_models import InventoryReply
+    from api.telegram_webhook import Update
+    calls=[]
+    class API:
+        def answer_callback_query(self,*args):calls.append('ack')
+        def send_message(self,*args,**kwargs):
+            calls.append('send')
+            if send_failure:raise RuntimeError('Synthetic unknown send outcome')
+            return 100
+    class Recovery:
+        async def declare(self,*args):return InventoryReply(text='Synthetic recovery prompt',kind='prompt')
+        async def recheck_reply(self,sender,reply):return reply
+    handler=TelegramHandler(inbox,API(),recovery=Recovery())
+    update=Update.model_validate(dict(update_id=888,callback_query={'id':'synthetic-recovery-callback','from':{'id':9},'data':'recovery:'+'a'*32,'message':{'message_id':8,'chat':{'id':9,'type':'private'}}}))
+    async def run():
+        assert await handler.handle(update)==('uncertain' if send_failure else 'done')
+        assert await handler.handle(update)==('uncertain' if send_failure else 'done')
+        assert calls==['ack','send']
+        assert next(inbox.client.collection(inbox.collection).stream()).to_dict()['status']==('uncertain' if send_failure else 'done')
+    asyncio.run(run())

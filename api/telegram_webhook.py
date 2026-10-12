@@ -67,7 +67,7 @@ class WebhookRetry(Exception):
 
 
 class TelegramHandler:
-    def __init__(self, inbox: FirestoreInbox, api: TelegramAPI, onboarding: "Onboarding | None" = None, confirmations=None, photos=None, inventory=None, stock_confirmations=None) -> None:
+    def __init__(self, inbox: FirestoreInbox, api: TelegramAPI, onboarding: "Onboarding | None" = None, confirmations=None, photos=None, inventory=None, stock_confirmations=None, recovery=None) -> None:
         self.inbox = inbox
         self.api = api
         self.onboarding = onboarding
@@ -75,6 +75,7 @@ class TelegramHandler:
         self.photos = photos
         self.inventory = inventory
         self.stock_confirmations = stock_confirmations
+        self.recovery = recovery
 
     async def handle(self, update: Update) -> Literal["done", "uncertain"]:
         received_at = datetime.now(UTC)
@@ -91,20 +92,34 @@ class TelegramHandler:
             return await self.handle_callback(update, owner, operation_id)
         message = update.message
         words = message.text.split() if message and message.text else []
-        if message is None or message.chat.type != "private" or (not words and message.location is None and message.photo is None and message.video is None) or (self.onboarding is None and self.photos is None and self.inventory is None and (not words or words[0] != "/start")):
+        if message is None or message.chat.type != "private" or (not words and message.location is None and message.photo is None and message.video is None) or (self.onboarding is None and self.photos is None and self.inventory is None and self.recovery is None and (not words or words[0] != "/start")):
             await run_in_threadpool(self.inbox.transition, update.update_id, owner, "done", operation_id=operation_id, outcome="unsupported")
             return "done"
         media_reply = False
         reply_markup = None
         venue = None
         response_text = "Welcome to HighGround. Shop onboarding is not connected yet."
-        if self.onboarding is not None or self.photos is not None or self.inventory is not None:
+        if self.onboarding is not None or self.photos is not None or self.inventory is not None or self.recovery is not None:
             location = {"lat": message.location.latitude, "lng": message.location.longitude} if message.location else None
             try:
                 pending = await self.photos.pending_location_report_id(message.chat.id) if self.photos is not None and location else None
-                if self.inventory is not None and message.video:
+                recovery_context = await self.recovery.active_context(message.chat.id,message.message_id,message.video.file_unique_id if message.video else max(message.photo,key=lambda item:(item.width*item.height,item.file_size or 0)).file_unique_id if message.photo else None) if self.recovery and (message.video or message.photo or (words and words[0]=='/report')) else None
+                if self.recovery and words and words[0]=='/cancel':
+                    reply = await self.recovery.exit(message.chat.id)
+                elif self.recovery and words and words[0]=='/waterline':
+                    reply = await self.recovery.request_photo(message.chat.id)
+                elif self.recovery and words and words[0]=='/report':
+                    reply = await self.recovery.declare(message.chat.id,recovery_context['report_id']) if len(words)==2 and words[1]=='confirm' and recovery_context else await self.recovery.start(message.chat.id,str(update.update_id))
+                elif self.recovery and recovery_context and message.video:
+                    reply = await self.recovery.handle_video(message.chat.id, update.update_id, message.message_id, message.date, message.video, processing_started_at=received_at)
+                elif self.recovery and recovery_context and message.photo:
+                    from api.photo_models import PhotoMedia
+                    largest = max(message.photo,key=lambda item:(item.width*item.height,item.file_size or 0))
+                    reply = await self.recovery.handle_photo(message.chat.id,update.update_id,message.message_id,message.date,PhotoMedia(file_id=largest.file_id,file_unique_id=largest.file_unique_id,file_size=largest.file_size),processing_started_at=received_at)
+                elif self.inventory is not None and message.video:
                     reply = await self.inventory.handle_video(message.chat.id, update.update_id, message.message_id, message.date, message.video, processing_started_at=received_at)
                 elif self.inventory is not None and words and words[0] in ('/refresh','/inventory'):
+                    if self.recovery:await self.recovery.exit(message.chat.id)
                     reply = await self.inventory.request_video(message.chat.id)
                 elif self.photos is not None and message.photo:
                     media_reply = True
@@ -131,6 +146,13 @@ class TelegramHandler:
                 response_text, reply_markup, venue = reply.text, reply.reply_markup, reply.venue
             except Exception:
                 await run_in_threadpool(self.inbox.transition, update.update_id, owner, 'retryable', operation_id=operation_id)
+                raise WebhookRetry() from None
+        if self.recovery is not None:
+            try:
+                guarded = await self.recovery.recheck_reply(message.chat.id, InventoryReply(text=response_text, reply_markup=reply_markup, venue=venue, kind='prompt'))
+                response_text, reply_markup, venue = guarded.text, guarded.reply_markup, guarded.venue
+            except Exception:
+                await run_in_threadpool(self.inbox.transition,update.update_id,owner,'retryable',operation_id=operation_id)
                 raise WebhookRetry() from None
         if self.inventory is not None:
             try:
@@ -159,6 +181,31 @@ class TelegramHandler:
         query = update.callback_query
         status, language, confirmation_id = 'unavailable', 'en', None
         message = query.message
+        recovery_match = re.fullmatch(r'recovery:([0-9a-f]{32})', query.data or '')
+        if self.recovery and recovery_match and message and message.chat.type=='private' and query.sender.id==message.chat.id:
+            try:
+                await run_in_threadpool(self.api.answer_callback_query,query.id,'')
+            except TelegramSendError:
+                pass
+            try:
+                reply=await self.recovery.declare(query.sender.id,recovery_match[1])
+                reply=await self.recovery.recheck_reply(query.sender.id,reply)
+            except Exception:
+                await run_in_threadpool(self.inbox.transition,update.update_id,owner,'retryable',operation_id=operation_id)
+                raise WebhookRetry() from None
+            await run_in_threadpool(self.inbox.transition,update.update_id,owner,'sending',operation_id=operation_id)
+            try:
+                sent_id=await run_in_threadpool(self.api.send_message,query.sender.id,reply.text,reply_markup=reply.reply_markup)
+            except TelegramSendError as error:
+                state='uncertain' if error.uncertain else 'retryable'
+                await run_in_threadpool(self.inbox.transition,update.update_id,owner,state,operation_id=operation_id)
+                if error.uncertain:return 'uncertain'
+                raise WebhookRetry() from None
+            except Exception:
+                await run_in_threadpool(self.inbox.transition,update.update_id,owner,'uncertain',operation_id=operation_id)
+                return 'uncertain'
+            await run_in_threadpool(self.inbox.transition,update.update_id,owner,'done',operation_id=operation_id,message_id=sent_id)
+            return 'done'
         photo_match = re.fullmatch(r'photo:([0-9a-f]{32}):(yes|no)', query.data or '')
         if self.photos is not None and photo_match and message is not None and message.chat.type == 'private' and query.sender.id == message.chat.id:
             try:

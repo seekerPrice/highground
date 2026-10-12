@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 
 @dataclass(frozen=True)
 class Settings:
+    web_base_url: str = "http://localhost:3000"
     gcp_project: str = ""
     gcs_bucket: str = ""
     telegram_bot_token: str = field(default="", repr=False)

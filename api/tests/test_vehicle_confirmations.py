@@ -323,3 +323,49 @@ def test_firestore_markup_none_and_legacy_object_read(domain):
         delivery.set({'telegram_chat_id':101})
         try:assert store.get_alert(identity)['reply_markup']==markup
         finally:delivery.delete()
+
+
+@pytest.mark.parametrize('failure_stage',['claim_sink','finish_sink'])
+def test_public_callback_survives_optional_outbox_transaction_abort(domain,monkeypatch,failure_stage):
+    """A durable confirmation and acknowledgement survive optional sink outages."""
+    from google.api_core.exceptions import Aborted
+    client,store,inbox,shop,event,record=domain
+    sink=Sink();bot=Bot();service=VehicleConfirmationService(store,sink,hash_salt='salt')
+    handler=TelegramHandler(inbox,bot,confirmations=service)
+    app=create_app(Settings(telegram_webhook_secret='synthetic'),handler)
+    original=getattr(store,failure_stage);calls=0
+    def abort_once(*args,**kwargs):
+        nonlocal calls
+        calls+=1
+        if calls==1:
+            raise ValueError('Failed to commit transaction in 5 attempts.') from Aborted('Transaction lock timeout.')
+        return original(*args,**kwargs)
+    monkeypatch.setattr(store,failure_stage,abort_once)
+    callback_id='outbox-'+failure_stage
+    payload={'update_id':91,'callback_query':{'id':callback_id,'from':{'id':101},'data':'vehicle:'+record['action_id'],
+             'message':{'message_id':1101,'chat':{'id':101,'type':'private'}}}}
+    async def run():
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app),base_url='http://test',headers={'X-Telegram-Bot-Api-Secret-Token':'synthetic'}) as http:
+            response=await http.post('/telegram/webhook',json=payload)
+            facts=list(client.collection(store.confirmations).stream())
+            assert len(facts)==1 and len(bot.answers)==1
+            assert facts[0].to_dict()['bigquery']=='pending'
+            assert response.status_code==200
+            operation=sha256(('callback:'+callback_id).encode()).hexdigest()
+            assert client.collection(inbox.collection).document(operation).get().to_dict()['status']=='done'
+            assert (await http.post('/telegram/webhook',json=payload)).status_code==200
+            assert len(bot.answers)==1 and len(list(client.collection(store.confirmations).stream()))==1
+        fact=facts[0].to_dict()
+        if failure_stage=='finish_sink':
+            # Failed completion preserves the lease. Once that lease expires,
+            # restart can resume the pending immutable logical confirmation.
+            assert fact['sink_lease_until']>datetime.now(UTC)
+            facts[0].reference.update({'sink_lease_until':datetime.now(UTC)-timedelta(seconds=1)})
+        else:
+            assert 'sink_owner' not in fact
+        sink.fail=False
+        await VehicleConfirmationService(store,sink,hash_salt='salt').resume_pending()
+        await service.resume_pending()
+        assert len(sink.rows)==1 and sink.rows[0]['confirmation_id']==record['action_id']
+        assert facts[0].reference.get().to_dict()['bigquery']=='done'
+    asyncio.run(run())

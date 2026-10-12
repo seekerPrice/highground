@@ -36,7 +36,7 @@ These apply to the affected task; they do not globally block Task 1 scaffolding.
 
 ## Execution contract
 
-Astra coordinates Sol, inspects actual changes and local checks, sends defects back and rechecks corrections before completion is reported. Matt review runs independent Standards and Spec axes; findings return to Sol and are rechecked. A checkbox is marked only with observed evidence. Skill-required review agents run only for actual implementation review, not to create premature implementation. Task 1 implementation, local acceptance and both review axes are complete. Foundation Tasks 2/3/4/6 passed local checks and both independent Matt axes after the privacy correction (final 69 API tests). Tasks 3/4/6 local acceptance is complete; Task 2 cloud provisioning remains deferred. Tasks 5/7 local acceptance and both Matt axes passed against final candidate 8818a93. Tasks 8/9 implementation and both Matt axes passed through 1a4d7b1; the complete local gate passed 6 infrastructure and 175 API tests with frontend checks. Task 8 live own-chat acceptance passed; Task 9 integrated local acceptance passed with actual service emulators/configured Flash and explicitly virtual Telegram edges. Actual Telegram photo upload remains pending consent. Tasks 10/11 local acceptance is complete at 8d28cc8: 243 API tests, final Standards 0 and Spec 0, plus actual local polling and configured-Pro service integration with synthetic Telegram edges. Tasks 12/13/15 are the next parallel Must milestone; hosting and real second-phone/media-upload acceptance remain deferred.
+Astra coordinates Sol, inspects actual changes and local checks, sends defects back and rechecks corrections before completion is reported. Matt review runs independent Standards and Spec axes; findings return to Sol and are rechecked. A checkbox is marked only with observed evidence. Skill-required review agents run only for actual implementation review, not to create premature implementation. Task 1 implementation, local acceptance and both review axes are complete. Foundation Tasks 2/3/4/6 passed local checks and both independent Matt axes after the privacy correction (final 69 API tests). Tasks 3/4/6 local acceptance is complete; Task 2 cloud provisioning remains deferred. Tasks 5/7 local acceptance and both Matt axes passed against final candidate 8818a93. Tasks 8/9 implementation and both Matt axes passed through 1a4d7b1; the complete local gate passed 6 infrastructure and 175 API tests with frontend checks. Task 8 live own-chat acceptance passed; Task 9 integrated local acceptance passed with actual service emulators/configured Flash and explicitly virtual Telegram edges. Actual Telegram photo upload remains pending consent. Tasks 10/11 local acceptance is complete at 8d28cc8: 243 API tests, final Standards 0 and Spec 0, plus actual local polling and configured-Pro service integration with synthetic Telegram edges. Tasks 12/13/15 implementation from ca6cd6f is frozen after correcting the concurrent polling and optional confirmation-outbox failures found by the combined gate. Recovery/report backend and report/dashboard UI have focused checks plus actual Pro/production-browser evidence; the final local gate passed 6 infrastructure, 270 API and 13 frontend tests plus lint/type/build; independent reviews, report print and Task 16 reset-generation boundary remain outstanding. Hosting and real second-phone/media-upload acceptance remain deferred.
 
 The active technical graph is in dependency-plan.md; Task numbers remain traceability labels. Independent work may proceed in parallel without new Task N approval. Dates are targets and work may finish earlier; Shoulds may start earlier than Friday only after all Must behaviour is locally verified; hosting is deferred. Stretch is pitch-only. Review uses each task-start committed baseline; Task 1 baseline is bb1b098. User authorization includes the review/correction loop.
 
@@ -194,9 +194,9 @@ Scope: Must/foundation. Deliverable: Video becomes an estimated inventory and ra
 
 Scope: Must/foundation. Deliverable: Owner requests recovery reporting, uploads an after-video and receives an estimated loss report link.
 
-- [ ] Astra task brief and acceptance agreed; blockers satisfied.
-- [ ] Sol implements only this task.
-- [ ] Relevant local checks run; results captured.
+- [x] Astra dispatched the shared typed-interface brief from ca6cd6f; backend/frontend file ownership and local acceptance are explicit.
+- [x] Sol implemented and froze the bounded task slice; acceptance remains pending the gates below.
+- [x] Focused local checks and actual service/UI evidence are recorded in tasks-12-13-15-verification.md; the final combined gate passed 6 infrastructure/270 API/13 frontend tests plus lint/type/build after diagnosed corrections and emulator recovery.
 - [ ] Astra inspects files and results, returns defects to Sol, and rechecks corrections.
 - [ ] Matt Standards review completed; relevant findings corrected and rechecked.
 - [ ] Matt Spec review completed; relevant findings corrected and rechecked.
@@ -207,13 +207,13 @@ Scope: Must/foundation. Deliverable: Owner requests recovery reporting, uploads 
 
 Scope: Must/foundation. Deliverable: An unguessable report link shows before/after estimates, evidence and a printable report.
 
-- [ ] Astra task brief and acceptance agreed; blockers satisfied.
-- [ ] Sol implements only this task.
-- [ ] Relevant local checks run; results captured.
+- [x] Astra dispatched the shared typed-interface brief from ca6cd6f; backend/frontend file ownership and local acceptance are explicit.
+- [x] Sol implemented and froze the bounded task slice; acceptance remains pending the gates below.
+- [x] Focused local checks and actual service/UI evidence are recorded in tasks-12-13-15-verification.md; the final combined gate passed 6 infrastructure/270 API/13 frontend tests plus lint/type/build after diagnosed corrections and emulator recovery.
 - [ ] Astra inspects files and results, returns defects to Sol, and rechecks corrections.
 - [ ] Matt Standards review completed; relevant findings corrected and rechecked.
 - [ ] Matt Spec review completed; relevant findings corrected and rechecked.
-- [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
+- [ ] Local acceptance: print output is pending desktop unlock, plus full gate/reviews. Production report/API/media privacy headers and desktop/mobile display passed; hosting remains deferred.
 - [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
 
 ### Task 14 — First deploy
@@ -233,13 +233,13 @@ Scope: Must/foundation. Deliverable: API and web run on Cloud Run and the phone 
 
 Scope: Must/foundation. Deliverable: Map, event feed, protection counters and demo controls show the Must journey.
 
-- [ ] Astra task brief and acceptance agreed; blockers satisfied.
-- [ ] Sol implements only this task.
-- [ ] Relevant local checks run; results captured.
+- [x] Astra dispatched the shared typed-interface brief from ca6cd6f; backend/frontend file ownership and local acceptance are explicit.
+- [ ] Dashboard map/feed/BigQuery metrics and operator UI implemented; complete reset behavior still requires Task 16 scenario-generation integration.
+- [x] Focused local checks and actual service/UI evidence are recorded in tasks-12-13-15-verification.md; the final combined gate passed 6 infrastructure/270 API/13 frontend tests plus lint/type/build after diagnosed corrections and emulator recovery.
 - [ ] Astra inspects files and results, returns defects to Sol, and rechecks corrections.
 - [ ] Matt Standards review completed; relevant findings corrected and rechecked.
 - [ ] Matt Spec review completed; relevant findings corrected and rechecked.
-- [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
+- [ ] Local acceptance requires the full gate/reviews and Task 16 race-safe scenario reset; hosted acceptance remains deferred.
 - [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
 
 ### Task 16 — Seed demo data + redeploy
