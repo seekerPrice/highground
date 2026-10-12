@@ -1,0 +1,203 @@
+{
+  "repository": "seekerPrice/highground",
+  "tasks": [
+    {
+      "task": 1,
+      "title": "Repo + scaffolding",
+      "url": "https://github.com/seekerPrice/highground/issues/2",
+      "issue": 2,
+      "label": "ready-for-agent",
+      "linked_to_spec": true
+    },
+    {
+      "task": 2,
+      "title": "GCP setup script",
+      "url": "https://github.com/seekerPrice/highground/issues/3",
+      "issue": 3,
+      "label": "ready-for-agent",
+      "linked_to_spec": true,
+      "dependency_linked": true
+    },
+    {
+      "task": 3,
+      "title": "data.gov.my clients",
+      "url": "https://github.com/seekerPrice/highground/issues/4",
+      "issue": 4,
+      "label": "needs-info",
+      "linked_to_spec": true,
+      "dependency_linked": true
+    },
+    {
+      "task": 4,
+      "title": "Telegram webhook",
+      "url": "https://github.com/seekerPrice/highground/issues/5",
+      "issue": 5,
+      "label": "ready-for-agent",
+      "linked_to_spec": true,
+      "dependency_linked": true
+    },
+    {
+      "task": 5,
+      "title": "i18n + onboarding",
+      "url": "https://github.com/seekerPrice/highground/issues/6",
+      "issue": 6,
+      "label": "needs-info",
+      "linked_to_spec": true,
+      "dependency_linked": true
+    },
+    {
+      "task": 6,
+      "title": "ADK skeleton",
+      "url": "https://github.com/seekerPrice/highground/issues/7",
+      "issue": 7,
+      "label": "ready-for-agent",
+      "linked_to_spec": true,
+      "dependency_linked": true
+    },
+    {
+      "task": 7,
+      "title": "Alert dispatch",
+      "url": "https://github.com/seekerPrice/highground/issues/8",
+      "issue": 8,
+      "label": "needs-info",
+      "linked_to_spec": true,
+      "dependency_linked": true
+    },
+    {
+      "task": 8,
+      "title": "Safe points + vehicle rescue",
+      "url": "https://github.com/seekerPrice/highground/issues/9",
+      "issue": 9,
+      "label": "needs-info",
+      "linked_to_spec": true,
+      "dependency_linked": true
+    },
+    {
+      "task": 9,
+      "title": "Evidence ledger + neighbour reports",
+      "url": "https://github.com/seekerPrice/highground/issues/10",
+      "issue": 10,
+      "label": "ready-for-agent",
+      "linked_to_spec": true,
+      "dependency_linked": true
+    },
+    {
+      "task": 10,
+      "title": "Danger escalation + polling",
+      "url": "https://github.com/seekerPrice/highground/issues/11",
+      "issue": 11,
+      "label": "needs-info",
+      "linked_to_spec": true,
+      "dependency_linked": true
+    },
+    {
+      "task": 11,
+      "title": "Baseline inventory + lift-first",
+      "url": "https://github.com/seekerPrice/highground/issues/12",
+      "issue": 12,
+      "label": "needs-info",
+      "linked_to_spec": true,
+      "dependency_linked": true
+    },
+    {
+      "task": 12,
+      "title": "After-flood report",
+      "url": "https://github.com/seekerPrice/highground/issues/13",
+      "issue": 13,
+      "label": "ready-for-agent",
+      "linked_to_spec": true,
+      "dependency_linked": true
+    },
+    {
+      "task": 13,
+      "title": "Report page",
+      "url": "https://github.com/seekerPrice/highground/issues/14",
+      "issue": 14,
+      "label": "needs-info",
+      "linked_to_spec": true,
+      "dependency_linked": true
+    },
+    {
+      "task": 14,
+      "title": "First deploy",
+      "url": "https://github.com/seekerPrice/highground/issues/15",
+      "issue": 15,
+      "label": "ready-for-agent",
+      "linked_to_spec": true,
+      "dependency_linked": true
+    },
+    {
+      "task": 15,
+      "title": "Dashboard",
+      "url": "https://github.com/seekerPrice/highground/issues/16",
+      "issue": 16,
+      "label": "needs-info",
+      "linked_to_spec": true,
+      "dependency_linked": true
+    },
+    {
+      "task": 16,
+      "title": "Seed demo data + redeploy",
+      "url": "https://github.com/seekerPrice/highground/issues/17",
+      "issue": 17,
+      "label": "ready-for-agent",
+      "linked_to_spec": true,
+      "dependency_linked": true
+    },
+    {
+      "task": 17,
+      "title": "Hardening",
+      "url": "https://github.com/seekerPrice/highground/issues/18",
+      "issue": 18,
+      "label": "ready-for-agent",
+      "linked_to_spec": true,
+      "dependency_linked": true
+    },
+    {
+      "task": 18,
+      "title": "Offline card",
+      "url": "https://github.com/seekerPrice/highground/issues/19",
+      "issue": 19,
+      "label": "ready-for-agent",
+      "linked_to_spec": true,
+      "dependency_linked": true
+    },
+    {
+      "task": 19,
+      "title": "Insurance check",
+      "url": "https://github.com/seekerPrice/highground/issues/20",
+      "issue": 20,
+      "label": "needs-info",
+      "linked_to_spec": true,
+      "dependency_linked": true
+    },
+    {
+      "task": 20,
+      "title": "Waste sorting",
+      "url": "https://github.com/seekerPrice/highground/issues/21",
+      "issue": 21,
+      "label": "ready-for-agent",
+      "linked_to_spec": true,
+      "dependency_linked": true
+    },
+    {
+      "task": 21,
+      "title": "/check",
+      "url": "https://github.com/seekerPrice/highground/issues/22",
+      "issue": 22,
+      "label": "ready-for-agent",
+      "linked_to_spec": true,
+      "dependency_linked": true
+    },
+    {
+      "task": 22,
+      "title": "Learning loop",
+      "url": "https://github.com/seekerPrice/highground/issues/23",
+      "issue": 23,
+      "label": "ready-for-agent",
+      "linked_to_spec": true,
+      "dependency_linked": true
+    }
+  ],
+  "spec_url": "https://github.com/seekerPrice/highground/issues/1"
+}
