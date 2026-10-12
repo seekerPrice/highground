@@ -79,6 +79,22 @@ This requires `LOCAL_DEVELOPMENT=true`, `DEMO_MODE=true` and all four loopback e
 
 `python3 infra/emulators.py stop` refuses to stop ephemeral Firestore, Pub/Sub or GCS data without `--ack-disposable-data`. Use that acknowledgment only when those records/uploads are explicitly disposable. `--service bigquery` scopes an operation to that exact container. The runner never removes containers or volumes, never selects stopped OOM containers by prefix, and checks identity again before mutation. Firestore/GCS export or restart durability has **not** been established. Stopping/restarting those processes can lose records/originals; restarting only the application retains state in a still-running emulator.
 
+Before seeding, set `LOCAL_DEVELOPMENT=true`, `DEMO_MODE=true` and `DEMO_VIRTUAL_DELIVERY=true` in the ignored `.env`, with all four loopback endpoints and initialized resources. Use the reviewed current application; stop any older API process before introducing virtual fixtures. Seed the local scenario explicitly:
+
+```sh
+.venv/bin/python -m api.demo_seed
+```
+
+This creates six clearly synthetic shops, three vehicles, synthetic inventory estimates and original-media receipts. Default recipients are virtual: no Telegram messages or confirmations are invented. Repeating the command preserves existing fixture identities, originals and an explicit owner binding; it does not reset the scenario. Use the dashboard's authenticated reset control to start a new generation while retaining historical evidence.
+
+For a real alert demonstration, first complete ordinary Telegram onboarding with a consenting owner. Then explicitly bind one fixture to that existing private registration:
+
+```sh
+.venv/bin/python -m api.demo_seed --bind-fixture 1 --registered-shop EXISTING_REGISTRATION --consenting-owner
+```
+
+Replace `EXISTING_REGISTRATION` with the known registration identifier, never a guessed chat ID. This binding permits synthetic alerts and their confirmations only; ordinary baseline/photo/recovery ownership remains with the original registration. Remaining fixtures stay virtual. The bound owner can receive subsequent simulated alerts, so bind only with their consent. Keep private registration identifiers out of public artifacts.
+
 Start the API with access logging disabled to avoid logging private report paths:
 
 ```sh
@@ -144,7 +160,7 @@ Danger uses committed templates with deterministic listed destinations and no ru
 
 Confirmations are self-reported: vehicles count once per shop/episode, and estimated stock value uses the maximum displayed confirmed immutable snapshot per shop/episode, then sums across shops. Telegram acceptance is not a read receipt. Recovery reports exclude unknown item losses and label partial totals. File hashes check stored bytes, not recording authenticity, time, location or insurer acceptance. Original media is private and evidence receipts are retained.
 
-Six-shop synthetic seeding, scenario generation/reset hardening and the full local Must journey are being finalized in Task 16; do not treat existing partial fixtures as complete acceptance. The consenting own-chat fixture and virtual delivery do not substitute for a second phone. See the task verification notes for actual outcomes and limitations.
+The reviewed local scenario has passed real emulator seeding, protected manual recovery, production dashboard/reset/retry checks and one consenting Telegram owner’s vehicle/stock confirmations. Virtual alerts are counted separately from real Telegram API acceptance; reported actions are not independently verified physical outcomes. The complete local Must gate remains open for actual report PDF/print verification. Real Telegram media-upload permission, second-phone and hosted acceptance remain pending; Should implementation has not started. See the [operational checkpoint](docs/planning/task-17-operational-verification.md) for exact evidence and limitations.
 
 ## Packaging, deployment and attribution
 

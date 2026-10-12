@@ -40,3 +40,9 @@ Four required bindings use `TELEGRAM_BOT_TOKEN_SECRET`, `TELEGRAM_WEBHOOK_SECRET
 No deployment, provisioning, webhook replacement or Scheduler changes ran here. Remaining hosted acceptance includes explicit billing/resource/IAM configuration, private Storage, OIDC caller verification, real webhook/Scheduler routing and the specified deployed phone journey. Hosting remains deferred; neither project existence nor local Vertex usage authorizes it.
 
 Primary packaging references: [Docker build practices](https://docs.docker.com/build/building/best-practices/), [Cloud Run image deployment](https://cloud.google.com/run/docs/deploying), [Cloud Run secret bindings](https://cloud.google.com/run/docs/configuring/services/secrets). Registry manifest metadata was read without pulling images to establish the committed base-image digests. No hosted automation was added.
+
+## Current reviewed image checkpoint
+
+Root built both API and web images from `8be5884068d6f11c13ca1a86f8487ee77645d7ba`; builds and actual container smoke checks exited0. HTTP liveness/serving returned200, processes ran as non-root and no `.env` was included. Evidence is retained privately in `task14-16-17-container-smoke.json`.
+
+After the binding/history corrections, root rebuilt the API image from `f6efd31561c37bf3a59eb062215b244c7449b675`. Its actual container health check returned200, UID10001 and no `.env`; the corrected smoke record is `task14-16-17-api-corrected-smoke.json`. Frontend application bytes did not change between these two commits, so the web image evidence still applies. Root stopped its smoke containers afterward. These checks establish image source inclusion and local liveness/serving; hosted IAM, cloud deployment and complete container-to-service/model integration remain outside this evidence.

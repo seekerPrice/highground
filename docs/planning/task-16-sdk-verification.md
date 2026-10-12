@@ -31,7 +31,7 @@ This inspected the topic, bucket, dataset and all five reviewed table schemas. N
 
 ## Pending acceptance
 
-Global six-shop seed, consenting real-owner alert binding, production dashboard/reset interaction, protected outbox recovery, the final combined local gate and independent Matt reviews remain pending. Actual report PDF output still needs desktop unlock. Two-phone/media-upload/hosted acceptance remains separately deferred. No Should code, CI or deployment was introduced.
+These checks were pending at the initial isolated probe. They subsequently passed at the reviewed f6efd315 checkpoint: see task-17-operational-verification.md for global six-shop seeding, consenting-owner binding, actual production reset/retry, protected manual recovery and the corrected full gate/reviews. Actual report PDF output still needs desktop unlock. Two-phone/media-upload/hosted acceptance remains separately deferred. No Should code, CI or deployment was introduced.
 
 ## Actual isolated initializer apply follow-up
 
@@ -45,4 +45,4 @@ This substantiates actual missing-resource creation and repeatability for the to
 
 ## Integration finding returned to Sol
 
-The actual stale-event replay response includes `reason: obsolete_scenario` with `status: superseded`. Root observed the frontend operator parser allowed only event ID/status/alerts, so it would reject this legitimate response before clearing the preserved request identity. The finding was returned through Astra for a focused regression and contract correction. The real backend probe passed; frontend acceptance for that response remains pending the correction and operator check. The production web process was stopped before those source edits and the final build.
+The actual stale-event replay response includes `reason: obsolete_scenario` with `status: superseded`. Root observed the frontend operator parser allowed only event ID/status/alerts, so it would reject this legitimate response before clearing the preserved request identity. The finding was returned through Astra for a focused regression and contract correction. The real backend probe passed; the later corrected frontend and actual lost-response/reset/retry operator journey passed (task-17-operational-verification.md). The production web process was stopped before those source edits and the final build.
