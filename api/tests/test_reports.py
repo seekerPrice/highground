@@ -191,7 +191,7 @@ def test_failed_media_allows_new_workflow_without_overwriting_original_job():
         await active.start(123,'replacement');replacement=store.current(123)
         assert replacement['report_id']!=original and not replacement.get('upload')
         original_job=store.collection('recovery_jobs').document(original).get().to_dict()
-        assert original_job['upload']['message_id']==1 and original_job['status']=='assessment_unavailable'
+        assert store.upload_reference(123,1,video().file_unique_id).get().to_dict()['upload']['message_id']==1 and original_job['status']=='assessment_unavailable'
         assert store.collection('shops').document('shop').get().to_dict()['baseline_inventory_id']=='baseline'
     try:asyncio.run(run())
     finally:

@@ -97,23 +97,62 @@ class ReportStore(InventoryStore):
         self.collection('recovery_jobs').document(job['report_id']).update({'attachment_pending':True})
         return job
 
-    def bind_upload(self, report_id: str, sender: int, message_id: int, sent: datetime, video, now: datetime) -> dict:
+    def bind_upload(self, report_id: str, sender: int, message_id: int, sent: datetime, video, now: datetime, *, receipt_only: bool=False) -> dict:
+        """Freeze a media receipt before selecting any assessment input."""
         ref=self.collection('recovery_jobs').document(report_id)
         binding=self.upload_reference(sender,message_id,video.file_unique_id)
         @firestore.transactional
         def bind(tx):
-            prior=binding.get(transaction=tx).to_dict()
-            job=ref.get(transaction=tx).to_dict()
+            prior=binding.get(transaction=tx).to_dict();job=ref.get(transaction=tx).to_dict()
             if prior and (prior['report_id']!=report_id or prior['kind']!='after_video'):raise MediaIngestError('recovery_upload_bound')
             if job['sender_hash']!=session_user_id(sender,self.hash_salt):raise MediaIngestError('unauthorized_media')
+            if prior:
+                upload=prior.get('upload') or job.get('upload')
+                if not upload:raise MediaIngestError('recovery_upload_unavailable')
+                return dict(job,received_upload=upload,receipt_only=prior.get('receipt_only',False))
             upload=dict(message_id=message_id,telegram_date=sent,received_at=now,duration=video.duration,file_unique_id=video.file_unique_id)
-            if job.get('upload'):
-                if job['upload']['message_id']!=message_id or job['upload']['file_unique_id']!=video.file_unique_id: raise MediaIngestError('recovery_upload_bound')
-                return job
-            tx.update(ref,{'upload':upload})
-            tx.create(binding,{'report_id':report_id,'kind':'after_video'})
-            return dict(job,upload=upload)
+            only=receipt_only or job['status']=='awaiting_declaration'
+            tx.create(binding,{'report_id':report_id,'kind':'after_video','upload':upload,'receipt_only':only})
+            return dict(job,received_upload=upload,receipt_only=only)
         return bind(self.client.transaction())
+
+    def select_upload(self,report_id: str,owner: str,sender: int,message_id: int,file_unique_id: str,media_id: str) -> dict|None:
+        """Only an eligible, declared clip becomes the report's assessment input."""
+        ref=self.collection('recovery_jobs').document(report_id);binding=self.upload_reference(sender,message_id,file_unique_id)
+        @firestore.transactional
+        def select(tx):
+            job=ref.get(transaction=tx).to_dict();upload=binding.get(transaction=tx).to_dict()
+            risk=self.client.collection(self.risk_store.risks).document(job['shop_id']).get(transaction=tx).to_dict() or {}
+            shop=self.collection('shops').document(job['shop_id']).get(transaction=tx).to_dict() or {}
+            if job.get('owner')!=owner:raise MediaIngestError('inventory_claim_changed')
+            if not upload or upload['report_id']!=report_id or upload['kind']!='after_video':raise MediaIngestError('recovery_upload_bound')
+            if upload.get('receipt_only') or job['status']=='awaiting_declaration':return None
+            if self.risk_store._view(risk,shop).active_danger:
+                if not job.get('assessment'):tx.update(binding,{'receipt_only':True})
+                return None
+            selected=upload.get('upload') or job.get('upload')
+            if not selected:raise MediaIngestError('recovery_upload_unavailable')
+            if job.get('upload'):
+                if (job['upload']['message_id'],job['upload']['file_unique_id'])!=(message_id,file_unique_id):raise MediaIngestError('recovery_upload_bound')
+                return job
+            tx.update(ref,{'upload':selected,'media_id':media_id})
+            return dict(job,upload=selected,media_id=media_id)
+        return select(self.client.transaction())
+
+    def preserve_receipt_only(self,report_id: str,owner: str,sender: int,message_id: int,file_unique_id: str) -> None:
+        """Release this unassessed selection; original receipt facts stay frozen."""
+        ref=self.collection('recovery_jobs').document(report_id);binding=self.upload_reference(sender,message_id,file_unique_id)
+        @firestore.transactional
+        def release(tx):
+            job=ref.get(transaction=tx).to_dict();upload=binding.get(transaction=tx).to_dict()
+            if job.get('owner')!=owner:raise MediaIngestError('inventory_claim_changed')
+            if not upload or upload['report_id']!=report_id or upload['kind']!='after_video':raise MediaIngestError('recovery_upload_bound')
+            if job.get('assessment'):return
+            tx.update(binding,{'receipt_only':True})
+            selected=job.get('upload')
+            if selected and (selected['message_id'],selected['file_unique_id'])==(message_id,file_unique_id):
+                tx.update(ref,{'upload':firestore.DELETE_FIELD,'media_id':firestore.DELETE_FIELD,'status':'awaiting_video'})
+        release(self.client.transaction())
 
     # InventoryStore's bounded transaction lease methods operate on the recovery job collection.
     def collection(self, name):

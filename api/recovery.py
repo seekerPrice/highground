@@ -56,28 +56,41 @@ class RecoveryService(InventoryService):
         try:
             sent=datetime.fromtimestamp(telegram_date,UTC)
             if sent>now:raise ValueError()
-            job=await asyncio.to_thread(self.store.bind_upload,job['report_id'],sender,message_id,sent,video,now)
+            blocked=await asyncio.to_thread(self.store.danger_active,shop['shop_id'])
+            job=await asyncio.to_thread(self.store.bind_upload,job['report_id'],sender,message_id,sent,video,now,receipt_only=blocked)
         except (ValueError,OverflowError,MediaIngestError):return await self.reply(shop,'recovery_processing_unavailable')
         owner=await asyncio.to_thread(self.store.claim_job,job['report_id'])
         try:
-            upload=job['upload']
+            upload=job['received_upload']
             request=MediaRequest(shop_id=shop['shop_id'],kind='after_video',sender_chat_id=sender,message_id=message_id,file_id=video.file_id,file_unique_id=video.file_unique_id,
                 declared_size=video.file_size,declared_mime=video.mime_type,received_at=upload['received_at'],telegram_date=upload['telegram_date'],lat=job['lat'],lng=job['lng'],location_attribution='confirmed_shop',is_demo=job['is_demo'])
             try:media=await self.media.ingest_media(request)
             except MediaIngestError:
-                if job['status']!='awaiting_declaration':
-                    await asyncio.to_thread(self.store.update_job,job['report_id'],owner,status='assessment_unavailable')
-                return await self.reply(shop,'recovery_processing_unavailable' if job['status']!='awaiting_declaration' else 'recovery_declaration')
-            await asyncio.to_thread(self.store.update_job,job['report_id'],owner,media_id=media.record.media_id)
+                eligible=not job['receipt_only'] and not job.get('assessment') and job['status']!='awaiting_declaration'
+                if eligible:await asyncio.to_thread(self.store.update_job,job['report_id'],owner,status='assessment_unavailable')
+                key='recovery_processing_unavailable' if eligible else 'recovery_declaration' if job['status']=='awaiting_declaration' else 'integrity_pending'
+                return await self.reply(shop,key)
             await asyncio.to_thread(self.store.attach_photo,job['report_id'],media.record.media_id)
-            if await asyncio.to_thread(self.store.danger_active,shop['shop_id']):return await self.danger_reply(shop)
-            if job['status']=='awaiting_declaration':return await self.reply(shop,'recovery_declaration')
+            if await asyncio.to_thread(self.store.danger_active,shop['shop_id']):
+                await asyncio.to_thread(self.store.preserve_receipt_only,job['report_id'],owner,sender,message_id,video.file_unique_id)
+                return await self.danger_reply(shop)
+            if job['receipt_only'] or job['status']=='awaiting_declaration':
+                return await self.reply(shop,'recovery_declaration' if job['status']=='awaiting_declaration' else 'integrity_pending')
+            try:
+                selected=await asyncio.to_thread(self.store.select_upload,job['report_id'],owner,sender,message_id,video.file_unique_id,media.record.media_id)
+            except MediaIngestError:return await self.reply(shop,'recovery_processing_unavailable')
+            if selected is None:
+                await asyncio.to_thread(self.store.preserve_receipt_only,job['report_id'],owner,sender,message_id,video.file_unique_id)
+                return await self.reply(shop,'integrity_pending')
+            job=selected;upload=job['upload']
             assessment=LossAssessment.model_validate(job['assessment']).validate_baseline(job['baseline'],upload['duration']) if job.get('assessment') else None
             if assessment is None:
                 try:
                     async with asyncio.timeout(max(.001,self.total_budget_seconds-(time.monotonic()-start))):
                         for attempt in range(2):
-                            if await asyncio.to_thread(self.store.danger_active,shop['shop_id']):return await self.danger_reply(shop)
+                            if await asyncio.to_thread(self.store.danger_active,shop['shop_id']):
+                                await asyncio.to_thread(self.store.preserve_receipt_only,job['report_id'],owner,sender,message_id,video.file_unique_id)
+                                return await self.danger_reply(shop)
                             try:
                                 assessment=await self.assessor.assess(media,job['report_id'],job['is_demo'],upload['duration'],job['baseline'])
                                 assessment.validate_baseline(job['baseline'],upload['duration']);break
@@ -99,7 +112,7 @@ class RecoveryService(InventoryService):
 
     async def handle_photo(self,sender: int,update_id: int,message_id: int,telegram_date: int,photo: PhotoMedia,processing_started_at: datetime|None=None) -> InventoryReply:
         shop=await asyncio.to_thread(self.store.owner_shop,sender);job=await self.active_context(sender,message_id,photo.file_unique_id)
-        if not shop or not job or job['status']=='awaiting_declaration':return await self.reply(shop,'recovery_owner_required')
+        if not shop or not job:return await self.reply(shop,'recovery_owner_required')
         now=processing_started_at or datetime.now(UTC)
         try:
             sent=datetime.fromtimestamp(telegram_date,UTC)
@@ -142,12 +155,23 @@ class LazyRecoveryService:
             store=ReportStore(client,self.settings.hash_salt)
             return await asyncio.to_thread(store.resolve_context,sender,message_id,file_unique_id)
         finally:client.close()
-    async def exit(self,*args):return await self._service().exit(*args)
-    async def request_photo(self,*args):return await self._service().request_photo(*args)
-    async def start(self,*args):return await self._service().start(*args)
-    async def declare(self,*args):return await self._service().declare(*args)
+    async def _cold_call(self,method: str,*args):
+        from api.tools.firestore import create_firestore_client
+        from api.report_store import ReportStore
+        from api.active_risk import ActiveRiskStore
+        from api.destinations import DestinationLookup
+        client=create_firestore_client(self.settings)
+        try:
+            store=ReportStore(client,self.settings.hash_salt,risks=ActiveRiskStore(client,max_age=self.settings.official_max_age))
+            helper=RecoveryService(store,None,None,web_base_url=self.settings.web_base_url,destinations=DestinationLookup(client,radius_m=self.settings.destination_search_radius_m))
+            return await getattr(helper,method)(*args)
+        finally:client.close()
+    async def exit(self,*args):return await self.active.exit(*args) if self.active else await self._cold_call('exit',*args)
+    async def request_photo(self,*args):return await self.active.request_photo(*args) if self.active else await self._cold_call('request_photo',*args)
+    async def start(self,*args):return await self.active.start(*args) if self.active else await self._cold_call('start',*args)
+    async def declare(self,*args):return await self.active.declare(*args) if self.active else await self._cold_call('declare',*args)
     async def handle_video(self,*args,**kwargs):return await self._service().handle_video(*args,**kwargs)
     async def handle_photo(self,*args,**kwargs):return await self._service().handle_photo(*args,**kwargs)
-    async def recheck_reply(self,*args):return await self._service().recheck_reply(*args)
+    async def recheck_reply(self,*args):return await self.active.recheck_reply(*args) if self.active else await self._cold_call('recheck_reply',*args)
     async def close(self):
         if self.active:await self.active.close()
