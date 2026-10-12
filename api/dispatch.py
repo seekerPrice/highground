@@ -199,4 +199,4 @@ def create_dispatch_service(settings) -> DispatchService:
                              stock_minutes=settings.stock_action_target_minutes)
     return DispatchService(FirestoreDispatchStore(client),
                            TelegramAPI(settings.telegram_bot_token), create_event_sinks(settings),
-                           hash_salt=settings.hash_salt, composer=composer, vehicle_actions=VehicleActionStore(client), active_risk=ActiveRiskStore(client), stock_actions=StockActionStore(client))
+                           hash_salt=settings.hash_salt, composer=composer, vehicle_actions=VehicleActionStore(client), active_risk=ActiveRiskStore(client,max_age=settings.official_max_age), stock_actions=StockActionStore(client))

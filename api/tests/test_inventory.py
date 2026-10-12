@@ -148,7 +148,7 @@ def test_public_onboarding_native_video_actual_original_storage_and_refresh():
             storage_client.bucket(bucket).delete(timeout=8,retry=None);storage.close();await h.close()
     asyncio.run(run())
 
-@pytest.mark.parametrize('mode',['invalid_once','invalid_twice','timeout'])
+@pytest.mark.parametrize('mode',['invalid_once','invalid_twice','timeout','api429','api503','transport','permanent400'])
 @pytest.mark.skipif(not os.environ.get('FIRESTORE_EMULATOR_HOST'),reason='Firestore emulator required')
 def test_model_failure_bounded_retry_keeps_honest_inventory_status(mode):
     client=create_firestore_client(Settings(gcp_project='highground-task11-tests'));prefix='model-failure-'+uuid4().hex+'-'
@@ -160,13 +160,19 @@ def test_model_failure_bounded_retry_keeps_honest_inventory_status(mode):
         async def assess(self,*args):
             self.calls+=1
             if mode=='timeout':await asyncio.sleep(1)
-            if mode=='invalid_twice' or self.calls==1:raise ValueError('Synthetic invalid structured output')
+            if self.calls==1 and mode in ('api429','api503','permanent400'):
+                from google.genai.errors import APIError
+                raise APIError({'api429':429,'api503':503,'permanent400':400}[mode],{'error':{'message':'Synthetic provider error'}})
+            if self.calls==1 and mode=='transport':
+                import httpx
+                raise httpx.ReadTimeout('Synthetic early timeout')
+            if mode=='invalid_twice' or (self.calls==1 and mode=='invalid_once'):raise ValueError('Synthetic invalid structured output')
             return assessment()
     model=Faults(None);active=InventoryService(store,media,model,total_budget_seconds=.1 if mode=='timeout' else 35)
     try:
         result=asyncio.run(active.handle_video(123,1,1,int(datetime.now(UTC).timestamp()),video()))
-        assert model.calls==(1 if mode=='timeout' else 2)
-        if mode=='invalid_once':assert result.kind=='inventory'
+        assert model.calls==(1 if mode in ('timeout','permanent400') else 2)
+        if mode in ('invalid_once','api429','api503','transport'):assert result.kind=='inventory'
         else:
             assert result.kind=='unavailable' and not list(store.collection('inventories').stream())
             assert not store.collection('shops').document('shop').get().to_dict().get('baseline_inventory_id')

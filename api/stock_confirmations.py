@@ -27,7 +27,7 @@ class StockActionStore(VehicleActionStore):
             risk=self.client.collection(self.risks).document(shop.shop_id).get(transaction=tx).to_dict() or {}
             state=ActiveRiskStore._view(risk,shop_data)
             if existing.exists:return existing.to_dict()
-            if state.active_danger or (state.episode_id and state.episode_id!=frozen.episode_id):record['state']='superseded'
+            if state.active_danger or (state.episode_id is None or state.episode_id!=frozen.episode_id):record['state']='superseded'
             tx.create(ref,record);return record
         return save(self.client.transaction())
 
@@ -46,7 +46,7 @@ class StockActionStore(VehicleActionStore):
             member=next((r for r in shop.get('recipients',[]) if r.get('telegram_chat_id')==sender_chat_id and r.get('role') in ('owner','worker')),None)
             if not member or alert.get('message_id')!=message_id or alert.get('status')!='accepted':return 'unavailable','en',None
             language=member['language'];state=ActiveRiskStore._view(risk,shop)
-            if action['state']!='active' or state.active_danger or (state.episode_id and state.episode_id!=action['episode_id']):return 'superseded',language,None
+            if action['state']!='active' or state.active_danger or (state.episode_id is None or state.episode_id!=action['episode_id']):return 'superseded',language,None
             snapshot=ActionSnapshot.model_validate(action['snapshot']);displayed=ActionSnapshot.model_validate(alert['snapshot'])
             if action['kind']!='stock' or alert.get('level')!='warning' or snapshot!=displayed or displayed.stock_action_id!=action_id or not snapshot.items or not snapshot.inventory_id:return 'unavailable',language,None
             expected=round(sum(item.value_rm for item in snapshot.items),2)

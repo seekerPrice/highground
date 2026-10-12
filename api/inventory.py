@@ -2,6 +2,8 @@
 import asyncio
 from datetime import UTC,datetime
 import time
+import httpx
+from google.genai.errors import APIError
 from api.config import Settings
 from api.inventory_models import VideoMedia,InventoryAssessment,InventoryReply
 from api.inventory_store import InventoryStore
@@ -81,12 +83,17 @@ class InventoryService:
                     remaining=self.total_budget_seconds-(time.monotonic()-start)
                     async with asyncio.timeout(max(.001,remaining)):
                         for attempt in range(2):
+                            if attempt and await asyncio.to_thread(self.store.danger_active,shop['shop_id']):
+                                return await self.danger_reply(shop)
                             try:
                                 assessment=await self.assessor.assess(media,job['inventory_id'],job['is_demo'],job['duration'])
                                 assessment.validate_duration(job['duration'])
                                 break
-                            except ValueError:
+                            except (ValueError,httpx.TransportError,TimeoutError):
                                 if attempt==1:raise
+                            except APIError as error:
+                                if attempt==1 or not (isinstance(error.code,int) and (error.code==429 or 500<=error.code<600)):
+                                    raise
                 except Exception:
                     await asyncio.to_thread(self.store.update_job,job['inventory_id'],owner,status='assessment_unavailable',model_elapsed_ms=int((time.monotonic()-model_start)*1000))
                     return await self.reply(shop,'inventory_processing_unavailable')

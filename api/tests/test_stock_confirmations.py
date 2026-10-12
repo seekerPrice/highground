@@ -18,7 +18,10 @@ def test_exact_displayed_snapshot_cross_recipient_refresh_episode_and_outbox():
     shop=Shop(shop_id='shop',shop_name='Synthetic',lat=3.,lng=101.,is_demo=True,
         recipients=[dict(telegram_chat_id=101,language='en',role='owner'),dict(telegram_chat_id=102,language='en',role='worker')])
     shop_ref=client.collection(store.shops).document('shop');shop_ref.set(shop.model_dump())
-    event=dict(event_id='event',episode_id='episode',created_at=datetime.now(UTC),is_demo=True)
+    from api.active_risk import ActiveRiskStore
+    risk=ActiveRiskStore(client,risks=store.risks,shops=store.shops)
+    event=dict(event_id='event',source='demo',level='warning',created_at=datetime.now(UTC),is_demo=True)
+    event['episode_id']=risk.apply_event(event,shop.shop_id)
     snapshot=ActionSnapshot(inventory_id='old',items=(LiftItem(item_name='Rice',qty=2.,value_rm=20.,lift_effort=1),),estimated_value_rm=20.)
     action=store.prepare(event,shop,snapshot,'salt');identity=action['action_id']
     for member in shop.recipients:
@@ -38,8 +41,8 @@ def test_exact_displayed_snapshot_cross_recipient_refresh_episode_and_outbox():
         assert saved['protected_value_rm']==20 and saved['snapshot']['inventory_id']=='old'
         await service.flush(identity);assert not sink.rows
         sink.fail=False;await service.flush(identity);await service.flush(identity)
-        assert len(sink.rows)==1 and sink.rows[0]['episode_id']=='episode'
-        shop_ref.update({'active_danger':True})
+        assert len(sink.rows)==1 and sink.rows[0]['episode_id']==event['episode_id']
+        risk.apply_event(dict(event_id='danger',source='demo',level='danger',created_at=datetime.now(UTC),is_demo=True),shop.shop_id)
         assert (await service.record(identity,sender_chat_id=101,message_chat_id=101,message_id=1101))[0]=='superseded'
     try:asyncio.run(run())
     finally:
@@ -126,3 +129,49 @@ def test_stock_callback_feedback_fits_telegram_limit_in_all_languages():
         for key in ('stock_recorded','stock_already_recorded','confirmation_superseded','confirmation_unavailable'):
             notice='' if catalog(language)['_reviewed'] else '\n'+text(language,'translation_notice')
             assert len(text(language,key)+notice)<=200
+
+@pytest.mark.parametrize('recovery',['demo_reset','photo_recovery','official_recovery'])
+@pytest.mark.skipif(not os.environ.get('FIRESTORE_EMULATOR_HOST'),reason='Firestore emulator required')
+def test_closed_episode_old_stock_callback_rejected_new_episode_works(recovery):
+    from api.active_risk import ActiveRiskStore
+    client=create_firestore_client(Settings(gcp_project='highground-task11-tests'));prefix='closed-stock-'+uuid4().hex
+    stocks=StockActionStore(client,actions=prefix+'a',confirmations=prefix+'f',alerts=prefix+'l',shops=prefix+'s',risks=prefix+'r')
+    risk=ActiveRiskStore(client,risks=stocks.risks,shops=stocks.shops,current_actions=prefix+'v',source_states=prefix+'sources')
+    demo=recovery=='demo_reset'
+    shop=Shop(shop_id='shop',shop_name='Synthetic',lat=3.,lng=101.,is_demo=demo,
+        recipients=[dict(telegram_chat_id=101,language='en',role='owner')])
+    client.collection(stocks.shops).document('shop').set(shop.model_dump())
+    snapshot=ActionSnapshot(inventory_id='inventory',items=(LiftItem(item_name='Rice',qty=2.,value_rm=20.,lift_effort=1),),estimated_value_rm=20.)
+    source='demo' if demo else ('jps' if recovery=='official_recovery' else 'shop_report')
+    def event(identity,level):
+        now=datetime.now(UTC)
+        return dict(event_id=identity,source=source,level=level,is_demo=demo,created_at=now,
+                    source_key='station' if source=='jps' else None,source_episode_id='source-episode',source_observed_at=now)
+    def prepare(value):
+        episode=risk.apply_event(value,'shop');assert episode
+        value['episode_id']=episode
+        action=stocks.prepare(value,shop,snapshot,'salt')
+        sender_hash=session_user_id(101,'salt')
+        alert_id=sha256(f"{value['event_id']}:shop:{sender_hash}".encode()).hexdigest()
+        client.collection(stocks.alerts).document(alert_id).set(dict(status='accepted',message_id=77,level='warning',snapshot=action['snapshot']))
+        return action
+    try:
+        old=prepare(event('old-warning','warning'))
+        if not demo:risk.apply_event(event('danger','danger'),'shop')
+        if demo:assert risk.reset_demo('shop')
+        elif recovery=='photo_recovery':assert risk.owner_declared_recovery('shop',101)
+        else:assert risk.recover_official('station','source-episode',datetime.now(UTC))==1
+        assert risk.get('shop').episode_id is None
+        late=event('late-warning','warning');late['episode_id']=old['episode_id']
+        assert stocks.prepare(late,shop,snapshot,'salt')['state']=='superseded'
+        service=StockConfirmationService(stocks,Sink(),hash_salt='salt')
+        result=asyncio.run(service.record(old['action_id'],sender_chat_id=101,message_chat_id=101,message_id=77))
+        assert result[0]=='superseded'
+        assert not list(client.collection(stocks.confirmations).stream())
+        new=prepare(event('new-warning','warning'))
+        assert new['episode_id']!=old['episode_id']
+        assert asyncio.run(service.record(new['action_id'],sender_chat_id=101,message_chat_id=101,message_id=77))[0]=='recorded'
+    finally:
+        for name in (stocks.actions,stocks.confirmations,stocks.alerts,stocks.shops,stocks.risks,risk.current_actions,risk.source_states):
+            for doc in client.collection(name).stream():doc.reference.delete()
+        client.close()

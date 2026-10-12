@@ -16,19 +16,24 @@ def source_episode(key, started):
 
 
 class PollStore:
-    def __init__(self,client,*,states='official_source_states',intents='official_poll_intents',status='official_source_status'):
+    def __init__(self,client,*,states='official_source_states',intents='official_poll_intents',status='official_source_status',max_age=DEFAULT_MAX_AGE):
         self.client,self.states,self.intents,self.status=client,states,intents,status
+        self.recoveries=intents+'-recoveries'
+        if not timedelta(0)<max_age<=DEFAULT_MAX_AGE:raise ValueError('Official cutoff must be positive and at most90 minutes')
+        self.max_age=max_age
 
     def observe(self,result):
         self.client.collection(self.status).document(result.source).set(result.model_dump(mode='json',exclude={'warnings','resolved'}))
         # No absent/error/stale observation is interpreted as recovery.
-        for key,at in result.resolved.items():self._transition(key,None,at,result.checked_at)
+        if result.status in ('current','degraded'):
+            for key,at in result.resolved.items():self._transition(key,None,at,result.checked_at)
         for warning in result.warnings:
             if warning.geography.latitude is None or warning.geography.longitude is None:continue
             self._transition(f'{warning.source}:{warning.source_id}',warning,None,result.checked_at)
 
     def _transition(self,key,warning,resolved,checked_at):
         ref=self.client.collection(self.states).document(sha256(key.encode()).hexdigest())
+        if resolved is not None and (resolved>checked_at or checked_at-resolved>self.max_age or datetime.now(UTC)-resolved>self.max_age):return
         @firestore.transactional
         def transition(tx):
             data=ref.get(transaction=tx).to_dict() or {}
@@ -48,14 +53,20 @@ class PollStore:
                 w=item.warning;episode=source_episode(key,states[key].started_at)
                 request=EventRequest(request_id=item.event_id,source=w.source,level=w.level,lat=w.geography.latitude,lng=w.geography.longitude,
                                      reason=w.reason,source_key=key,source_episode_id=episode,source_observed_at=w.observed_at,
-                                     source_valid_until=w.valid_until or w.observed_at+DEFAULT_MAX_AGE)
+                                     source_valid_until=w.valid_until or w.observed_at+self.max_age)
                 intents.append((item.event_id,{'kind':'event','request_json':request.model_dump_json(),'status':'pending'}))
             if emitted:recovery_episode=None
             # The watermark excludes exact retries, including completed NORMAL
             # intents; avoid additional conflicting reads inside the transaction.
             tx.set(ref,{'source_key':key,'state':asdict(states[key]),'checked_at':checked_at,'recovery_episode':recovery_episode})
-            for identity,intent in intents:tx.set(self.client.collection(self.intents).document(identity),intent)
-        transition(self.client.transaction())
+            for identity,intent in intents:
+                tx.set(self.client.collection(self.intents).document(identity),intent)
+                if intent['kind']=='recovery':
+                    receipt_id=sha256(f"{key}:{intent['source_episode_id']}".encode()).hexdigest()
+                    tx.set(self.client.collection(self.recoveries).document(receipt_id),
+                           {'source_key':key,'source_episode_id':intent['source_episode_id'],
+                            'observed_at':resolved,'checked_at':checked_at,'accepted_max_age_seconds':int(self.max_age.total_seconds())})
+        transition(self.client.transaction(max_attempts=10))
 
     def pending(self):
         from google.cloud.firestore_v1.base_query import FieldFilter
@@ -73,7 +84,7 @@ class PollService:
 
     async def poll(self):
         async with httpx.AsyncClient(timeout=8) as client:
-            results=await self.fetcher(client=client)
+            results=await self.fetcher(client=client,max_age=self.store.max_age)
         for result in results:await asyncio.to_thread(self.store.observe,result)
         processed=0
         for identity,intent in await asyncio.to_thread(self.store.pending):
@@ -93,4 +104,4 @@ def create_poll_service(settings):
     from api.tools.firestore import create_firestore_client
     from api.active_risk import ActiveRiskStore
     client=create_firestore_client(settings)
-    return PollService(PollStore(client),create_dispatch_service(settings),ActiveRiskStore(client))
+    return PollService(PollStore(client,max_age=settings.official_max_age),create_dispatch_service(settings),ActiveRiskStore(client,max_age=settings.official_max_age))

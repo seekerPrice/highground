@@ -19,10 +19,11 @@ def domain():
     risk=ActiveRiskStore(client,risks=prefix+'r',shops=prefix+'s',deliveries=prefix+'d',current_actions=prefix+'a')
     poll=PollStore(client,states=prefix+'sources',intents=prefix+'intents',status=prefix+'status')
     risk.source_states=poll.states
+    risk.source_recoveries=poll.recoveries
     client.collection(risk.shops).document('shop').set({'shop_name':'Synthetic','lat':3.,'lng':101.,'is_demo':False,'recipients':[{'telegram_chat_id':1,'language':'en','role':'owner'}]})
     try:yield client,risk,poll
     finally:
-        for collection in (risk.risks,risk.shops,risk.deliveries,risk.current_actions,poll.states,poll.intents,poll.status):
+        for collection in (risk.risks,risk.shops,risk.deliveries,risk.current_actions,poll.states,poll.intents,poll.status,poll.recoveries):
             for document in client.collection(collection).stream():document.reference.delete()
         client.close()
 
@@ -34,7 +35,7 @@ def event(level='warning',source='jps',key='jps:station',episode='official-one',
 
 
 def test_atomic_poll_concurrency_restart_and_recovery(domain):
-    client,risk,poll=domain;now=datetime.now(UTC)
+    client,risk,poll=domain;now=datetime.now(UTC)-timedelta(seconds=2)
     warning=Warning(source='jps',source_id='station',level='warning',observed_at=now,geography=Geography(latitude=3.,longitude=101.),reason='Official indicator')
     result=SourceResult(source='jps',status='current',checked_at=now,warnings=(warning,),records_current=1)
     with ThreadPoolExecutor(max_workers=3) as executor:list(executor.map(lambda _:poll.observe(result),range(3)))
@@ -47,7 +48,7 @@ def test_atomic_poll_concurrency_restart_and_recovery(domain):
     assert risk.get('shop').episode_id
     poll.observe(SourceResult(source='jps',status='stale',checked_at=now,rejected={'stale':1}))
     assert len(poll.pending())==1
-    poll.observe(SourceResult(source='jps',status='current',checked_at=now,resolved={'jps:station':now+timedelta(seconds=1)}))
+    poll.observe(SourceResult(source='jps',status='current',checked_at=now+timedelta(seconds=1),resolved={'jps:station':now+timedelta(seconds=1)}))
     assert len(poll.pending())==2 and any(value['kind']=='recovery' for _,value in poll.pending())
 
 
@@ -244,3 +245,165 @@ def test_pending_source_escalation_only_delivers_highest_watermark(domain,revers
     finally:
         for collection in (store.events,store.plans,store.alerts,store.deliveries):
             for document in client.collection(collection).stream():document.reference.delete()
+
+
+@pytest.mark.parametrize('new_first',[False,True,'concurrent'])
+@pytest.mark.parametrize('other_source',[False,True])
+def test_explicit_source_recovery_between_dangers_preserves_new_attribution_and_shop_scope(domain,new_first,other_source):
+    client,risk,poll=domain;now=datetime.now(UTC)-timedelta(seconds=5)
+    source='jps:station'
+    def observe(level,at):
+        warning=Warning(source='jps',source_id='station',level=level,observed_at=at,geography=Geography(latitude=3.,longitude=101.),reason='Official indicator')
+        poll.observe(SourceResult(source='jps',status='current',checked_at=at,warnings=(warning,)))
+        intent=next(value for _,value in poll.pending() if value['kind']=='event' and EventRequest.model_validate_json(value['request_json']).source_observed_at==at)
+        request=EventRequest.model_validate_json(intent['request_json'])
+        return {**request.model_dump(),'event_id':request.request_id,'is_demo':False,'created_at':at}
+    old=observe('danger',now)
+    original_shop_episode=risk.apply_event(old,'shop')
+    if other_source:risk.apply_event(event('warning',key='jps:other',episode='other',at=now),'shop')
+    normal_at=now+timedelta(seconds=1)
+    poll.observe(SourceResult(source='jps',status='current',checked_at=normal_at,resolved={source:normal_at}))
+    new=observe('danger',now+timedelta(seconds=2))
+    assert new['source_episode_id']!=old['source_episode_id']
+    if new_first=='concurrent':
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            applied=executor.submit(risk.apply_event,new,'shop')
+            recovered=executor.submit(risk.recover_official,source,old['source_episode_id'],normal_at)
+            new_shop_episode=applied.result();recovered.result()
+    elif new_first:
+        new_shop_episode=risk.apply_event(new,'shop')
+        risk.recover_official(source,old['source_episode_id'],normal_at)
+    else:
+        risk.recover_official(source,old['source_episode_id'],normal_at)
+        new_shop_episode=risk.apply_event(new,'shop')
+    assert risk.get('shop').active_danger
+    record=client.collection(risk.risks).document('shop').get().to_dict()
+    assert record['sources'][source]['source_episode_id']==new['source_episode_id']
+    assert (new_shop_episode==original_shop_episode) is other_source
+    final_normal=now+timedelta(seconds=3)
+    poll.observe(SourceResult(source='jps',status='current',checked_at=final_normal,resolved={source:final_normal}))
+    assert risk.recover_official(source,new['source_episode_id'],final_normal)==1
+    assert not risk.get('shop').active_danger
+    assert bool(risk.get('shop').episode_id) is other_source
+
+
+def test_no_recovery_receipt_from_stale_or_missing_observation(domain):
+    client,risk,poll=domain;now=datetime.now(UTC)
+    active=event('danger',at=now-timedelta(seconds=1))
+    original=risk.apply_event(active,'shop')
+    poll.observe(SourceResult(source='jps',status='stale',checked_at=now,resolved={'jps:station':now}))
+    poll.observe(SourceResult(source='jps',status='empty',checked_at=now))
+    assert list(client.collection(poll.recoveries).stream())==[]
+    later=event('warning',episode='unproven-new-gap',at=now)
+    assert risk.apply_event(later,'shop')==original and risk.get('shop').active_danger
+    record=client.collection(risk.risks).document('shop').get().to_dict()
+    assert record['sources']['jps:station']['source_episode_id']=='official-one'
+
+
+@pytest.mark.parametrize('incoming_source',['shop_report','jps'])
+def test_aged_recovery_receipt_cannot_clear_official_danger_on_unrelated_event(domain,incoming_source):
+    from hashlib import sha256
+    client,risk,poll=domain;now=datetime.now(UTC)
+    original=risk.apply_event(event('danger',at=now-timedelta(seconds=1)),'shop')
+    reference=client.collection(risk.risks).document('shop')
+    record=reference.get().to_dict();old_time=now-timedelta(days=1,seconds=2)
+    record['sources']['jps:station']['observed_at']=old_time;reference.set(record)
+    receipt_id=sha256(b'jps:station:official-one').hexdigest()
+    client.collection(poll.recoveries).document(receipt_id).set({'source_key':'jps:station','source_episode_id':'official-one',
+        'observed_at':old_time+timedelta(seconds=1),'checked_at':old_time+timedelta(seconds=1)})
+    incoming=event('warning',incoming_source,key=None if incoming_source=='shop_report' else 'jps:other',episode='other',at=now)
+    assert risk.apply_event(incoming,'shop')==original
+    state=risk.get('shop')
+    assert state.active_danger and state.official_danger
+
+
+def test_aged_recovery_preserves_latch_but_attributes_new_same_source_danger(domain):
+    from hashlib import sha256
+    client,risk,poll=domain;now=datetime.now(UTC)-timedelta(seconds=2)
+    original=risk.apply_event(event('danger',at=now),'shop')
+    ref=client.collection(risk.risks).document('shop');record=ref.get().to_dict();yesterday=now-timedelta(days=1)
+    record['sources']['jps:station']['observed_at']=yesterday;ref.set(record)
+    receipt_id=sha256(b'jps:station:official-one').hexdigest()
+    client.collection(poll.recoveries).document(receipt_id).set({'source_key':'jps:station','source_episode_id':'official-one',
+        'observed_at':yesterday+timedelta(seconds=1),'checked_at':yesterday+timedelta(seconds=1)})
+    incoming=event('danger',episode='new-current',at=now+timedelta(seconds=1))
+    assert risk.apply_event(incoming,'shop')==original
+    state=risk.get('shop');assert state.active_danger and state.official_danger
+    rebound=ref.get().to_dict()['sources']['jps:station']
+    assert rebound['source_episode_id']=='new-current' and rebound['carried_danger_from']=='official-one'
+    assert risk.recover_official('jps:station','new-current',datetime.now(UTC))==1
+    assert not risk.get('shop').active_danger
+
+
+def test_nondefault_official_cutoff_propagates_parser_poll_and_risk_factory(domain,monkeypatch):
+    from api.polling import create_poll_service
+    from api.tools.datagov import parse_flood,DEFAULT_MAX_AGE
+    import api.tools.firestore as factory
+    import api.dispatch as dispatch_module
+    client,risk,poll=domain;now=datetime.now(UTC)
+    calls=[]
+    class Dispatch:
+        async def process(self,request):calls.append(request);return {'status':'complete','event_id':'synthetic'}
+    monkeypatch.setattr(factory,'create_firestore_client',lambda settings:client)
+    monkeypatch.setattr(dispatch_module,'create_dispatch_service',lambda settings:Dispatch())
+    service=create_poll_service(Settings(gcp_project='highground-task10-tests',official_max_age_minutes=5))
+    assert service.store.max_age==service.risk.max_age==timedelta(minutes=5)
+    service.store.states=poll.states;service.store.intents=poll.intents;service.store.status=poll.status;service.store.recoveries=poll.recoveries
+    service.risk.risks=risk.risks;service.risk.shops=risk.shops;service.risk.source_states=poll.states;service.risk.source_recoveries=poll.recoveries
+    observed=now-timedelta(minutes=6)
+    row={'station_id':'station','latitude':3.,'longitude':101.,'district':'Test','state':'Test','water_level_current':1.,
+         'water_level_indicator':'DANGER','water_level_update_datetime':observed.isoformat(),'station_status':'ON','water_level_status':'ON'}
+    async def fetcher(*,client,max_age=DEFAULT_MAX_AGE):
+        return (parse_flood([row],now=now,max_age=max_age),SourceResult(source='met',status='unsupported',checked_at=now))
+    service.fetcher=fetcher
+    result=asyncio.run(service.poll())
+    assert calls==[] and result['processed_intents']==0
+    assert service.risk.apply_event_decision(event('danger',at=observed),'shop').reason=='expired'
+    assert service.risk.claim_delivery('shop',event('danger',at=observed))==('superseded',None)
+    fresh=event('danger',at=now-timedelta(minutes=7))
+    # Existing persisted Danger outlives freshness; stale recovery never clears it.
+    risk.apply_event(fresh,'shop')
+    assert service.risk.recover_official('jps:station','official-one',now-timedelta(minutes=6))==0
+    assert service.risk.get('shop').active_danger
+
+
+def test_tightened_cutoff_preserves_historical_acceptance_without_clearing_danger(domain):
+    from hashlib import sha256
+    client,risk,poll=domain;now=datetime.now(UTC)
+    original=risk.apply_event(event('danger',at=now-timedelta(minutes=60)),'shop')
+    receipt_id=sha256(b'jps:station:official-one').hexdigest()
+    client.collection(poll.recoveries).document(receipt_id).set({'source_key':'jps:station','source_episode_id':'official-one',
+        'observed_at':now-timedelta(minutes=40),'checked_at':now-timedelta(minutes=5),'accepted_max_age_seconds':5400})
+    tightened=ActiveRiskStore(client,risks=risk.risks,shops=risk.shops,source_states=poll.states,
+                              source_recoveries=poll.recoveries,max_age=Settings(official_max_age_minutes=30).official_max_age)
+    new=event('danger',episode='new-current',at=now-timedelta(minutes=1))
+    assert tightened.apply_event(new,'shop')==original
+    assert tightened.get('shop').active_danger
+    bound=client.collection(risk.risks).document('shop').get().to_dict()['sources']['jps:station']
+    assert bound['source_episode_id']=='new-current' and bound['carried_danger_from']=='official-one'
+    assert tightened.recover_official('jps:station','new-current',datetime.now(UTC))==1
+    assert not tightened.get('shop').active_danger
+
+
+def test_official_cutoff_bounds_and_environment(monkeypatch):
+    from api.config import load_settings
+    for value in (0,91,True,1.5):
+        with pytest.raises(ValueError):Settings(official_max_age_minutes=value)
+    monkeypatch.setenv('OFFICIAL_MAX_AGE_MINUTES','30')
+    assert load_settings().official_max_age==timedelta(minutes=30)
+    monkeypatch.setenv('OFFICIAL_MAX_AGE_MINUTES','unbounded')
+    with pytest.raises(ValueError):load_settings()
+
+
+def test_dispatch_mutating_risk_factory_uses_configured_cutoff(domain,monkeypatch):
+    import api.tools.firestore as factory
+    import api.tools.cloud_events as cloud
+    import api.tools.telegram as telegram
+    from api.dispatch import create_dispatch_service
+    from api.tests.test_dispatch import Sinks,Bot
+    client,*_=domain
+    monkeypatch.setattr(factory,'create_firestore_client',lambda settings:client)
+    monkeypatch.setattr(cloud,'create_event_sinks',lambda settings:Sinks())
+    monkeypatch.setattr(telegram,'TelegramAPI',lambda token:Bot())
+    service=create_dispatch_service(Settings(gcp_project='highground-task10-tests',hash_salt='synthetic',telegram_bot_token='synthetic',official_max_age_minutes=5))
+    assert service.active_risk.max_age==timedelta(minutes=5)
