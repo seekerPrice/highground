@@ -239,7 +239,8 @@ def test_unreadable_requires_independent_corroboration_for_warning_only():
     assert triage_photo(unreadable,reports)[0]=='warning'
 
 @pytest.mark.skipif(not __import__('os').environ.get('FIRESTORE_EMULATOR_HOST'),reason='Firestore emulator required')
-def test_prepared_photo_danger_resumes_after_dispatch_failure_without_reassessment():
+@pytest.mark.parametrize('expired',[False,True])
+def test_prepared_photo_danger_resumes_after_dispatch_failure_without_reassessment(expired):
     from hashlib import sha256
     from api.vehicle_confirmations import VehicleActionStore
     client=create_firestore_client(Settings(gcp_project='highground-task9-tests'))
@@ -266,9 +267,16 @@ def test_prepared_photo_danger_resumes_after_dispatch_failure_without_reassessme
         saved=store.get(reply.report_id)
         assert saved['triage']['level']=='danger' and store.danger_active('reporter')
         assert not saved.get('event_id') and assessor.calls==1
-        restarted=PhotoReportService(store,media,assessor,dispatch)
+        retry_time=now+timedelta(minutes=31) if expired else datetime.now(UTC)
+        restarted=PhotoReportService(store,media,assessor,dispatch,clock=lambda:retry_time)
         retried=await restarted.confirm_report_location(123,reply.report_id,at_shop=True)
         assert retried.code=='danger' and assessor.calls==1
+        if expired:
+            assert len(dispatch.attempts)==1 and not dispatch.logical
+            assert store.danger_active('reporter')
+            assert store.get(reply.report_id)['triage']==saved['triage']
+            assert not store.get(reply.report_id).get('event_id')
+            return
         assert dispatch.attempts[0]==dispatch.attempts[1]
         assert dispatch.attempts[1]['reporter_shop_id']=='reporter'
         assert len(dispatch.logical)==1

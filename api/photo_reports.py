@@ -150,7 +150,7 @@ class PhotoReportService:
         resume_danger = record.get('triage', {}).get('level') == 'danger'
         try:
             # The first confirmed processing clock persists across retries; confirmation wait remains separate.
-            if not resume_danger and self.clock()-record['received_at']>timedelta(minutes=30):
+            if self.clock()-record['received_at']>timedelta(minutes=30):
                 return await self._reply('report_stale',record)
             private=await asyncio.to_thread(self.store.private,record['report_id'])
             request=self._media_request(record,sender,private)
