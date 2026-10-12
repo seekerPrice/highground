@@ -39,7 +39,7 @@ Astra owns planning/checklists/AGENTS and coordinates review/corrections. Root o
 
 Initial lanes: infrastructure owns infra/setup.sh and schema/config/test assets under infra plus .env.example additions if necessary; data owns api/models.py, api/tools/datagov.py, data fixtures/tests and docs/planning/data-source-research.md. Neither modifies api/main.py or backend locks without Astra approval.
 
-Current milestone: onboarding lane owns Task 5 and shared webhook/settings/catalogs; data lane owns Task 7 and backend locks. Tasks 8/9 now retain those lane boundaries, with shared entry-point integration assigned to the onboarding lane; details are in tasks-08-09-brief.md.
+Current milestone: Task 10 lane owns polling, active-risk/episode state, Scheduler authentication, main/dispatch and settings. Task 11 lane owns video/inventory/loss-agent work, webhook/onboarding/composer and backend dependency changes. Agree shared risk interfaces and serialize any cross-lane edits before changing them. Details are in tasks-10-11-brief.md.
 
 ## Review gates
 
@@ -52,3 +52,5 @@ Baseline for the Tasks 2/3/4/6 foundation: 142178f. Candidate: 9df978d. Each lan
 The foundation and privacy correction passed both axes in final commit 4666575. That commit is the Tasks 5/7 review baseline; final candidate 8818a93 passed both Matt axes after the distance correction. Local synthetic fixtures do not substitute for native translation review, two consenting phone testers, real-shop valuation accuracy or production IAM checks.
 
 Tasks 8/9 dispatched from reviewed code baseline 8818a93; subsequent documentation-only commits do not change that implementation comparison.
+
+Tasks 8/9 implementation was reviewed through 1a4d7b1 with zero outstanding findings on both axes and a final complete local gate (6 infrastructure + 175 API tests, no skips, frontend checks passed). Task 8 live own-chat acceptance passed; Task 9 live photo upload remains explicitly pending consent. Tasks 10/11 are now dispatched in parallel from that code baseline.

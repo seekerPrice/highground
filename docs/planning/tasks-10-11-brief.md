@@ -4,11 +4,15 @@ Future Must work under the current all-task/local-first authorization. Begin aft
 
 ## Task 10: polling and escalation
 
+Execution lane: reuse Sol's infrastructure/destination worker. Expected files are a small polling/source-state module, an active-risk/episode module, Scheduler authentication, focused tests and a manually invoked Scheduler script. This lane owns shared `api/main.py`, dispatch ordering and vehicle-action recovery changes. Coordinate any photo prompt-guard call-site edits with the inventory lane; do not both edit shared entrypoints simultaneously.
+
 Connect the existing official clients and pure episode transition to durable Firestore state. Persist each source watermark/episode and stable event identity atomically so concurrent pollers, retries and process restarts cannot generate duplicate logical alerts. Stale, failed, empty or unmapped responses do not mean conditions have improved. Only attributed fresh observations or explicit recovery records may advance the corresponding state. Never invent a district centre or observation timezone to fit the dispatch coordinates contract.
 
 Implement authenticated `/jobs/poll-warnings` and a manually invoked Scheduler configuration script. Validate the configured OIDC audience and exact permitted caller identity for hosted requests; fail closed when configuration or verification is missing. Local verification may use an explicit development authentication path constrained to local/demo configuration, without weakening hosted verification. The script documents a five-minute job but is not run against cloud resources while hosting is deferred.
 
 Escalation must invalidate older pending Warning actions before sending Danger. A delayed/recovered Warning send cannot follow a newer applicable Danger; test the interleaving between preparation and send, not only sequential level selection. Fixed Danger rendering remains enforced at the final Telegram boundary. Do not silently downgrade active official Danger because of lower-confidence shop reports or absent source data. Record the source/episode scope that makes an action superseded, and allow a genuinely new episode only through the established transition contract.
+
+Do not mistake an early level check for final send ordering. Recheck authoritative state at the delivery boundary and serialize competing delivery claims as needed. An already in-flight ambiguous external Telegram request cannot be retracted or proven unread; preserve that uncertainty rather than promising impossible external exactly-once ordering.
 
 Expose a stable action/episode scope for confirmations and aggregate metrics. Several Warning sources or event IDs during one flood cannot make one vehicle or repeated immutable stock snapshot count repeatedly. Task 15 must test cross-event duplicates, not only repeated callback IDs or two recipients. The synthetic scenario can be explicitly reset by its operator; this does not resolve a real official Danger. Do not reset unrelated emulator records to prepare a test.
 
@@ -17,6 +21,8 @@ Approved aggregate: one vehicle per shop/episode; highest actually displayed and
 Verify concurrent poll claims, source-state/event atomicity, escalation during delayed composition/delivery, restart recovery, fresh recovery/new episode, unauthorised/wrong-audience/wrong-caller requests and actual stale upstream status with no false alert. Use isolated emulator records. Any fresh live official warning coverage remains explicitly unavailable until observed.
 
 ## Task 11: baseline video and exact lift-first confirmation
+
+Execution lane: reuse Sol's media/data worker. Expected files are validated inventory/video models and service, the actual loss-agent adapter, deterministic ranking, stock-confirmation handling and focused tests. This lane owns Telegram video routing, onboarding completion and inventory rendering in the composer. Reuse the existing media store/storage and recipient-bound confirmation approach; coordinate settings/dependency edits and consume Task 10's active-risk contract instead of inventing a second recovery policy.
 
 Reuse Task 9 immutable ingestion for original Telegram video bytes (declared and actual stream no more than 20 MB); request a 30–45 second walkthrough with friendly oversize guidance. Use configured Pro through the real ADK loss-agent path with a strict bounded schema, explicit timeouts and one bounded retry/fallback. Local Vertex receives bounded original bytes inline; local storage remains private. No inventory is published as successfully parsed on truncated/invalid model output.
 
