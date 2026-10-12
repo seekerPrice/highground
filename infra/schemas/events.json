@@ -1,0 +1,52 @@
+[
+  {
+    "name": "event_id",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "source",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "level",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "lat",
+    "type": "FLOAT",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "lng",
+    "type": "FLOAT",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "radius_m",
+    "type": "INTEGER",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "confidence",
+    "type": "FLOAT",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "reason",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "created_at",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "is_demo",
+    "type": "BOOLEAN",
+    "mode": "NULLABLE"
+  }
+]

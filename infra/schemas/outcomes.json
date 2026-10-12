@@ -1,0 +1,42 @@
+[
+  {
+    "name": "outcome_id",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "alert_id",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "event_id",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "shop_id",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "outcome",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "depth_cm",
+    "type": "INTEGER",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "outcome_at",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "is_demo",
+    "type": "BOOLEAN",
+    "mode": "NULLABLE"
+  }
+]

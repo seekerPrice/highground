@@ -1,0 +1,52 @@
+[
+  {
+    "name": "alert_id",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "event_id",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "shop_id",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "telegram_chat_id_hash",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "level",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "language",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "sent_at",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "delivered",
+    "type": "BOOLEAN",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "latency_ms",
+    "type": "INTEGER",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "is_demo",
+    "type": "BOOLEAN",
+    "mode": "NULLABLE"
+  }
+]

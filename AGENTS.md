@@ -4,11 +4,11 @@
 
 Follow the user's current instructions and the source at docs/spec/01-build-spec.md, with approved amendments in docs/planning/approved-decisions.md. The GitHub spec and task issues record resolved decisions; planning drafts do not override the source. If sources conflict, surface the conflict before implementing that behaviour.
 
-Work on one Section 12 task at a time. Wait for the user's Task N instruction and confirmation before advancing. Astra (gpt-6-astra) coordinates 6.1 Sol (gpt-6.1-sol): brief Sol, inspect actual changes and local checks, return defects to Sol, recheck corrections, then report. Run Matt Standards and Spec reviews against an agreed fixed baseline; keep the two axes distinct and correct/recheck findings.
+The user authorizes implementing all Section 12 tasks autonomously. Work by real dependencies and parallelize disjoint tasks where practical; individual Task N approval gates are superseded. Astra (gpt-6-astra) coordinates 6.1 Sol (gpt-6.1-sol): brief Sol, inspect actual changes and local checks, return defects to Sol, recheck corrections, then report. Run Matt Standards and Spec reviews against each recorded implementation baseline; keep the two axes distinct and correct/recheck findings.
 
-For ordinary project decisions presented with a recommended option, the user authorizes adopting that option after five minutes without a reply. Record the choice and its reasoning. This does not remove explicit Task N gates or supply missing credentials or facts. Do not delay routine choices that are already authorized.
+For ordinary project decisions presented with a recommended option, the user authorizes adopting that option after five minutes without a reply. Record the choice and its reasoning. This does not supply missing credentials or facts, authorize guesses about external state, or bypass the current local Must acceptance gate. Do not delay routine choices that are already authorized.
 
-Use only the Section 5 stack. Keep modules small and typed; validate external and model responses. Avoid abstractions without a current requirement. Calendar allocations are targets, not earliest-start restrictions: finish and advance earlier when the user authorizes the next task. All Musts, including Task 15's dashboard, target deployment by Thursday 15 October 2026. Shoulds may start earlier than Friday only after Tasks 1–17 work on deployed URLs and the user authorizes the task. Keep task order and Task N gates. Stretch is pitch-only. Earlier progress does not extend the code-freeze or submission deadlines.
+Use only the Section 5 stack. Keep modules small and typed; validate external and model responses. Avoid abstractions without a current requirement. Calendar allocations are targets, not earliest-start restrictions: finish and advance whenever dependencies permit. Latest instruction is local-first: implement and verify the full Must journey locally before coding Shoulds. Hosting is deferred; do not provision cloud resources or deploy merely to satisfy the older calendar. Cloud/deployed acceptance remains explicitly pending until hosting is authorized. Task numbers remain traceability identifiers, not artificial sequencing barriers. Stretch is pitch-only. Earlier progress does not extend the code-freeze or submission deadlines.
 
 ## Safety, honesty and privacy
 
@@ -16,7 +16,7 @@ Danger uses committed fixed templates, never runtime generation; permitted place
 
 Reject stale/error observations for current alerts. Label simulations and unavailable sources. Preserve downloaded upload bytes and append-only evidence records, subject to the explicitly approved policy-document retention exception. Keep private media private and exclude recipient identifiers from public output.
 
-## Local verification and deployment
+## Local verification and deferred deployment
 
 No .github/workflows, GitHub Actions, Dependabot, other GitHub-hosted automation or repository-connected Cloud Build triggers. Tests, lint, builds and deployment run locally. Manually invoked source deployment is allowed. GitHub Issues and the public source repository are allowed.
 

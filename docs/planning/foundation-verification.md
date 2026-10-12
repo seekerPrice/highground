@@ -1,0 +1,14 @@
+# Tasks 2, 3, 4 and 6 — local foundation verification
+
+Review baseline: `142178f`. Candidate commit and independent Matt outcomes will be recorded after the stable commit. Task 5 is not implemented in this milestone. Cloud provisioning, hosting and real webhook callback acceptance remain separate.
+
+- Task 2: shell syntax plus six infrastructure command-contract tests passed, including existing-resource validation, permission errors and optimized-Python execution. Astra caught validation written as assertions; Sol replaced it with explicit errors and rechecked. No cloud setup command was applied.
+- Task 3: actual captured official API payloads, conservative parsers and episode dedupe passed. Astra/root found recovery-state deletion and identifier mismatch; corrected parser-to-dedupe transitions retain namespaced recovery watermarks and permit a later genuine warning episode. Current captured flood feed is stale, not validated live warning coverage.
+- Task 4: secret validation, bounded streaming body, durable transactional inbox, reconstruction/concurrent duplicate suppression, retryable versus uncertain sends and private URL redaction pass. Astra requested a public whitespace-message regression and the configured `DEMO_OPERATOR_TOKEN` alias; both corrected. Live local health returned 200 with the exact contract and unauthorized webhook returned 403. Real Telegram callback is still pending.
+- Task 6: actual ADK hierarchy, shipped Firestore adapter persistence/reconstruction/stale-write rejection and scripted runner routing pass. Actual configured fast and Pro Vertex calls through the new bounded schema helper returned valid synthetic results. Astra separately constructed actual ADK Gemini wrappers with an injected client and verified model selection/client ownership. All domain tools remain explicit skeleton stubs in this task.
+
+Final independent Astra command: `FIRESTORE_EMULATOR_HOST=127.0.0.1:8787 .venv/bin/python -m pytest api/tests -q` → **68 passed**, one upstream ADK experimental-feature warning, exit 0. `.venv/bin/python -m pip check` reports no broken requirements; `git diff --check` exits 0. Sol's deliberate auth/dedupe/log-redaction/model-retry mutations failed their targeted regressions and were restored before this final check.
+
+The backend lock uses FastAPI 0.141.0 because the newer FastAPI releases require an OpenTelemetry version incompatible with the published ADK 2.11.0 cap. Official package metadata and the actual resolver determined this compatible selection; no forced dependency override was added. Framework choice remains unchanged.
+
+Reproducible explicit smoke commands: `.venv/bin/python -m api.agents.simulate` (local emulator, scripted model, no send) and `.venv/bin/python -m api.agents.smoke` (configured Vertex models, synthetic structured output). Secrets are loaded from the ignored local environment and never printed. Emulator persistence is not evidence of cloud IAM or hosted reliability.

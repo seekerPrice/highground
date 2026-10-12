@@ -1,0 +1,16 @@
+[
+  {
+    "file": "flood_warning_sample.json",
+    "url": "https://api.data.gov.my/flood-warning/",
+    "captured_at": "2026-10-12T17:42:26.278425+00:00",
+    "http_status": 200,
+    "records": 1276
+  },
+  {
+    "file": "weather_warning_sample.json",
+    "url": "https://api.data.gov.my/weather/warning/",
+    "captured_at": "2026-10-12T17:42:26.572816+00:00",
+    "http_status": 200,
+    "records": 4
+  }
+]

@@ -1,6 +1,6 @@
 # Internal delivery checklist
 
-This is the active internal planning checklist; it is not permission to implement. Source: docs/spec/01-build-spec.md (exact handover copy), current user instructions and the verified observations in ../planning-review.md. Proposed changes remain open until agreed.
+This is the active delivery checklist under the user's authorization to implement all tasks. Source: docs/spec/01-build-spec.md (exact handover copy), current user instructions and the verified observations in ../planning-review.md. Proposed changes remain open until agreed.
 
 ## Completed preparation
 
@@ -13,27 +13,30 @@ This is the active internal planning checklist; it is not permission to implemen
 
 ## Decisions and tracking gates
 
-These apply to the affected task; they do not globally block Task 1 scaffolding. Task 1 is now explicitly authorized; later tasks still await their own user gates.
+These apply to the affected task; they do not globally block Task 1 scaffolding. All tasks are now authorized; actual technical dependencies and the local Must gate govern progression.
 
-- [x] User confirmed Task N gates remain; prepare setup/spec/tickets now.
+- [x] Earlier Task N gates were superseded by the latest user instruction: implement all tasks and parallelize where possible.
 - [x] User selected GitHub Issues and authorized Git setup; all tests/builds/deploys remain local with no GitHub CI.
 - [x] User approved AGENTS.md and default labels; parent activated agent/tracker/domain/label configuration and verified all five GitHub labels.
-- [x] Astra read the active configuration and confirmed Task N gates, fixed stack, local-only verification and no global future-decision blocker.
+- [x] Astra read the active configuration and confirmed authorization/dependency rules, fixed stack, local-only verification and no global future-decision blocker.
 - [x] Q1 accepted: Task 15 follows Task 14 for the Must deployment target; dates allow earlier progress.
 - [x] Q2 accepted: stale/unavailable source status and explicitly labelled demo simulations; no claim of validated live official flood warnings. Fresh source discovery remains open for Task 3.
 - [x] Q3 accepted: fixed Danger footer/fallback and two deterministic action targets, vehicle first; no safety/arrival-time guarantees.
 - [ ] Settle exact translations/placeholders, target configuration and confirmation semantics in their respective tasks.
-- [ ] Confirm public/demo/report exposure policy and availability of project/bot/testers/sourced places.
+- [x] User approved synthetic-only public data, operator token, bearer reports/private media, integrity label and exact confirmation snapshots.
+- [x] User approved 90-minute freshness and 15/30-minute action targets.
+- [x] Root established dedicated project/billing, bot access and local emulators; configured Vertex models passed real calls.
+- [ ] Consenting tester journey and sourced destination review remain; hosting is deferred.
 - [ ] Confirm proposed external-behaviour test seams before affected implementation; preserve the user-mandated Section 12 task granularity.
-- [x] Parent published specification issue #1 and Task 1–22 issues #2–23; unresolved decisions remain attached to affected tasks. Publication does not authorize implementation.
+- [x] Parent published specification issue #1 and Task 1–22 issues #2–23; unresolved decisions remain attached to affected tasks. Publication was followed by explicit user authorization to implement all tasks.
 - [x] Astra checked published Task 1 and Task 18 for parent linkage, Task N gates, no-CI rules and deployed prerequisites (calendar gate later removed by user); no implementation is claimed.
 - [x] Capture Task 1 review baseline bb1b098 (same tree as task-start GitButler workspace HEAD); use its non-empty committed diff for Matt review.
 
 ## Execution contract
 
-Astra coordinates Sol, inspects actual changes and local checks, sends defects back and rechecks corrections before completion is reported. Matt review runs independent Standards and Spec axes; findings return to Sol and are rechecked. A checkbox is marked only with observed evidence. Skill-required review agents run only for actual implementation review, not to create premature implementation. Task 1 implementation, local acceptance and both review axes are complete. No later task is authorized.
+Astra coordinates Sol, inspects actual changes and local checks, sends defects back and rechecks corrections before completion is reported. Matt review runs independent Standards and Spec axes; findings return to Sol and are rechecked. A checkbox is marked only with observed evidence. Skill-required review agents run only for actual implementation review, not to create premature implementation. Task 1 implementation, local acceptance and both review axes are complete. Tasks 2/3 local code and correction checks pass, pending independent Matt foundation review; Tasks 4/6 are implemented and Astra locally verified with 68 backend tests; independent Matt foundation review is pending.
 
-The ordered workflow remains Tasks 1–22, with explicit user confirmation before each next task. Dates are targets and work may finish earlier; Shoulds may start earlier than Friday only after Tasks 1–17 are deployed and accepted. Stretch is pitch-only. Review uses each task-start committed baseline; Task 1 baseline is bb1b098. User authorization includes the review/correction loop.
+The active technical graph is in dependency-plan.md; Task numbers remain traceability labels. Independent work may proceed in parallel without new Task N approval. Dates are targets and work may finish earlier; Shoulds may start earlier than Friday only after all Must behaviour is locally verified; hosting is deferred. Stretch is pitch-only. Review uses each task-start committed baseline; Task 1 baseline is bb1b098. User authorization includes the review/correction loop.
 
 ## Per-task gates
 
@@ -48,46 +51,50 @@ Scope: Must/foundation. Deliverable: Local API health and blank dashboard run fr
 - [x] Matt Standards review completed against bb1b098...71cbc75: no actionable findings.
 - [x] Matt Spec review completed against bb1b098...71cbc75: no actionable findings.
 - [x] Task 1 local acceptance met; evidence in task-01-verification.md. No deployment belongs to this task.
-- [ ] Await user Task 2 instruction; do not advance automatically.
+- [x] User authorized progression to all tasks; Tasks 2 and 3 dispatched in parallel.
 
 ### Task 2 — GCP setup script
 
+Status: implemented and Astra locally verified (syntax and six command-contract tests); independent Matt review pending. Cloud provisioning remains deferred.
+
 Scope: Must/foundation. Deliverable: Repeatable setup provisions the fixed Google Cloud services and secret references.
 
-- [ ] Astra task brief and acceptance agreed; blockers satisfied.
-- [ ] Sol implements only this task.
-- [ ] Relevant local checks run; results captured.
-- [ ] Astra inspects files and results, returns defects to Sol, and rechecks corrections.
+- [x] Astra brief recorded in tasks-02-03-brief.md; implementation authorized and dispatched.
+- [x] Sol implemented the assigned slice.
+- [x] Focused local checks passed; results captured in infrastructure/data research notes.
+- [x] Astra inspected actual files, returned defects to Sol and independently reran affected checks after corrections.
 - [ ] Matt Standards review completed; relevant findings corrected and rechecked.
 - [ ] Matt Spec review completed; relevant findings corrected and rechecked.
 - [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
-- [ ] User next-task gate satisfied.
+- [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
 
 ### Task 3 — data.gov.my clients
 
+Status: implemented and Astra locally verified (33 API tests). Recovery namespace/watermark corrections pass. Independent Matt review pending; live official source/timezone attribution limitations remain explicit.
+
 Scope: Must/foundation. Deliverable: Actual responses become validated, deduplicated warning observations with freshness and source status.
 
-- [ ] Astra task brief and acceptance agreed; blockers satisfied.
-- [ ] Sol implements only this task.
-- [ ] Relevant local checks run; results captured.
-- [ ] Astra inspects files and results, returns defects to Sol, and rechecks corrections.
+- [x] Astra brief recorded in tasks-02-03-brief.md; implementation authorized and dispatched.
+- [x] Sol implemented the assigned slice.
+- [x] Focused local checks passed; results captured in infrastructure/data research notes.
+- [x] Astra inspected actual files, returned defects to Sol and independently reran affected checks after corrections.
 - [ ] Matt Standards review completed; relevant findings corrected and rechecked.
 - [ ] Matt Spec review completed; relevant findings corrected and rechecked.
 - [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
-- [ ] User next-task gate satisfied.
+- [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
 
 ### Task 4 — Telegram webhook
 
 Scope: Must/foundation. Deliverable: A real Telegram user reaches the authenticated bot entry point.
 
-- [ ] Astra task brief and acceptance agreed; blockers satisfied.
-- [ ] Sol implements only this task.
-- [ ] Relevant local checks run; results captured.
-- [ ] Astra inspects files and results, returns defects to Sol, and rechecks corrections.
+- [x] Astra brief recorded in tasks-04-06-brief.md; dispatched with explicit shared-file ownership.
+- [x] Sol implemented the assigned task slice.
+- [x] Relevant local checks pass; evidence in foundation-verification.md.
+- [x] Astra inspected actual files, returned defects and independently rechecked corrected code.
 - [ ] Matt Standards review completed; relevant findings corrected and rechecked.
 - [ ] Matt Spec review completed; relevant findings corrected and rechecked.
 - [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
-- [ ] User next-task gate satisfied.
+- [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
 
 ### Task 5 — i18n + onboarding
 
@@ -100,20 +107,20 @@ Scope: Must/foundation. Deliverable: Owner selects one of eight languages, confi
 - [ ] Matt Standards review completed; relevant findings corrected and rechecked.
 - [ ] Matt Spec review completed; relevant findings corrected and rechecked.
 - [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
-- [ ] User next-task gate satisfied.
+- [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
 
 ### Task 6 — ADK skeleton
 
 Scope: Must/foundation. Deliverable: Coordinator routes a fake warning through the specified sub-agents with inspectable decisions.
 
-- [ ] Astra task brief and acceptance agreed; blockers satisfied.
-- [ ] Sol implements only this task.
-- [ ] Relevant local checks run; results captured.
-- [ ] Astra inspects files and results, returns defects to Sol, and rechecks corrections.
+- [x] Astra brief recorded in tasks-04-06-brief.md; dispatched with explicit shared-file ownership.
+- [x] Sol implemented the assigned task slice.
+- [x] Relevant local checks pass; evidence in foundation-verification.md.
+- [x] Astra inspected actual files, returned defects and independently rechecked corrected code.
 - [ ] Matt Standards review completed; relevant findings corrected and rechecked.
 - [ ] Matt Spec review completed; relevant findings corrected and rechecked.
 - [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
-- [ ] User next-task gate satisfied.
+- [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
 
 ### Task 7 — Alert dispatch
 
@@ -126,7 +133,7 @@ Scope: Must/foundation. Deliverable: A simulated event reaches eligible recipien
 - [ ] Matt Standards review completed; relevant findings corrected and rechecked.
 - [ ] Matt Spec review completed; relevant findings corrected and rechecked.
 - [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
-- [ ] User next-task gate satisfied.
+- [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
 
 ### Task 8 — Safe points + vehicle rescue
 
@@ -139,7 +146,7 @@ Scope: Must/foundation. Deliverable: Alerts include sourced parking/evacuation d
 - [ ] Matt Standards review completed; relevant findings corrected and rechecked.
 - [ ] Matt Spec review completed; relevant findings corrected and rechecked.
 - [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
-- [ ] User next-task gate satisfied.
+- [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
 
 ### Task 9 — Evidence ledger + neighbour reports
 
@@ -152,7 +159,7 @@ Scope: Must/foundation. Deliverable: Uploaded photos preserve downloaded bytes, 
 - [ ] Matt Standards review completed; relevant findings corrected and rechecked.
 - [ ] Matt Spec review completed; relevant findings corrected and rechecked.
 - [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
-- [ ] User next-task gate satisfied.
+- [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
 
 ### Task 10 — Danger escalation + polling
 
@@ -165,7 +172,7 @@ Scope: Must/foundation. Deliverable: Scheduled real-source polling and escalatin
 - [ ] Matt Standards review completed; relevant findings corrected and rechecked.
 - [ ] Matt Spec review completed; relevant findings corrected and rechecked.
 - [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
-- [ ] User next-task gate satisfied.
+- [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
 
 ### Task 11 — Baseline inventory + lift-first
 
@@ -178,7 +185,7 @@ Scope: Must/foundation. Deliverable: Video becomes an estimated inventory and ra
 - [ ] Matt Standards review completed; relevant findings corrected and rechecked.
 - [ ] Matt Spec review completed; relevant findings corrected and rechecked.
 - [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
-- [ ] User next-task gate satisfied.
+- [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
 
 ### Task 12 — After-flood report
 
@@ -191,7 +198,7 @@ Scope: Must/foundation. Deliverable: Owner requests recovery reporting, uploads 
 - [ ] Matt Standards review completed; relevant findings corrected and rechecked.
 - [ ] Matt Spec review completed; relevant findings corrected and rechecked.
 - [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
-- [ ] User next-task gate satisfied.
+- [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
 
 ### Task 13 — Report page
 
@@ -204,7 +211,7 @@ Scope: Must/foundation. Deliverable: An unguessable report link shows before/aft
 - [ ] Matt Standards review completed; relevant findings corrected and rechecked.
 - [ ] Matt Spec review completed; relevant findings corrected and rechecked.
 - [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
-- [ ] User next-task gate satisfied.
+- [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
 
 ### Task 14 — First deploy
 
@@ -217,7 +224,7 @@ Scope: Must/foundation. Deliverable: API and web run on Cloud Run and the phone 
 - [ ] Matt Standards review completed; relevant findings corrected and rechecked.
 - [ ] Matt Spec review completed; relevant findings corrected and rechecked.
 - [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
-- [ ] User next-task gate satisfied.
+- [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
 
 ### Task 15 — Dashboard
 
@@ -230,7 +237,7 @@ Scope: Must/foundation. Deliverable: Map, event feed, protection counters and de
 - [ ] Matt Standards review completed; relevant findings corrected and rechecked.
 - [ ] Matt Spec review completed; relevant findings corrected and rechecked.
 - [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
-- [ ] User next-task gate satisfied.
+- [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
 
 ### Task 16 — Seed demo data + redeploy
 
@@ -243,7 +250,7 @@ Scope: Must/foundation. Deliverable: Six demo shops make the deployed story repr
 - [ ] Matt Standards review completed; relevant findings corrected and rechecked.
 - [ ] Matt Spec review completed; relevant findings corrected and rechecked.
 - [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
-- [ ] User next-task gate satisfied.
+- [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
 
 ### Task 17 — Hardening
 
@@ -256,11 +263,11 @@ Scope: Must/foundation. Deliverable: Deployed Must journey survives expected fai
 - [ ] Matt Standards review completed; relevant findings corrected and rechecked.
 - [ ] Matt Spec review completed; relevant findings corrected and rechecked.
 - [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
-- [ ] User next-task gate satisfied.
+- [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
 
 ### Task 18 — Offline card
 
-Scope: Should — deployed Tasks 1–17 required; earlier completion allowed. Deliverable: At Watch or on request, owner receives a multilingual image that can be saved offline.
+Scope: Should — full local Must acceptance required; hosting deferred. Deliverable: At Watch or on request, owner receives a multilingual image that can be saved offline.
 
 - [ ] Astra task brief and acceptance agreed; blockers satisfied.
 - [ ] Sol implements only this task.
@@ -269,11 +276,11 @@ Scope: Should — deployed Tasks 1–17 required; earlier completion allowed. De
 - [ ] Matt Standards review completed; relevant findings corrected and rechecked.
 - [ ] Matt Spec review completed; relevant findings corrected and rechecked.
 - [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
-- [ ] User next-task gate satisfied.
+- [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
 
 ### Task 19 — Insurance check
 
-Scope: Should — deployed Tasks 1–17 required; earlier completion allowed. Deliverable: Owner uploads a policy and receives cautious extracted coverage and estimated shortfall information.
+Scope: Should — full local Must acceptance required; hosting deferred. Deliverable: Owner uploads a policy and receives cautious extracted coverage and estimated shortfall information.
 
 - [ ] Astra task brief and acceptance agreed; blockers satisfied.
 - [ ] Sol implements only this task.
@@ -282,11 +289,11 @@ Scope: Should — deployed Tasks 1–17 required; earlier completion allowed. De
 - [ ] Matt Standards review completed; relevant findings corrected and rechecked.
 - [ ] Matt Spec review completed; relevant findings corrected and rechecked.
 - [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
-- [ ] User next-task gate satisfied.
+- [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
 
 ### Task 20 — Waste sorting
 
-Scope: Should — deployed Tasks 1–17 required; earlier completion allowed. Deliverable: Loss report provides item disposal categories and aggregate estimated cleanup volumes.
+Scope: Should — full local Must acceptance required; hosting deferred. Deliverable: Loss report provides item disposal categories and aggregate estimated cleanup volumes.
 
 - [ ] Astra task brief and acceptance agreed; blockers satisfied.
 - [ ] Sol implements only this task.
@@ -295,11 +302,11 @@ Scope: Should — deployed Tasks 1–17 required; earlier completion allowed. De
 - [ ] Matt Standards review completed; relevant findings corrected and rechecked.
 - [ ] Matt Spec review completed; relevant findings corrected and rechecked.
 - [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
-- [ ] User next-task gate satisfied.
+- [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
 
 ### Task 21 — /check
 
-Scope: Should — deployed Tasks 1–17 required; earlier completion allowed. Deliverable: Any user shares a location to view current nearby warnings and listed destinations.
+Scope: Should — full local Must acceptance required; hosting deferred. Deliverable: Any user shares a location to view current nearby warnings and listed destinations.
 
 - [ ] Astra task brief and acceptance agreed; blockers satisfied.
 - [ ] Sol implements only this task.
@@ -308,11 +315,11 @@ Scope: Should — deployed Tasks 1–17 required; earlier completion allowed. De
 - [ ] Matt Standards review completed; relevant findings corrected and rechecked.
 - [ ] Matt Spec review completed; relevant findings corrected and rechecked.
 - [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
-- [ ] User next-task gate satisfied.
+- [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
 
 ### Task 22 — Learning loop
 
-Scope: Should — deployed Tasks 1–17 required; earlier completion allowed. Deliverable: Owner feedback produces transparent outcome metrics and constrained area calibration.
+Scope: Should — full local Must acceptance required; hosting deferred. Deliverable: Owner feedback produces transparent outcome metrics and constrained area calibration.
 
 - [ ] Astra task brief and acceptance agreed; blockers satisfied.
 - [ ] Sol implements only this task.
@@ -321,4 +328,4 @@ Scope: Should — deployed Tasks 1–17 required; earlier completion allowed. De
 - [ ] Matt Standards review completed; relevant findings corrected and rechecked.
 - [ ] Matt Spec review completed; relevant findings corrected and rechecked.
 - [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
-- [ ] User next-task gate satisfied.
+- [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.

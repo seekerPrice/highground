@@ -1,13 +1,13 @@
 # Approved decisions
 
-User approval recorded 13 October 2026. These amendments supersede conflicting wording in the preserved handover and older planning drafts. They do not authorize tasks beyond the one the user names.
+User approval recorded 13 October 2026. These amendments supersede conflicting wording in the preserved handover and older planning drafts. The latest authorization below supersedes earlier individual Task N gates.
 
 ## Delivery order and earlier progress
 
-- Q1 accepted: Task 15 follows Task 14, with the Must dashboard included in the Thursday deployment target. Numbering and individual Task N gates remain.
-- The user clarified that dates must not prevent earlier progress. Day allocations are targets, not earliest-start restrictions. A later task can start earlier once its prerequisites pass and the user authorizes it.
-- Should tasks remain behind deployed acceptance of Tasks 1–17; there is no requirement to wait until Friday. Stretch stays pitch-only. Code-freeze and submission deadlines are not extended.
-- Task 1 is explicitly authorized. No authorization to start Task 2 is implied.
+- Q1 accepted: Task 15 follows Task 14, with the Must dashboard included in the Thursday deployment target. Task numbering remains for traceability; individual Task N gates are superseded by the latest authorization.
+- The user clarified that dates must not prevent earlier progress. Day allocations are targets, not earliest-start restrictions. A later task can start earlier once its prerequisites pass.
+- Earlier rule (superseded for local coding by the local-first section below): Should tasks remained behind deployed acceptance of Tasks 1–17; there is no requirement to wait until Friday. Stretch stays pitch-only. Code-freeze and submission deadlines are not extended.
+- Latest user authorization: implement all tasks, parallelize where possible, and do not wait for calendar allocations. All implementation is authorized subject to actual prerequisites; The later local-first amendment defines the current Should gate. Stretch stays pitch-only.
 
 ## Official data and simulation
 
@@ -23,7 +23,21 @@ User approval recorded 13 October 2026. These amendments supersede conflicting w
 
 ## Engineering workflow
 
-- For an ordinary decision presented with a recommendation, the user authorizes choosing it after five minutes without a reply and recording the decision. Explicit Task N authorization gates remain; missing facts and credentials cannot be assumed.
+- For an ordinary decision presented with a recommendation, the user authorizes choosing it after five minutes without a reply and recording the decision. Individual Task N gates are superseded; missing facts and credentials cannot be assumed.
 - Astra coordinates 6.1 Sol: brief, implementation, review of actual files and local results, correction requests to Sol, and recheck.
 - Keep the internal checklist current. Matt's independent Standards and Spec reviews inspect each task's changes; meaningful findings are corrected and reviewed again.
 - Strictly no CI: no GitHub Actions/workflows, Dependabot or repository-linked Cloud Build triggers. Tests, builds and deploys are invoked locally.
+
+## Execution ownership and infrastructure boundary
+
+- Astra owns task briefs, dependency/checklist updates, review and correction coordination. Disjoint implementation slices may run on two 6.1 Sol agents concurrently.
+- Root handles external prerequisite discovery and GitHub/commit integration. Shared entrypoints and dependency locks have one assigned owner at a time.
+- Local scripts and parsers can be implemented/tested while credentials are missing. Actual cloud provisioning requires an explicit HighGround target project; never use an unrelated active gcloud project implicitly. Report implemented, locally verified, provisioned and deployed as distinct states.
+
+## Latest local-first authorization and concrete defaults
+
+- The user requests fully local implementation first and hosting later. This supersedes the older deployed-before-Should coding gate: verify all Must behaviour locally before local Should implementation. Do not claim cloud provisioning, live hosted acceptance or deployment complete.
+- Root may create a dedicated HighGround project and link the explicitly approved zi kang billing account. Resource provisioning and deployment remain deferred. Task 2 scripts can be implemented/tested locally; Task 14 packaging/local container checks can be prepared with deployment status pending.
+- Q3 approved: public dashboard exposes synthetic demo records only; operator token protects simulation/reset; loss reports use unguessable bearer links and private media; use File integrity verified; confirmations count exactly their displayed inventory/action snapshot.
+- Q4 approved: configurable station freshness exclusion of 90 minutes; reject missing/future timestamps and exclude marine/unmapped observations from local warning dispatch. This is not a claim about official source cadence.
+- Q5 approved: vehicle action target 15 minutes and stock action target 30 minutes from warning creation; Danger bypasses property actions. These are action targets, not flood-arrival forecasts.

@@ -1,6 +1,6 @@
 # HighGround implementation specification — DRAFT
 
-Derived from docs/spec/01-build-spec.md, the exact complete handover copy and source of truth, plus current user instructions. This draft is reviewable, not an approved replacement. The user authorized GitHub spec/ticket publication; unresolved decisions attach to affected tasks and do not block unrelated Task 1 scaffolding. Requirements below retain Section 12 numbering. Approved Q1–Q3 amendments are recorded in docs/planning/approved-decisions.md; remaining items marked PROPOSED require resolution before affected implementation. Task 1 is explicitly authorized. GitHub Issues is the selected tracker; explicit Task N gates remain.
+Derived from docs/spec/01-build-spec.md, the exact complete handover copy and source of truth, plus current user instructions. This draft is reviewable, not an approved replacement. The user authorized all implementation locally first, with hosting deferred, plus GitHub spec/ticket publication; unresolved decisions attach to affected tasks and do not block unrelated Task 1 scaffolding. Requirements below retain Section 12 numbering. Approved Q1–Q3 amendments are recorded in docs/planning/approved-decisions.md; remaining items marked PROPOSED require resolution before affected implementation. All tasks are now authorized for dependency-based parallel execution. GitHub Issues is the selected tracker; individual Task N gates are superseded by the latest all-task authorization.
 
 ## Problem Statement
 
@@ -59,11 +59,11 @@ The real-source polling capability must expose source health honestly. The inspe
 - Pub/Sub is visibly used. BigQuery records events, alerts, confirmations and evidence; duplicate retries must not inflate counters.
 - Public dashboard excludes recipient identifiers; bucket is private and report identifiers unguessable. Detailed access policy remains unresolved.
 - No GitHub CI, Actions, Dependabot, other GitHub automation or repository-connected Cloud Build triggers. Local tests/build/deploy only. GitHub repository and Issues are authorized.
-- Astra plans and coordinates each task, Sol implements, Astra inspects/corrects/rechecks, and Matt Standards/Spec review completes before task completion. User confirmation gates each next task.
+- Astra plans and coordinates each task, Sol implements, Astra inspects/corrects/rechecks, and Matt Standards/Spec review completes before task completion. Actual prerequisites govern progression; Shoulds remain gated on complete local Must acceptance (cloud acceptance deferred).
 
 ### Approved amendments and remaining proposals
 
-- APPROVED Q1: Task 15 follows Task 14 and is included in the Must deployment target. Dates are targets, so earlier progress is allowed; Shoulds still require deployed acceptance of Tasks 1–17. Individual Task N gates and final deadlines remain.
+- APPROVED Q1: Task 15 follows Task 14 and is included in the Must deployment target. Dates are targets, so earlier progress is allowed; Shoulds still require complete local Must acceptance (cloud acceptance deferred). Final deadlines remain; individual Task N gates are superseded.
 - APPROVED Q3: Two deterministic action targets, vehicle strictly before stock, never predicted flood-arrival times. Configuration is settled when that task is implemented.
 - APPROVED Q3: Reconcile the emergency footer inside fixed Danger templates and use a fixed no-destination variant. Exact wording/placeholders/translations are checked before use; no generated additions.
 - APPROVED Q3: Destination wording must not guarantee safety. The source template currently says “Nearest safe point”; exact replacement wording is established before use, not silently rewritten here.
@@ -88,7 +88,7 @@ All checks run locally. Cloud deployment acceptance is manual/scripted from the 
 
 ## Out of Scope
 
-Stretch implementation: flood memory map, drain watch, reopen checks, scam check, open-shops map, voice and live location. Also excluded: Vertex custom risk model, Earth Engine, WhatsApp, SMS delivery, insurer portal, web login and payments. Pitch-only statements must be labelled future work. Task 1 implementation is explicitly authorized; no later task is authorized.
+Stretch implementation: flood memory map, drain watch, reopen checks, scam check, open-shops map, voice and live location. Also excluded: Vertex custom risk model, Earth Engine, WhatsApp, SMS delivery, insurer portal, web login and payments. Pitch-only statements must be labelled future work. All Section 12 tasks are authorized; Shoulds require complete local Must acceptance under the latest host-later instruction and Stretch remains pitch-only.
 
 ## Further Notes
 

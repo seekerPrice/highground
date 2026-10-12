@@ -14,6 +14,7 @@ if [[ ! -d web/node_modules ]]; then
   exit 1
 fi
 
+.venv/bin/python -m unittest discover -s infra/tests -v
 .venv/bin/python -m pytest api/tests -q
 npm --prefix web run lint
 npm --prefix web run typecheck

@@ -1,10 +1,10 @@
 # Section 12 ticket plan — published mapping source
 
-The user authorized GitHub issue preparation/publication and confirmed Task N gates and original Section 12 granularity. Published in seekerPrice/highground: parent specification #1, Task 1–22 as issues #2–23. Publication is not implementation authorization. The handover source is docs/spec/01-build-spec.md. Attach unresolved notes only to affected tasks; unrelated later questions do not block Task 1. This grouped plan supplied the issue bodies; unresolved proposed changes still require agreement.
+The user now authorizes implementation of all tasks, parallel by true dependencies without calendar or individual Task N waits. Published in seekerPrice/highground: parent specification #1, Task 1–22 as issues #2–23. The latest separate user instruction supplies implementation authorization. The handover source is docs/spec/01-build-spec.md. Attach unresolved notes only to affected tasks; unrelated later questions do not block Task 1. This grouped plan supplied the issue bodies; unresolved proposed changes still require agreement.
 
-Every task after Task 1 is blocked by the preceding task **as a sequencing rule**; this does not claim every preceding task is a technical dependency. The ordered chain is a deliberate user constraint that overrides generic advice to parallelize independent tickets. Every task includes Astra coordination, Sol corrections, relevant local tests and Matt Standards/Spec review against the agreed baseline.
+The artificial sequential chain is superseded. dependency-plan.md contains the current technical blockers; the original per-ticket references below are updated to that graph. Every task includes Astra coordination, Sol corrections, relevant local tests and Matt Standards/Spec review against the agreed baseline.
 
-APPROVED order: Task 15 follows Task 14 for the Must deployment target. Dates allow earlier progress; Task N gates remain. Tasks 18–22 may start only after Tasks 1–17 pass on deployed URLs. Stretch features are pitch-only. Do not silently substitute a synthetic feed for a live official feed.
+APPROVED current execution: build by the technical DAG, verify Musts fully locally, then implement Shoulds locally. Hosting is deferred; cloud acceptance remains pending. Dates allow earlier progress and Task numbers are traceability labels. Stretch features are pitch-only. Do not silently substitute a synthetic feed for a live official feed.
 
 
 ## 01 — Repo + scaffolding
@@ -15,21 +15,21 @@ APPROVED order: Task 15 follows Task 14 for the Must deployment target. Dates al
 
 **Acceptance:** API health returns success; frontend opens locally; example environment contains no secrets; no prohibited automation.
 
-**Status:** Implementation and local acceptance complete; Astra correction loop and both Matt review axes passed. Task 2 remains gated on user instruction.
+**Status:** Implementation and local acceptance complete; Astra correction loop and both Matt review axes passed. Tasks 2 and 3 dispatched under all-task authorization.
 
 ## 02 — GCP setup script
 
-**Blocked by:** Task 1 complete (ordered execution gate).
+**Blocked by:** Task 1.
 
 **What it delivers:** Repeatable setup provisions the fixed Google Cloud services and secret references.
 
 **Acceptance:** APIs, regional resources, tables and least-privilege identities exist; rerun is safe; credentials stay out of source.
 
-**Proposed issue label:** ready-for-agent — subject to blockers and explicit Task N instruction; not started.
+**Proposed issue label:** ready-for-agent — subject to actual prerequisites; implementation authorized.
 
 ## 03 — data.gov.my clients
 
-**Blocked by:** Task 2 complete (ordered execution gate).
+**Blocked by:** Task 1.
 
 **What it delivers:** Actual responses become validated, deduplicated warning observations with freshness and source status.
 
@@ -39,17 +39,17 @@ APPROVED order: Task 15 follows Task 14 for the Must deployment target. Dates al
 
 ## 04 — Telegram webhook
 
-**Blocked by:** Task 3 complete (ordered execution gate).
+**Blocked by:** Task 1.
 
 **What it delivers:** A real Telegram user reaches the authenticated bot entry point.
 
 **Acceptance:** Correct secret accepted and wrong secret rejected; duplicate updates do not duplicate work; local tunnel setup is documented.
 
-**Proposed issue label:** ready-for-agent — subject to blockers and explicit Task N instruction; not started.
+**Proposed issue label:** ready-for-agent — subject to actual prerequisites; implementation authorized.
 
 ## 05 — i18n + onboarding
 
-**Blocked by:** Task 4 complete (ordered execution gate).
+**Blocked by:** Task 2, Task 4.
 
 **What it delivers:** Owner selects one of eight languages, confirms location and shop/vehicle details, optionally links a worker.
 
@@ -59,17 +59,17 @@ APPROVED order: Task 15 follows Task 14 for the Must deployment target. Dates al
 
 ## 06 — ADK skeleton
 
-**Blocked by:** Task 5 complete (ordered execution gate).
+**Blocked by:** Task 1.
 
 **What it delivers:** Coordinator routes a fake warning through the specified sub-agents with inspectable decisions.
 
 **Acceptance:** Local fake warning completes; contracts are typed/validated; state persistence approach is explicit; no future feature is represented as implemented.
 
-**Proposed issue label:** ready-for-agent — subject to blockers and explicit Task N instruction; not started.
+**Proposed issue label:** ready-for-agent — subject to actual prerequisites; implementation authorized.
 
 ## 07 — Alert dispatch
 
-**Blocked by:** Task 6 complete (ordered execution gate).
+**Blocked by:** Task 2, Task 3, Task 5, Task 6.
 
 **What it delivers:** A simulated event reaches eligible recipients and appears in event/alert records.
 
@@ -79,7 +79,7 @@ APPROVED order: Task 15 follows Task 14 for the Must deployment target. Dates al
 
 ## 08 — Safe points + vehicle rescue
 
-**Blocked by:** Task 7 complete (ordered execution gate).
+**Blocked by:** Task 7.
 
 **What it delivers:** Alerts include sourced parking/evacuation destinations and record vehicle confirmations.
 
@@ -89,17 +89,17 @@ APPROVED order: Task 15 follows Task 14 for the Must deployment target. Dates al
 
 ## 09 — Evidence ledger + neighbour reports
 
-**Blocked by:** Task 8 complete (ordered execution gate).
+**Blocked by:** Task 2, Task 5, Task 6, Task 7.
 
 **What it delivers:** Uploaded photos preserve downloaded bytes, record hashes and produce validated nearby alerts.
 
 **Acceptance:** All media uses shared ingestion; partial-write retries are recoverable; unrelated photos rejected; reporter excluded; per-shop limit enforced; ledger append protected.
 
-**Proposed issue label:** ready-for-agent — subject to blockers and explicit Task N instruction; not started.
+**Proposed issue label:** ready-for-agent — subject to actual prerequisites; implementation authorized.
 
 ## 10 — Danger escalation + polling
 
-**Blocked by:** Task 9 complete (ordered execution gate).
+**Blocked by:** Task 3, Task 7, Task 8, Task 9.
 
 **What it delivers:** Scheduled real-source polling and escalating events use deterministic safety handling.
 
@@ -109,7 +109,7 @@ APPROVED order: Task 15 follows Task 14 for the Must deployment target. Dates al
 
 ## 11 — Baseline inventory + lift-first
 
-**Blocked by:** Task 10 complete (ordered execution gate).
+**Blocked by:** Task 5, Task 6, Task 7, Task 9.
 
 **What it delivers:** Video becomes an estimated inventory and ranked lift-first list that warning confirmations reference.
 
@@ -119,17 +119,17 @@ APPROVED order: Task 15 follows Task 14 for the Must deployment target. Dates al
 
 ## 12 — After-flood report
 
-**Blocked by:** Task 11 complete (ordered execution gate).
+**Blocked by:** Task 11.
 
 **What it delivers:** Owner requests recovery reporting, uploads an after-video and receives an estimated loss report link.
 
 **Acceptance:** Baseline association persists; comparison does not invent items; report confidence/limitations shown; failure/retry does not create duplicate reports.
 
-**Proposed issue label:** ready-for-agent — subject to blockers and explicit Task N instruction; not started.
+**Proposed issue label:** ready-for-agent — subject to actual prerequisites; implementation authorized.
 
 ## 13 — Report page
 
-**Blocked by:** Task 12 complete (ordered execution gate).
+**Blocked by:** Task 12.
 
 **What it delivers:** An unguessable report link shows before/after estimates, evidence and a printable report.
 
@@ -139,17 +139,17 @@ APPROVED order: Task 15 follows Task 14 for the Must deployment target. Dates al
 
 ## 14 — First deploy
 
-**Blocked by:** Task 13 complete (ordered execution gate).
+**Blocked by:** Task 2, Task 10, Task 11, Task 12, Task 13.
 
 **What it delivers:** API and web run on Cloud Run and the phone completes core Must moments.
 
-**Acceptance:** M1/M3/M4/M5/M6 complete against deployed URLs; production webhook and Scheduler work; secrets resolved securely; local deploy path creates no repository automation.
+**Local acceptance:** Packaging/local containers and documented manual deployment path verified without hosted automation. **Deferred hosting acceptance:** M1/M3/M4/M5/M6 on deployed URLs, production webhook/Scheduler and secrets verified when hosting is authorized.
 
-**Proposed issue label:** ready-for-agent — subject to blockers and explicit Task N instruction; not started.
+**Proposed issue label:** ready-for-agent — subject to actual prerequisites; implementation authorized.
 
 ## 15 — Dashboard
 
-**Blocked by:** Task 14 complete (ordered execution gate).
+**Blocked by:** Task 7, Task 8, Task 9, Task 11.
 
 **What it delivers:** Map, event feed, protection counters and demo controls show the Must journey.
 
@@ -159,37 +159,37 @@ APPROVED order: Task 15 follows Task 14 for the Must deployment target. Dates al
 
 ## 16 — Seed demo data + redeploy
 
-**Blocked by:** Task 15 complete (ordered execution gate).
+**Blocked by:** Task 14, Task 15.
 
 **What it delivers:** Six demo shops make the deployed story reproducible.
 
 **Acceptance:** Two real test accounts and four virtual shops; three vehicles; sourced destinations; reset affects only demo records; synthetic data labelled and redeploy verified.
 
-**Proposed issue label:** ready-for-agent — subject to blockers and explicit Task N instruction; not started.
+**Proposed issue label:** ready-for-agent — subject to actual prerequisites; implementation authorized.
 
 ## 17 — Hardening
 
-**Blocked by:** Task 16 complete (ordered execution gate).
+**Blocked by:** Task 16.
 
 **What it delivers:** Deployed Must journey survives expected failures and has usable operational documentation.
 
-**Acceptance:** Gemini timeout/bad schema retries once then explains failure; restart/idempotency verified; logs omit secrets; architecture/setup/screenshots recorded; all Tasks 1–17 rechecked deployed.
+**Acceptance:** Gemini timeout/bad schema retries once then explains failure; restart/idempotency verified; logs omit secrets; architecture/setup/screenshots recorded; all Must behaviour rechecked locally; cloud-only acceptance explicitly pending.
 
-**Proposed issue label:** ready-for-agent — subject to blockers and explicit Task N instruction; not started.
+**Proposed issue label:** ready-for-agent — subject to actual prerequisites; implementation authorized.
 
 ## 18 — Offline card
 
-**Blocked by:** Task 17 complete (ordered execution gate). All Tasks 1–17 deployed and accepted; calendar does not prevent earlier progress.
+**Blocked by:** Task 17. Complete local Must acceptance required before local Should implementation; cloud acceptance pending.
 
 **What it delivers:** At Watch or on request, owner receives a multilingual image that can be saved offline.
 
-**Acceptance:** 1080×1920 image renders all scripts; facts/destinations constrained; time/emergency text present; saved-file limitation explained; deployed watch and command tested.
+**Acceptance:** 1080×1920 image renders all scripts; facts/destinations constrained; time/emergency text present; saved-file limitation explained; local watch and command tested; deployment deferred.
 
-**Proposed issue label:** ready-for-agent — subject to blockers and explicit Task N instruction; not started.
+**Proposed issue label:** ready-for-agent — subject to actual prerequisites; implementation authorized.
 
 ## 19 — Insurance check
 
-**Blocked by:** Task 18 complete (ordered execution gate). All Tasks 1–17 deployed and accepted; calendar does not prevent earlier progress.
+**Blocked by:** Task 17 and full local Must acceptance before Should implementation; cloud acceptance pending. Independent Should work may then run in parallel.
 
 **What it delivers:** Owner uploads a policy and receives cautious extracted coverage and estimated shortfall information.
 
@@ -199,30 +199,30 @@ APPROVED order: Task 15 follows Task 14 for the Must deployment target. Dates al
 
 ## 20 — Waste sorting
 
-**Blocked by:** Task 19 complete (ordered execution gate). All Tasks 1–17 deployed and accepted; calendar does not prevent earlier progress.
+**Blocked by:** Task 17 and full local Must acceptance before Should implementation; cloud acceptance pending. Independent Should work may then run in parallel.
 
 **What it delivers:** Loss report provides item disposal categories and aggregate estimated cleanup volumes.
 
-**Acceptance:** Fixed food-safety wording; dispositions/estimates validated; volumes and configurable lorry capacity aggregate consistently; report/map updated and redeployed.
+**Acceptance:** Fixed food-safety wording; dispositions/estimates validated; volumes and configurable lorry capacity aggregate consistently; report/map updated and verified locally; deployment deferred.
 
-**Proposed issue label:** ready-for-agent — subject to blockers and explicit Task N instruction; not started.
+**Proposed issue label:** ready-for-agent — subject to actual prerequisites; implementation authorized.
 
 ## 21 — /check
 
-**Blocked by:** Task 20 complete (ordered execution gate). All Tasks 1–17 deployed and accepted; calendar does not prevent earlier progress.
+**Blocked by:** Task 17 and full local Must acceptance before Should implementation; cloud acceptance pending. Independent Should work may then run in parallel.
 
 **What it delivers:** Any user shares a location to view current nearby warnings and listed destinations.
 
 **Acceptance:** No shop signup needed; two-kilometre search and freshness work; no invented opening/safety claims; absent Stretch open-shops feature omitted.
 
-**Proposed issue label:** ready-for-agent — subject to blockers and explicit Task N instruction; not started.
+**Proposed issue label:** ready-for-agent — subject to actual prerequisites; implementation authorized.
 
 ## 22 — Learning loop
 
-**Blocked by:** Task 21 complete (ordered execution gate). All Tasks 1–17 deployed and accepted; calendar does not prevent earlier progress.
+**Blocked by:** Task 17 and full local Must acceptance before Should implementation; cloud acceptance pending. Independent Should work may then run in parallel.
 
 **What it delivers:** Owner feedback produces transparent outcome metrics and constrained area calibration.
 
-**Acceptance:** Scheduled outcome prompt works; denominators and nonresponses explicit; multiplier bounds enforced; minimum sample checked; no suppression of authoritative Danger; seeded history labelled; redeployed.
+**Acceptance:** Scheduled outcome prompt works; denominators and nonresponses explicit; multiplier bounds enforced; minimum sample checked; no suppression of authoritative Danger; seeded history labelled; verified locally with hosting deferred.
 
-**Proposed issue label:** ready-for-agent — subject to blockers and explicit Task N instruction; not started.
+**Proposed issue label:** ready-for-agent — subject to actual prerequisites; implementation authorized.
