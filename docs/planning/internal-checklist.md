@@ -34,7 +34,7 @@ These apply to the affected task; they do not globally block Task 1 scaffolding.
 
 ## Execution contract
 
-Astra coordinates Sol, inspects actual changes and local checks, sends defects back and rechecks corrections before completion is reported. Matt review runs independent Standards and Spec axes; findings return to Sol and are rechecked. A checkbox is marked only with observed evidence. Skill-required review agents run only for actual implementation review, not to create premature implementation. Task 1 implementation, local acceptance and both review axes are complete. Tasks 2/3 local code and correction checks pass, pending independent Matt foundation review; Tasks 4/6 are implemented and Astra locally verified with 68 backend tests; independent Matt foundation review is pending.
+Astra coordinates Sol, inspects actual changes and local checks, sends defects back and rechecks corrections before completion is reported. Matt review runs independent Standards and Spec axes; findings return to Sol and are rechecked. A checkbox is marked only with observed evidence. Skill-required review agents run only for actual implementation review, not to create premature implementation. Task 1 implementation, local acceptance and both review axes are complete. Tasks 2/3 local code and correction checks pass, pending independent Matt foundation review; Tasks 4/6 are implemented and Astra locally verified with 68 backend tests; independent Matt foundation review passed after the privacy correction.
 
 The active technical graph is in dependency-plan.md; Task numbers remain traceability labels. Independent work may proceed in parallel without new Task N approval. Dates are targets and work may finish earlier; Shoulds may start earlier than Friday only after all Must behaviour is locally verified; hosting is deferred. Stretch is pitch-only. Review uses each task-start committed baseline; Task 1 baseline is bb1b098. User authorization includes the review/correction loop.
 
@@ -55,7 +55,7 @@ Scope: Must/foundation. Deliverable: Local API health and blank dashboard run fr
 
 ### Task 2 — GCP setup script
 
-Status: implemented and Astra locally verified (syntax and six command-contract tests); independent Matt review pending. Cloud provisioning remains deferred.
+Status: implemented and Astra locally verified (syntax and six command-contract tests); independent Matt review passed. Cloud provisioning remains deferred.
 
 Scope: Must/foundation. Deliverable: Repeatable setup provisions the fixed Google Cloud services and secret references.
 
@@ -63,14 +63,14 @@ Scope: Must/foundation. Deliverable: Repeatable setup provisions the fixed Googl
 - [x] Sol implemented the assigned slice.
 - [x] Focused local checks passed; results captured in infrastructure/data research notes.
 - [x] Astra inspected actual files, returned defects to Sol and independently reran affected checks after corrections.
-- [ ] Matt Standards review completed; relevant findings corrected and rechecked.
-- [ ] Matt Spec review completed; relevant findings corrected and rechecked.
+- [x] Matt Standards review completed; unused raw inbox payload corrected and independently rechecked where relevant.
+- [x] Matt Spec review completed; zero actionable findings.
 - [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
 - [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
 
 ### Task 3 — data.gov.my clients
 
-Status: implemented and Astra locally verified (33 API tests). Recovery namespace/watermark corrections pass. Independent Matt review pending; live official source/timezone attribution limitations remain explicit.
+Status: implemented and Astra locally verified (33 API tests). Recovery namespace/watermark corrections pass. Independent Matt review passed; live official source/timezone attribution limitations remain explicit.
 
 Scope: Must/foundation. Deliverable: Actual responses become validated, deduplicated warning observations with freshness and source status.
 
@@ -78,8 +78,8 @@ Scope: Must/foundation. Deliverable: Actual responses become validated, deduplic
 - [x] Sol implemented the assigned slice.
 - [x] Focused local checks passed; results captured in infrastructure/data research notes.
 - [x] Astra inspected actual files, returned defects to Sol and independently reran affected checks after corrections.
-- [ ] Matt Standards review completed; relevant findings corrected and rechecked.
-- [ ] Matt Spec review completed; relevant findings corrected and rechecked.
+- [x] Matt Standards review completed; unused raw inbox payload corrected and independently rechecked where relevant.
+- [x] Matt Spec review completed; zero actionable findings.
 - [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
 - [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
 
@@ -91,8 +91,8 @@ Scope: Must/foundation. Deliverable: A real Telegram user reaches the authentica
 - [x] Sol implemented the assigned task slice.
 - [x] Relevant local checks pass; evidence in foundation-verification.md.
 - [x] Astra inspected actual files, returned defects and independently rechecked corrected code.
-- [ ] Matt Standards review completed; relevant findings corrected and rechecked.
-- [ ] Matt Spec review completed; relevant findings corrected and rechecked.
+- [x] Matt Standards review completed; unused raw inbox payload corrected and independently rechecked where relevant.
+- [x] Matt Spec review completed; zero actionable findings.
 - [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
 - [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
 
@@ -117,8 +117,8 @@ Scope: Must/foundation. Deliverable: Coordinator routes a fake warning through t
 - [x] Sol implemented the assigned task slice.
 - [x] Relevant local checks pass; evidence in foundation-verification.md.
 - [x] Astra inspected actual files, returned defects and independently rechecked corrected code.
-- [ ] Matt Standards review completed; relevant findings corrected and rechecked.
-- [ ] Matt Spec review completed; relevant findings corrected and rechecked.
+- [x] Matt Standards review completed; unused raw inbox payload corrected and independently rechecked where relevant.
+- [x] Matt Spec review completed; zero actionable findings.
 - [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
 - [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
 

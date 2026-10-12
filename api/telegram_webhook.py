@@ -1,5 +1,5 @@
 """Minimal private /start processing; onboarding belongs to Task 5."""
-from typing import Any, Literal
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, StrictInt
 
@@ -33,8 +33,8 @@ class TelegramHandler:
         self.inbox = inbox
         self.api = api
 
-    def handle(self, update: Update, payload: dict[str, Any]) -> Literal["done", "uncertain"]:
-        status, owner = self.inbox.claim(update.update_id, payload)
+    def handle(self, update: Update) -> Literal["done", "uncertain"]:
+        status, owner = self.inbox.claim(update.update_id)
         if status == "busy":
             raise WebhookRetry()
         if status in ("done", "uncertain"):

@@ -13,7 +13,7 @@ class FirestoreInbox:
         self.client = client
         self.collection = collection
 
-    def claim(self, update_id: int, payload: dict[str, Any]) -> tuple[ClaimStatus, str]:
+    def claim(self, update_id: int) -> tuple[ClaimStatus, str]:
         reference = self.client.collection(self.collection).document(str(update_id))
         owner = uuid4().hex
         now = datetime.now(timezone.utc)
@@ -36,7 +36,7 @@ class FirestoreInbox:
                     transaction.update(reference, {"status": "uncertain"})
                     return "uncertain"
             transaction.set(reference, {
-                "status": "processing", "owner": owner, "payload": payload,
+                "status": "processing", "owner": owner,
                 "lease_until": now + timedelta(seconds=60), "updated_at": now,
             })
             return "claimed"

@@ -48,7 +48,7 @@ def create_app(settings: Settings | None = None, handler: TelegramHandler | None
 
                 active = TelegramHandler(FirestoreInbox(create_firestore_client(configuration)), TelegramAPI(configuration.telegram_bot_token))
                 application.state.telegram_handler = active
-            await run_in_threadpool(active.handle, update, payload)
+            await run_in_threadpool(active.handle, update)
         except Exception:
             # Private payloads, token-bearing URLs and SDK errors stay out of responses.
             raise HTTPException(503, "Webhook processing unavailable; retry later") from None

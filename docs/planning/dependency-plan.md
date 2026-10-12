@@ -10,7 +10,7 @@ Latest authorization: implement all Tasks 1–22 without individual Task N waits
 | 2 infrastructure | 1 | Sol infrastructure lane; script/local verification can proceed before project facts |
 | 3 data clients | 1 | Sol data lane; independent of cloud provisioning |
 | 4 Telegram webhook | 1 | Next backend slice; live acceptance needs bot/tunnel credentials |
-| 5 onboarding/i18n | 2, 4 | Persistence needs cloud connection; local logic and committed templates can be built first |
+| 5 onboarding/i18n | 2, 4 | Uses the local Firestore emulator; shared onboarding/i18n contracts unblock dispatch |
 | 6 ADK skeleton | 1 | Can run independently after backend package ownership is assigned |
 | 7 alert dispatch | 2, 3, 5, 6 | Deterministic safety and event/recipient idempotency required |
 | 8 destinations/vehicles | 7 | Sourced places can be prepared earlier; exact actions built on dispatch |
@@ -43,4 +43,4 @@ Initial lanes: infrastructure owns infra/setup.sh and schema/config/test assets 
 
 Record local implementation/acceptance separately from deferred provisioning and deployment. Never keep local Should work artificially blocked on a cloud action the user explicitly deferred, once the full local Must gate has passed.
 
-Baseline for Tasks 2/3: 142178f. Each lane runs focused local checks and sends concrete failures to Astra. Astra inspects files/results, directs corrections, and rechecks affected behaviour. Candidate commits receive independent Matt Standards/Spec review when execution agents release slots. Missing external credentials never count as successful external verification; continue other unblocked work while root resolves facts.
+Baseline for the Tasks 2/3/4/6 foundation: 142178f. Candidate: 9df978d. Each lane runs focused local checks and sends concrete failures to Astra. Astra inspects files/results, directs corrections, and rechecks affected behaviour. Candidate commits receive independent Matt Standards/Spec review when execution agents release slots. Missing external credentials never count as successful external verification; continue other unblocked work while root resolves facts.

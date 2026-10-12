@@ -41,3 +41,11 @@ User approval recorded 13 October 2026. These amendments supersede conflicting w
 - Q3 approved: public dashboard exposes synthetic demo records only; operator token protects simulation/reset; loss reports use unguessable bearer links and private media; use File integrity verified; confirmations count exactly their displayed inventory/action snapshot.
 - Q4 approved: configurable station freshness exclusion of 90 minutes; reject missing/future timestamps and exclude marine/unmapped observations from local warning dispatch. This is not a claim about official source cadence.
 - Q5 approved: vehicle action target 15 minutes and stock action target 30 minutes from warning creation; Danger bypasses property actions. These are action targets, not flood-arrival forecasts.
+
+## Fixed Danger rendering contract
+
+Routine implementation of the approved safety amendment: each language has four committed variants, destination/no destination crossed with real/simulated. Simulated variants begin with an inseparable fixed `SIMULATION` label in that language. Unreviewed translations include their fixed machine-translation review notice inside the committed template. Runtime never appends generated prose or notices.
+
+English destination variant: “⚠️ DANGER: Flooding is reaching your area. Leave now and move to higher ground. Do not stop to record video or move stock. Listed destination: {safe_point_name} {route_link}. Availability and route conditions are unverified. Call 999 in an emergency.”
+
+The no-destination variant replaces the two destination sentences with “No listed destination is available.” Only validated destination name and route link are substituted. There are no stock/vehicle actions or video requests, and only a route button when a destination exists. These templates do not assert a route or site is safe or open.

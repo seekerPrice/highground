@@ -8,7 +8,7 @@ The Telegram Sol lane owns onboarding modules/tests, `api/i18n/`, one-off transl
 
 Implement deterministic, restart-safe conversation stages: language, location/address candidate confirmation, shop name/type, floor, vehicle/type, optional consenting worker, save and risk summary. Accept all eight specified language codes. Reject malformed locations and bounded invalid user inputs with a useful retry prompt. Do not let model output control onboarding state or authorization.
 
-The shop shape follows Section 8. Expose a clear store boundary for later dispatch to read location, floor, vehicle, recipients and inventory summary. Use stable salted identity for private conversation records. Persist progress and final shop idempotently across repeated Telegram updates; no duplicate shops or workers. The bot's `/start` can resume or explain an existing registration rather than silently overwrite it.
+The shop shape follows Section 8. Expose a clear store boundary for later dispatch to read location, floor, vehicle, recipients and inventory summary. Use stable salted identity for private conversation records. Preserve the source ADK-session requirement: use the shipped Firestore session service for durable conversation state, with deterministic onboarding transitions and idempotent shop writes; do not ask an LLM to authorize state transitions. Persist progress and final shop idempotently across repeated Telegram updates; no duplicate shops or workers. The bot's `/start` can resume or explain an existing registration rather than silently overwrite it.
 
 ## Consent, location and score
 

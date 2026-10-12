@@ -93,7 +93,7 @@ def test_start_and_restart_dedupe(inbox):
 
 def test_concurrent_claim_has_one_owner(inbox):
     with ThreadPoolExecutor(max_workers=2) as executor:
-        claims = list(executor.map(lambda _: inbox.claim(123, PAYLOAD)[0], range(2)))
+        claims = list(executor.map(lambda _: inbox.claim(123)[0], range(2)))
     assert sorted(claims) == ["busy", "claimed"]
 
 
@@ -132,10 +132,10 @@ def test_definite_rejection_can_retry(inbox):
 
 
 def test_crashed_send_becomes_uncertain(inbox):
-    _, owner = inbox.claim(123, PAYLOAD)
+    _, owner = inbox.claim(123)
     inbox.transition(123, owner, "sending", lease_until=datetime.now(timezone.utc) - timedelta(seconds=1))
     reconstructed = FirestoreInbox(inbox.client, inbox.collection)
-    assert reconstructed.claim(123, PAYLOAD)[0] == "uncertain"
+    assert reconstructed.claim(123)[0] == "uncertain"
 
 
 def test_settings_repr_excludes_secrets():
@@ -163,3 +163,24 @@ def test_operator_token_uses_documented_alias(monkeypatch):
     settings = load_settings()
     assert settings.operator_token == "test-operator-marker"
     assert "test-operator-marker" not in repr(settings)
+
+
+def test_unsupported_private_payload_is_not_persisted(inbox):
+    payload = {
+        "update_id": 123,
+        "message": {
+            "message_id": 8,
+            "chat": {"id": 9, "type": "private", "first_name": "Private owner"},
+            "text": "Private unsupported message",
+            "from": {"id": 42, "first_name": "Private sender"},
+            "contact": {"phone_number": "+60000000000", "first_name": "Private contact"},
+        },
+    }
+    calls = []
+    app = create_app(SETTINGS, make_handler(inbox, calls))
+    assert request(app, "POST", "/telegram/webhook", headers=HEADERS, json=payload).status_code == 200
+    state = inbox.client.collection(inbox.collection).document("123").get().to_dict()
+    assert set(state) == {"status", "owner", "lease_until", "updated_at", "outcome"}
+    assert state["status"] == "done"
+    assert state["outcome"] == "unsupported"
+    assert calls == []
