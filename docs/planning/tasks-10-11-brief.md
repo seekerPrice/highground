@@ -1,0 +1,23 @@
+# Tasks 10 and 11 — escalation and inventory integration
+
+Future Must work under the current all-task/local-first authorization. Begin after Tasks 8/9 interfaces are ready; this is not implementation evidence. Keep independent lanes and serialize shared webhook/composer/model changes. No hosting, CI or Should/Stretch behaviour.
+
+## Task 10: polling and escalation
+
+Connect the existing official clients and pure episode transition to durable Firestore state. Persist each source watermark/episode and stable event identity atomically so concurrent pollers, retries and process restarts cannot generate duplicate logical alerts. Stale, failed, empty or unmapped responses do not mean conditions have improved. Only attributed fresh observations or explicit recovery records may advance the corresponding state. Never invent a district centre or observation timezone to fit the dispatch coordinates contract.
+
+Implement authenticated `/jobs/poll-warnings` and a manually invoked Scheduler configuration script. Validate the configured OIDC audience and exact permitted caller identity for hosted requests; fail closed when configuration or verification is missing. Local verification may use an explicit development authentication path constrained to local/demo configuration, without weakening hosted verification. The script documents a five-minute job but is not run against cloud resources while hosting is deferred.
+
+Escalation must invalidate older pending Warning actions before sending Danger. A delayed/recovered Warning send cannot follow a newer applicable Danger; test the interleaving between preparation and send, not only sequential level selection. Fixed Danger rendering remains enforced at the final Telegram boundary. Do not silently downgrade active official Danger because of lower-confidence shop reports or absent source data. Record the source/episode scope that makes an action superseded, and allow a genuinely new episode only through the established transition contract.
+
+Verify concurrent poll claims, source-state/event atomicity, escalation during delayed composition/delivery, restart recovery, fresh recovery/new episode, unauthorised/wrong-audience/wrong-caller requests and actual stale upstream status with no false alert. Use isolated emulator records. Any fresh live official warning coverage remains explicitly unavailable until observed.
+
+## Task 11: baseline video and exact lift-first confirmation
+
+Reuse Task 9 immutable ingestion for original Telegram video bytes (declared and actual stream no more than 20 MB); request a 30–45 second walkthrough with friendly oversize guidance. Use configured Pro through the real ADK loss-agent path with a strict bounded schema, explicit timeouts and one bounded retry/fallback. Local Vertex receives bounded original bytes inline; local storage remains private. No inventory is published as successfully parsed on truncated/invalid model output.
+
+Validate item names, finite quantities/prices, height enum, effort 1–3 and timestamps within the actual submitted duration. Treat replacements as estimates; unknown/uncertain visual facts remain explicit. Rank visible floor/low items deterministically by quantity × estimated unit value divided by effort, with a stable tie-break and at most eight. Persist inventory identity and its exact displayed list/value. The approved clarification permits displaying all eight; never count hidden items from a shorter message. Do not invent stock from synthetic fixture metadata or treat generated media as real valuation evidence.
+
+Integrate onboarding completion, optional Warning video update and inventory refresh without resetting registration. Warning snapshots use the inventory available when the alert was prepared. A stock confirmation authenticates the Telegram sender, references that immutable action, records self-reported completion once across both recipients and cannot inflate protected value through retries, refreshes or later inventory changes. Superseded Danger actions are ineligible. Append a stable logical BigQuery confirmation and recover partial sink failures without duplicating the action.
+
+Verify rank/tie/height/value bounds, malformed/truncated model responses, actual configured multimodal schema output, byte integrity through ingestion, displayed-list totals, concurrent cross-recipient confirmation, refresh-after-alert and escalation races. Use root's labelled still-derived demo videos for a clearly attributed synthetic probe; they establish neither walkthrough understanding nor real-shop valuation accuracy. Record model and overall timings separately. Astra review/correction and both Matt axes precede acceptance.

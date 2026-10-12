@@ -1,6 +1,6 @@
 # Task 2 infrastructure research and local verification
 
-Baseline: 142178f. Latest user instruction: build fully locally first; hosting/resource provisioning is deferred. Scope: local provisioning script and resource schemas, not live provisioning. The unrelated active gcloud project is never selected or inferred. No cloud mutation has been performed during implementation. A confirmed HighGround project, enabled billing and operator permissions remain external prerequisites.
+Baseline: 142178f. Latest user instruction: build fully locally first; hosting/resource provisioning is deferred. Scope: local provisioning script and resource schemas, not live provisioning. The unrelated active gcloud project is never selected or inferred. The user subsequently authorized creating dedicated project highground-2026-lucas, linking its confirmed billing account and enabling Vertex AI for actual model calls from the local application; root completed those steps (local-environment.md). Task 2 resource application, cloud IAM verification and application hosting remain deferred. No unrelated CLI project was used.
 
 ## Interface and decisions
 

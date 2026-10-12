@@ -1,6 +1,6 @@
 # Onboarding and dispatch verification
 
-Review baseline: `46665754d103dd5d916efe3f81d7225a46df7f2d`. Implementation, Astra correction review and the final local integration gate are complete; independent Matt review remains pending. This note does not mark either task complete.
+Review baseline: `46665754d103dd5d916efe3f81d7225a46df7f2d`. Final candidate: `8818a934ce91ed22c49f0891f5dabb65892697ef`. Implementation, Astra correction review, local integration and both independent Matt axes are complete. Tasks 5/7 local acceptance is met within the external and later-task boundaries below.
 
 ## Observed evidence
 
@@ -14,7 +14,7 @@ Review baseline: `46665754d103dd5d916efe3f81d7225a46df7f2d`. Implementation, Ast
 
 ## Astra corrections checked or requested
 
-Worker consent recovery after a committed join, owner invitation handling, actual map venue confirmation, canonical destination URLs, translation notices before the fixed emergency footer, bounded Telegram update-ID rollover handling, configurable ordered action targets, lazy model initialization, private delivery-plan separation, simulated-only public aggregates, and bounded sink retries were reviewed. Independent Matt axes remain pending before completion.
+Worker consent recovery after a committed join, owner invitation handling, actual map venue confirmation, canonical destination URLs, translation notices before the fixed emergency footer, bounded Telegram update-ID rollover handling, configurable ordered action targets, lazy model initialization, private delivery-plan separation, simulated-only public aggregates, and bounded sink retries were reviewed. Independent Matt Standards and Spec reviews both returned zero actionable findings against the explicit baseline-to-candidate diff. Future-task design notes were excluded; no native translation, two-phone or hosted outcome is implied.
 
 ## Root final local gate and live delivery
 
@@ -26,7 +26,7 @@ A separate Danger simulation targeted the same fixture. Telegram accepted its co
 
 Repeating both requests with the same identities returned the same completed result, without another Telegram message. Firestore contained exactly one accepted alert for each event and no raw recipient ID on those alert documents. Actual BigQuery queries verified exactly one event row and one alert row for each after the retry. This observation is not an exactly-once guarantee from BigQuery's streaming API.
 
-Local artifacts: `/Users/lucaslt/.codex/outputs/highground/setup/task7-live-results.json` stores non-sensitive result/timing assertions; `telegram-alert-dispatch-pass.png` in the same directory shows the cropped own-chat proof and was displayed to the user. Latency measures Bot API acceptance, not device notification delivery. Destinations, stock inventory and confirmation buttons belong to later tasks and were explicitly unavailable in this test.
+Local artifacts: `task7-live-results.json` (local Codex output, outside the repository) stores non-sensitive result/timing assertions; `telegram-alert-dispatch-pass.png` in the same directory shows the cropped own-chat proof and was displayed to the user. Latency measures Bot API acceptance, not device notification delivery. Destinations, stock inventory and confirmation buttons belong to later tasks and were explicitly unavailable in this test.
 
 ## Remaining acceptance boundaries
 

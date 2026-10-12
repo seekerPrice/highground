@@ -35,7 +35,7 @@ These apply to the affected task; they do not globally block Task 1 scaffolding.
 
 ## Execution contract
 
-Astra coordinates Sol, inspects actual changes and local checks, sends defects back and rechecks corrections before completion is reported. Matt review runs independent Standards and Spec axes; findings return to Sol and are rechecked. A checkbox is marked only with observed evidence. Skill-required review agents run only for actual implementation review, not to create premature implementation. Task 1 implementation, local acceptance and both review axes are complete. Foundation Tasks 2/3/4/6 passed local checks and both independent Matt axes after the privacy correction (final 69 API tests). Tasks 3/4/6 local acceptance is complete; Task 2 cloud provisioning remains deferred. Tasks 5/7 are in progress in two Sol lanes.
+Astra coordinates Sol, inspects actual changes and local checks, sends defects back and rechecks corrections before completion is reported. Matt review runs independent Standards and Spec axes; findings return to Sol and are rechecked. A checkbox is marked only with observed evidence. Skill-required review agents run only for actual implementation review, not to create premature implementation. Task 1 implementation, local acceptance and both review axes are complete. Foundation Tasks 2/3/4/6 passed local checks and both independent Matt axes after the privacy correction (final 69 API tests). Tasks 3/4/6 local acceptance is complete; Task 2 cloud provisioning remains deferred. Tasks 5/7 local acceptance and both Matt axes passed against final candidate 8818a93. Tasks 8/9 are in progress in the two Sol lanes.
 
 The active technical graph is in dependency-plan.md; Task numbers remain traceability labels. Independent work may proceed in parallel without new Task N approval. Dates are targets and work may finish earlier; Shoulds may start earlier than Friday only after all Must behaviour is locally verified; hosting is deferred. Stretch is pitch-only. Review uses each task-start committed baseline; Task 1 baseline is bb1b098. User authorization includes the review/correction loop.
 
@@ -105,10 +105,10 @@ Scope: Must/foundation. Deliverable: Owner selects one of eight languages, confi
 - [x] Sol implemented the onboarding/i18n slice and corrections.
 - [x] Astra's affected local check passed 46 tests; actual own-chat registration passed. Evidence: tasks-05-07-verification.md and task-05-live-verification.md.
 - [x] Astra inspected actual files, returned defects and independently rechecked corrections.
-- [ ] Matt Standards review completed; relevant findings corrected and rechecked.
-- [ ] Matt Spec review completed; relevant findings corrected and rechecked.
-- [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
-- [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
+- [x] Matt Standards review completed against 4666575…8818a93; zero actionable findings.
+- [x] Matt Spec review completed against 4666575…8818a93; zero actionable findings.
+- [x] Local task acceptance met with recorded evidence; native translation/two-phone/cloud boundaries remain explicit.
+- [x] Technical prerequisites for dependent local work met.
 
 ### Task 6 — ADK skeleton
 
@@ -131,16 +131,16 @@ Scope: Must/foundation. Deliverable: A simulated event reaches eligible recipien
 - [x] Sol implemented the dispatch slice and corrections.
 - [x] Final backend suite passed 121 tests with actual Firestore/Pub/Sub/BigQuery integration; real ADK selection and cold fallback measured separately. Evidence: tasks-05-07-verification.md.
 - [x] Astra inspected source and results, returned defects and rechecked corrections.
-- [ ] Matt Standards review completed; relevant findings corrected and rechecked.
-- [ ] Matt Spec review completed; relevant findings corrected and rechecked.
-- [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
-- [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
+- [x] Matt Standards review completed against 4666575…8818a93; zero actionable findings.
+- [x] Matt Spec review completed against 4666575…8818a93; zero actionable findings.
+- [x] Local task acceptance met with recorded evidence; native translation/two-phone/cloud boundaries remain explicit.
+- [x] Technical prerequisites for dependent local work met.
 
 ### Task 8 — Safe points + vehicle rescue
 
 Scope: Must/foundation. Deliverable: Alerts include sourced parking/evacuation destinations and record vehicle confirmations.
 
-- [ ] Astra task brief and acceptance agreed; blockers satisfied.
+- [x] Astra brief tasks-08-09-brief.md recorded; dispatched in parallel from reviewed baseline 8818a93 with shared-file ownership.
 - [ ] Sol implements only this task.
 - [ ] Relevant local checks run; results captured.
 - [ ] Astra inspects files and results, returns defects to Sol, and rechecks corrections.
@@ -153,7 +153,7 @@ Scope: Must/foundation. Deliverable: Alerts include sourced parking/evacuation d
 
 Scope: Must/foundation. Deliverable: Uploaded photos preserve downloaded bytes, record hashes and produce validated nearby alerts.
 
-- [ ] Astra task brief and acceptance agreed; blockers satisfied.
+- [x] Astra brief tasks-08-09-brief.md recorded; dispatched in parallel from reviewed baseline 8818a93 with shared-file ownership.
 - [ ] Sol implements only this task.
 - [ ] Relevant local checks run; results captured.
 - [ ] Astra inspects files and results, returns defects to Sol, and rechecks corrections.
