@@ -184,3 +184,16 @@ def test_unsupported_private_payload_is_not_persisted(inbox):
     assert state["status"] == "done"
     assert state["outcome"] == "unsupported"
     assert calls == []
+
+
+def test_message_disables_auto_preview_preserving_explicit_route_and_button():
+    wire = []
+    def transport(request):
+        wire.append(json.loads(request.content))
+        return httpx.Response(200, json={"ok": True, "result": {"message_id": 1}})
+    api = TelegramAPI("synthetic-token", httpx.MockTransport(transport))
+    route = "https://www.google.com/maps/dir/?api=1&destination=3.0,101.0"
+    markup = {"inline_keyboard": [[{"text": "View route", "url": route}]]}
+    assert api.send_message(9, "Listed destination: " + route, reply_markup=markup) == 1
+    assert wire == [{"chat_id": 9, "text": "Listed destination: " + route,
+                     "reply_markup": markup, "link_preview_options": {"is_disabled": True}}]

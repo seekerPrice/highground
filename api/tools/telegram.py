@@ -32,7 +32,7 @@ class TelegramAPI:
         self._transport = transport
 
     def send_message(self, chat_id: int, text: str, reply_markup: dict[str, Any] | None = None) -> int:
-        payload: dict[str, Any] = {"chat_id": chat_id, "text": text}
+        payload: dict[str, Any] = {"chat_id": chat_id, "text": text, "link_preview_options": {"is_disabled": True}}
         if reply_markup is not None:
             payload["reply_markup"] = reply_markup
         return self._send("sendMessage", payload)
