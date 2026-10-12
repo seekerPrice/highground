@@ -49,7 +49,7 @@ async def generate_structured(*, client: genai.Client, model: str, prompt: str,
         raise ValueError('timeout/token limits must be finite and bounded')
     config = types.GenerateContentConfig(
         response_mime_type='application/json', response_schema=schema,
-        max_output_tokens=max_output_tokens, temperature=0,
+        max_output_tokens=max_output_tokens,
         thinking_config=types.ThinkingConfig(thinking_level='LOW'),
         http_options=types.HttpOptions(timeout=int(timeout_seconds*1000),
                                        retry_options=types.HttpRetryOptions(attempts=1)),

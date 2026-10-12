@@ -31,13 +31,25 @@ class TelegramAPI:
         self._token = token
         self._transport = transport
 
-    def send_message(self, chat_id: int, text: str) -> int:
+    def send_message(self, chat_id: int, text: str, reply_markup: dict[str, Any] | None = None) -> int:
+        payload: dict[str, Any] = {"chat_id": chat_id, "text": text}
+        if reply_markup is not None:
+            payload["reply_markup"] = reply_markup
+        return self._send("sendMessage", payload)
+
+    def send_venue(self, chat_id: int, latitude: float, longitude: float, title: str, address: str, reply_markup: dict[str, Any] | None = None) -> int:
+        payload: dict[str, Any] = {"chat_id": chat_id, "latitude": latitude, "longitude": longitude, "title": title, "address": address}
+        if reply_markup is not None:
+            payload["reply_markup"] = reply_markup
+        return self._send("sendVenue", payload)
+
+    def _send(self, method: str, payload: dict[str, Any]) -> int:
         # Never expose raw HTTP exceptions: their URLs contain the bot token.
         try:
             with httpx.Client(transport=self._transport, timeout=15) as client:
                 response = client.post(
-                    f"https://api.telegram.org/bot{self._token}/sendMessage",
-                    json={"chat_id": chat_id, "text": text},
+                    f"https://api.telegram.org/bot{self._token}/{method}",
+                    json=payload,
                 )
             body: Any = response.json()
             if not isinstance(body, dict) or not isinstance(body.get("ok"), bool):

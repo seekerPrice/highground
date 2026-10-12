@@ -17,3 +17,9 @@ Registry versions observed: google-adk 2.11.0; google-genai 2.29.0; google-cloud
 ## Actual emulator smoke result
 
 The official ADK2.11.0 FirestoreSessionService was exercised against the local Firestore emulator using google-cloud-firestore2.34.1. A second service/client instance restored the first instance's state and event; appending from an older session snapshot raised StaleSessionError. The smoke deleted only its UUID-named synthetic session and confirmed removal. All three assertions passed, process exit0. This verifies the shipped adapter at that boundary; application onboarding concurrency and idempotency still require their own tests.
+
+## Warning selector latency check
+
+The configured Flash model's [official developer guide](https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/guides/gemini-3-8-flash) explicitly supports `LOW`, `MEDIUM` and `HIGH` thinking levels; `MINIMAL` returns a validation error. The guide also says temperature/top-k/top-p are ignored for this model. Use schema validation and constrained outputs, not a temperature setting, as the boundary on recipient-facing content. The model ID remains an environment setting.
+
+Task 7's early real ADK selector probe received a Vertex timeout with a short HTTP limit. A successful fallback verifies resilience, not a successful model invocation. The implementation review requires a separate actual successful selector result and persisted trace, plus measured application latency; an increased diagnostic timeout must not silently increase the recipient dispatch budget. See the task verification record for final results when available.

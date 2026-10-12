@@ -26,7 +26,7 @@ The configured fast model is documented [Gemini 3.8 Flash](https://docs.cloud.go
 
 ## Pub/Sub emulator
 
-Docker highground-pubsub runs the same official CLI emulator image, bound only to127.0.0.1:8797. PUBSUB_EMULATOR_HOST is configured locally. The emulator accepted creation of projects/highground-2026-lucas/topics/flood-events withHTTP200. No cloudPub/Sub topic exists yet. Localpublish/consume behavior remains to be tested by the eventpipeline.
+Docker highground-pubsub runs the same official CLI emulator image, bound only to127.0.0.1:8797. PUBSUB_EMULATOR_HOST is configured locally. The emulator accepted creation of projects/highground-2026-lucas/topics/flood-events withHTTP200. No cloudPub/Sub topic exists yet. A subsequent official Python SDK probe created a unique subscription, published one synthetic JSON event, pulled the exact message, acknowledged it and removed the probe subscription; exit0. Application event/outbox integration remains a Task7 check.
 
 ## Organizer portal inspection
 
@@ -44,3 +44,5 @@ Observed SDK smoke: Cloud Storage uploaded synthetic binary bytes with generatio
 `STORAGE_EMULATOR_HOST` and `BIGQUERY_EMULATOR_HOST` are configured only in the ignored local `.env`. The latter must be explicitly wired into BigQuery `ClientOptions(api_endpoint=...)`; it is an application convention, not assumed SDK auto-detection. Emulator authentication must never be selected for cloud endpoints.
 
 Both tools are third-party development emulators. The GCS emulator does not validate signed URL signatures or expiration, and BigQuery does not implement IAM. Local results cannot prove cloud permission boundaries, signed-link expiry, production service behavior or deployment acceptance. Keep both endpoints private to loopback; expose only authenticated application routes through any Telegram test tunnel. Their current storage is disposable.
+
+During Task7 verification, the BigQuery container stopped at18:26:54 UTC with Docker reporting `OOMKilled=true`, exit137. The shared Docker VM has about5.8GiB and also runs unrelated projects. Root reproduced connection refusal, restarted only `highground-bigquery`, observed successful dataset-list HTTP, and recreated/verified all five reviewed base schemas through the official SDK. Resident memory after reseeding was about175MiB. This restores the test service; it does not establish that memory pressure is resolved. Earlier emulator rows were disposable and lost, so resumed integration tests use fresh identities. Serialize emulator-heavy checks for now; Task17's reproducible local runner should bound HighGround emulator resource use without stopping other projects.

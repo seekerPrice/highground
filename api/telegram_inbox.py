@@ -13,8 +13,8 @@ class FirestoreInbox:
         self.client = client
         self.collection = collection
 
-    def claim(self, update_id: int) -> tuple[ClaimStatus, str]:
-        reference = self.client.collection(self.collection).document(str(update_id))
+    def claim(self, update_id: int, operation_id: str | None = None) -> tuple[ClaimStatus, str]:
+        reference = self.client.collection(self.collection).document(operation_id or str(update_id))
         owner = uuid4().hex
         now = datetime.now(timezone.utc)
 
@@ -43,8 +43,8 @@ class FirestoreInbox:
 
         return acquire(self.client.transaction()), owner
 
-    def transition(self, update_id: int, owner: str, status: str, **fields: Any) -> None:
-        reference = self.client.collection(self.collection).document(str(update_id))
+    def transition(self, update_id: int, owner: str, status: str, *, operation_id: str | None = None, **fields: Any) -> None:
+        reference = self.client.collection(self.collection).document(operation_id or str(update_id))
 
         @firestore.transactional
         def change(transaction: firestore.Transaction) -> None:

@@ -1,0 +1,33 @@
+# Onboarding and dispatch verification
+
+Review baseline: `46665754d103dd5d916efe3f81d7225a46df7f2d`. Implementation, Astra correction review and the final local integration gate are complete; independent Matt review remains pending. This note does not mark either task complete.
+
+## Observed evidence
+
+- Astra independently reran onboarding, i18n and webhook checks after dated-update identity and template-footer corrections: **46 tests passed in 4.98 seconds** against the actual local Firestore emulator. Command: `FIRESTORE_EMULATOR_HOST=127.0.0.1:8787 .venv/bin/python -m pytest api/tests/test_onboarding.py api/tests/test_i18n.py api/tests/test_telegram_webhook.py -q`.
+- Parent completed real own-chat registration through Chrome Telegram, the HTTPS tunnel, local API, actual Firestore ADK sessions, public-address geocoding and Bot API. The visible summary was 60/100 provisional, with inventory/exposure unknown. Full evidence and limits: `task-05-live-verification.md`.
+- Registration initially created a private ordinary shop (`is_demo=false`). Parent then explicitly marked only this consenting synthetic test fixture as demo for later simulated alerts. Ordinary registrations are never inferred to be demo from their names.
+- Sol's initial dispatch slice passed 24 focused tests, including actual Firestore/Pub/Sub/BigQuery clients. A later run was interrupted after the BigQuery emulator became unreachable; that interrupted run is not a pass. Parent diagnosed Docker OOM termination (exit 137) under shared VM memory pressure, restarted only the owned BigQuery container and recreated/verified the five base schemas. Ephemeral BigQuery records were lost; Firestore data remained. The affected check must use fresh IDs. This recovery does not establish that memory pressure is eliminated.
+- Final serialized backend check after restoration: **121 passed, two upstream SDK warnings, 10.06 seconds, exit 0**. Fresh isolated official Pub/Sub and BigQuery integration ran. Command: `FIRESTORE_EMULATOR_HOST=127.0.0.1:8787 PUBSUB_EMULATOR_HOST=127.0.0.1:8797 BIGQUERY_EMULATOR_HOST=http://127.0.0.1:9050 .venv/bin/python -m pytest api/tests -q`. Dependency consistency and Python compilation checks also exited 0. Astra inspected the final source and `git diff --check` passed.
+- A real configured-model ADK diagnostic completed coordinator transfer and strict `alert_agent` structure selection in 4.20 seconds. An initial six-shop application probe used the fixed fallback under its five-second model-selection budget; test-transport sends were accepted at 5.16–5.25 seconds.
+- A subsequent warmed application probe completed real configured Flash selection and six test-transport sends at **3.22–3.29 seconds**. The actual coordinator transfer and `alert_agent` validated choice were persisted against the application's event ID. Warmup took 2.49 seconds. Earlier cold fallback and 1.5/4-second request-timeout failures remain separate evidence; the final application selection budget remains five seconds. These observations demonstrate both actual useful ADK execution and fallback, not guaranteed latency or the later photo-to-neighbour ten-second acceptance requirement.
+
+## Astra corrections checked or requested
+
+Worker consent recovery after a committed join, owner invitation handling, actual map venue confirmation, canonical destination URLs, translation notices before the fixed emergency footer, bounded Telegram update-ID rollover handling, configurable ordered action targets, lazy model initialization, private delivery-plan separation, simulated-only public aggregates, and bounded sink retries were reviewed. Independent Matt axes remain pending before completion.
+
+## Root final local gate and live delivery
+
+The frozen candidate passed `FIRESTORE_EMULATOR_HOST=127.0.0.1:8787 PUBSUB_EMULATOR_HOST=127.0.0.1:8797 BIGQUERY_EMULATOR_HOST=http://127.0.0.1:9050 ./infra/test.sh`: six infrastructure tests, 121 API tests (13.39 seconds, two upstream SDK warnings, no skips), frontend lint, type checking and production build; overall exit0. Candidate files contain none of the local secret values, `.env` is ignored, and no prohibited GitHub CI/Dependabot files exist.
+
+After restarting only the local API, `/start` visibly resumed the completed synthetic shop registration. An unauthenticated simulation request returned403. An authenticated Warning simulation targeted only the one explicitly synthetic consenting own-chat fixture: Telegram accepted the message at4802ms from event creation, and the complete endpoint request took5.533 seconds including analytics. The actual configured-model `alert_agent` result and validated choice were present in the event's persisted ADK trace.
+
+A separate Danger simulation targeted the same fixture. Telegram accepted its committed fixed no-destination template at861ms; total request duration was1.006 seconds. No model session was created for that Danger event and its action snapshot had no stock items or vehicle target. Both messages were visibly present in the actual Telegram chat with prominent simulation labels; Warning's vehicle target preceded stock by15 minutes.
+
+Repeating both requests with the same identities returned the same completed result, without another Telegram message. Firestore contained exactly one accepted alert for each event and no raw recipient ID on those alert documents. Actual BigQuery queries verified exactly one event row and one alert row for each after the retry. This observation is not an exactly-once guarantee from BigQuery's streaming API.
+
+Local artifacts: `/Users/lucaslt/.codex/outputs/highground/setup/task7-live-results.json` stores non-sensitive result/timing assertions; `telegram-alert-dispatch-pass.png` in the same directory shows the cropped own-chat proof and was displayed to the user. Latency measures Bot API acceptance, not device notification delivery. Destinations, stock inventory and confirmation buttons belong to later tasks and were explicitly unavailable in this test.
+
+## Remaining acceptance boundaries
+
+Native review of seven generated translations and a two-person consenting phone journey are unavailable. Current destination availability and final source coverage remain external limitations. Task 8 supplies destinations and confirmations; Tasks 9/10 supply report/polling integration; final Must acceptance includes actual media, escalation and latency checks. Hosting and cloud IAM/signed-URL behaviour remain deferred.

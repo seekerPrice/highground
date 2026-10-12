@@ -5,15 +5,16 @@ from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Request
 from pydantic import ValidationError
-from starlette.concurrency import run_in_threadpool
 
 from api.config import Settings, load_settings
 from api.telegram_webhook import TelegramHandler, Update
 
 
-def create_app(settings: Settings | None = None, handler: TelegramHandler | None = None) -> FastAPI:
+def create_app(settings: Settings | None = None, handler: TelegramHandler | None = None, dispatch_service=None) -> FastAPI:
     application = FastAPI(title="HighGround API")
     application.state.telegram_handler = handler
+    from api.dispatch_router import create_dispatch_router
+    application.include_router(create_dispatch_router(settings or load_settings, dispatch_service))
 
     @application.get("/healthz")
     def healthz() -> dict[str, Literal["ok"]]:
@@ -39,6 +40,9 @@ def create_app(settings: Settings | None = None, handler: TelegramHandler | None
             update = Update.model_validate(payload)
         except (ValueError, ValidationError, RecursionError):
             raise HTTPException(400, "Invalid Telegram update") from None
+        active = application.state.telegram_handler
+        if update.message is not None and update.message.date is None and (active is None or active.onboarding is not None):
+            raise HTTPException(400, "Telegram message timestamp is required")
         try:
             active = application.state.telegram_handler
             if active is None:
@@ -46,9 +50,17 @@ def create_app(settings: Settings | None = None, handler: TelegramHandler | None
                 from api.tools.firestore import create_firestore_client
                 from api.tools.telegram import TelegramAPI
 
-                active = TelegramHandler(FirestoreInbox(create_firestore_client(configuration)), TelegramAPI(configuration.telegram_bot_token))
+                from api.agents.sessions import create_session_service
+                from api.onboarding import Onboarding
+                from api.onboarding_store import OnboardingStore
+                from api.tools.geocoding import Geocoder
+
+                client = create_firestore_client(configuration)
+                store = OnboardingStore(client)
+                onboarding = Onboarding(store, create_session_service(configuration), hash_salt=configuration.hash_salt, bot_username=configuration.telegram_bot_username, geocoder=Geocoder(store, user_agent=configuration.geocoding_user_agent, base_url=configuration.geocoding_base_url))
+                active = TelegramHandler(FirestoreInbox(client), TelegramAPI(configuration.telegram_bot_token), onboarding)
                 application.state.telegram_handler = active
-            await run_in_threadpool(active.handle, update)
+            await active.handle(update)
         except Exception:
             # Private payloads, token-bearing URLs and SDK errors stay out of responses.
             raise HTTPException(503, "Webhook processing unavailable; retry later") from None

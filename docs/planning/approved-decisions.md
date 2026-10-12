@@ -49,3 +49,9 @@ Routine implementation of the approved safety amendment: each language has four 
 English destination variant: “⚠️ DANGER: Flooding is reaching your area. Leave now and move to higher ground. Do not stop to record video or move stock. Listed destination: {safe_point_name} {route_link}. Availability and route conditions are unverified. Call 999 in an emergency.”
 
 The no-destination variant replaces the two destination sentences with “No listed destination is available.” Only validated destination name and route link are substituted. There are no stock/vehicle actions or video requests, and only a route button when a destination exists. These templates do not assert a route or site is safe or open.
+
+## Constrained Warning composition
+
+The recommended amendment was presented at18:08:38 UTC and remained unanswered at18:13:51 UTC. Under the user's explicit five-minute default, adopt configured Gemini selection among approved localized message structures/situation sentences with a strict schema. Canonical actions, item/value snapshots, targets, destination labels and route links are rendered deterministically; bounded failures use fixed fallback text. Arbitrary model/operator reason text cannot re-enter recipient instructions through an unchecked placeholder.
+
+This intentionally narrows the original free-form “Gemini-written message” requirement because unrestricted prose cannot be reliably screened for unsafe advice in all eight languages. Gemini remains genuinely invoked for constrained selection and for the separate photo/inventory/loss tasks. Danger remains an absolute model bypass using its committed variants. Detailed attributed triage reasons can remain in private event records and the appropriately filtered demo feed.

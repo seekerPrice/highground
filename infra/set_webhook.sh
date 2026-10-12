@@ -24,7 +24,7 @@ try:
         base = f'https://api.telegram.org/bot{settings.telegram_bot_token}'
         response = client.post(base + '/setWebhook', json={
             'url': url, 'secret_token': settings.telegram_webhook_secret,
-            'allowed_updates': ['message'], 'drop_pending_updates': False,
+            'allowed_updates': ['message', 'callback_query'], 'drop_pending_updates': False,
         })
         response.raise_for_status()
         if response.json().get('ok') is not True:

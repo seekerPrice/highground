@@ -25,6 +25,7 @@ These apply to the affected task; they do not globally block Task 1 scaffolding.
 - [ ] Settle exact translations/placeholders, target configuration and confirmation semantics in their respective tasks.
 - [x] User approved synthetic-only public data, operator token, bearer reports/private media, integrity label and exact confirmation snapshots.
 - [x] User approved 90-minute freshness and 15/30-minute action targets.
+- [x] Constrained Warning composition adopted under the user's five-minute default; configured Gemini selects approved localized structures with deterministic facts and fixed fallback. Free-form narrowing is explicit in approved-decisions.md.
 - [x] Root established dedicated project/billing, bot access and local emulators; configured Vertex models passed real calls.
 - [ ] Consenting tester journey and sourced destination review remain; hosting is deferred.
 - [ ] Confirm proposed external-behaviour test seams before affected implementation; preserve the user-mandated Section 12 task granularity.
@@ -34,7 +35,7 @@ These apply to the affected task; they do not globally block Task 1 scaffolding.
 
 ## Execution contract
 
-Astra coordinates Sol, inspects actual changes and local checks, sends defects back and rechecks corrections before completion is reported. Matt review runs independent Standards and Spec axes; findings return to Sol and are rechecked. A checkbox is marked only with observed evidence. Skill-required review agents run only for actual implementation review, not to create premature implementation. Task 1 implementation, local acceptance and both review axes are complete. Tasks 2/3 local code and correction checks pass, pending independent Matt foundation review; Tasks 4/6 are implemented and Astra locally verified with 68 backend tests; independent Matt foundation review passed after the privacy correction.
+Astra coordinates Sol, inspects actual changes and local checks, sends defects back and rechecks corrections before completion is reported. Matt review runs independent Standards and Spec axes; findings return to Sol and are rechecked. A checkbox is marked only with observed evidence. Skill-required review agents run only for actual implementation review, not to create premature implementation. Task 1 implementation, local acceptance and both review axes are complete. Foundation Tasks 2/3/4/6 passed local checks and both independent Matt axes after the privacy correction (final 69 API tests). Tasks 3/4/6 local acceptance is complete; Task 2 cloud provisioning remains deferred. Tasks 5/7 are in progress in two Sol lanes.
 
 The active technical graph is in dependency-plan.md; Task numbers remain traceability labels. Independent work may proceed in parallel without new Task N approval. Dates are targets and work may finish earlier; Shoulds may start earlier than Friday only after all Must behaviour is locally verified; hosting is deferred. Stretch is pitch-only. Review uses each task-start committed baseline; Task 1 baseline is bb1b098. User authorization includes the review/correction loop.
 
@@ -80,8 +81,8 @@ Scope: Must/foundation. Deliverable: Actual responses become validated, deduplic
 - [x] Astra inspected actual files, returned defects to Sol and independently reran affected checks after corrections.
 - [x] Matt Standards review completed; unused raw inbox payload corrected and independently rechecked where relevant.
 - [x] Matt Spec review completed; zero actionable findings.
-- [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
-- [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
+- [x] Local task acceptance met with evidence; external limitations are recorded separately.
+- [x] Technical prerequisites for dependent local work met.
 
 ### Task 4 — Telegram webhook
 
@@ -93,17 +94,17 @@ Scope: Must/foundation. Deliverable: A real Telegram user reaches the authentica
 - [x] Astra inspected actual files, returned defects and independently rechecked corrected code.
 - [x] Matt Standards review completed; unused raw inbox payload corrected and independently rechecked where relevant.
 - [x] Matt Spec review completed; zero actionable findings.
-- [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
-- [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
+- [x] Local task acceptance met with evidence; external limitations are recorded separately.
+- [x] Technical prerequisites for dependent local work met.
 
 ### Task 5 — i18n + onboarding
 
 Scope: Must/foundation. Deliverable: Owner selects one of eight languages, confirms location and shop/vehicle details, optionally links a worker.
 
-- [ ] Astra task brief and acceptance agreed; blockers satisfied.
-- [ ] Sol implements only this task.
-- [ ] Relevant local checks run; results captured.
-- [ ] Astra inspects files and results, returns defects to Sol, and rechecks corrections.
+- [x] Astra brief task-05-brief.md written; dispatched in parallel from baseline 4666575 with shared-file ownership.
+- [x] Sol implemented the onboarding/i18n slice and corrections.
+- [x] Astra's affected local check passed 46 tests; actual own-chat registration passed. Evidence: tasks-05-07-verification.md and task-05-live-verification.md.
+- [x] Astra inspected actual files, returned defects and independently rechecked corrections.
 - [ ] Matt Standards review completed; relevant findings corrected and rechecked.
 - [ ] Matt Spec review completed; relevant findings corrected and rechecked.
 - [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
@@ -119,17 +120,17 @@ Scope: Must/foundation. Deliverable: Coordinator routes a fake warning through t
 - [x] Astra inspected actual files, returned defects and independently rechecked corrected code.
 - [x] Matt Standards review completed; unused raw inbox payload corrected and independently rechecked where relevant.
 - [x] Matt Spec review completed; zero actionable findings.
-- [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
-- [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
+- [x] Local task acceptance met with evidence; external limitations are recorded separately.
+- [x] Technical prerequisites for dependent local work met.
 
 ### Task 7 — Alert dispatch
 
 Scope: Must/foundation. Deliverable: A simulated event reaches eligible recipients and appears in event/alert records.
 
-- [ ] Astra task brief and acceptance agreed; blockers satisfied.
-- [ ] Sol implements only this task.
-- [ ] Relevant local checks run; results captured.
-- [ ] Astra inspects files and results, returns defects to Sol, and rechecks corrections.
+- [x] Astra brief task-07-brief.md written; dispatched in parallel from baseline 4666575 with shared-file ownership.
+- [x] Sol implemented the dispatch slice and corrections.
+- [x] Final backend suite passed 121 tests with actual Firestore/Pub/Sub/BigQuery integration; real ADK selection and cold fallback measured separately. Evidence: tasks-05-07-verification.md.
+- [x] Astra inspected source and results, returned defects and rechecked corrections.
 - [ ] Matt Standards review completed; relevant findings corrected and rechecked.
 - [ ] Matt Spec review completed; relevant findings corrected and rechecked.
 - [ ] Acceptance met, deployment verified where required, and completion reported with evidence.

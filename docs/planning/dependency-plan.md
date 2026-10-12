@@ -7,12 +7,12 @@ Latest authorization: implement all Tasks 1–22 without individual Task N waits
 | Task | Depends on | Current dispatch or boundary |
 |---|---|---|
 | 1 scaffold | none | Complete and reviewed |
-| 2 infrastructure | 1 | Sol infrastructure lane; script/local verification can proceed before project facts |
-| 3 data clients | 1 | Sol data lane; independent of cloud provisioning |
-| 4 Telegram webhook | 1 | Next backend slice; live acceptance needs bot/tunnel credentials |
-| 5 onboarding/i18n | 2, 4 | Uses the local Firestore emulator; shared onboarding/i18n contracts unblock dispatch |
-| 6 ADK skeleton | 1 | Can run independently after backend package ownership is assigned |
-| 7 alert dispatch | 2, 3, 5, 6 | Deterministic safety and event/recipient idempotency required |
+| 2 infrastructure | 1 | Script/local verification and review passed; actual cloud provisioning deferred |
+| 3 data clients | 1 | Implemented and reviewed; stale upstream coverage remains explicit |
+| 4 Telegram webhook | 1 | Implemented/reviewed; real local callback passed |
+| 5 onboarding/i18n | 2, 4 | Implemented with actual Firestore and live owner registration; final milestone review pending |
+| 6 ADK skeleton | 1 | Implemented/reviewed with actual Firestore sessions and configured Vertex calls |
+| 7 alert dispatch | 2, 3, 5, 6 | Implemented with deterministic safety and durable delivery; final milestone review pending |
 | 8 destinations/vehicles | 7 | Sourced places can be prepared earlier; exact actions built on dispatch |
 | 9 media/neighbour reports | 2, 5, 6, 7 | Shared ingestion then photo report pipeline |
 | 10 escalation/polling | 3, 7, 8, 9 | OIDC and fixed Danger paths integration |
@@ -39,8 +39,12 @@ Astra owns planning/checklists/AGENTS and coordinates review/corrections. Root o
 
 Initial lanes: infrastructure owns infra/setup.sh and schema/config/test assets under infra plus .env.example additions if necessary; data owns api/models.py, api/tools/datagov.py, data fixtures/tests and docs/planning/data-source-research.md. Neither modifies api/main.py or backend locks without Astra approval.
 
+Current milestone: onboarding lane owns Task 5 and shared webhook/settings/catalogs; data lane owns Task 7 and backend locks. Next Tasks 8/9 retain those lane boundaries, with shared entry-point integration assigned to the onboarding lane; details are in tasks-08-09-brief.md.
+
 ## Review gates
 
 Record local implementation/acceptance separately from deferred provisioning and deployment. Never keep local Should work artificially blocked on a cloud action the user explicitly deferred, once the full local Must gate has passed.
 
 Baseline for the Tasks 2/3/4/6 foundation: 142178f. Candidate: 9df978d. Each lane runs focused local checks and sends concrete failures to Astra. Astra inspects files/results, directs corrections, and rechecks affected behaviour. Candidate commits receive independent Matt Standards/Spec review when execution agents release slots. Missing external credentials never count as successful external verification; continue other unblocked work while root resolves facts.
+
+The foundation and privacy correction passed both axes in final commit 4666575. That commit is the Tasks 5/7 review baseline; the current candidate is pending final checks and commit. Local synthetic fixtures do not substitute for native translation review, two consenting phone testers, real-shop valuation accuracy or production IAM checks.

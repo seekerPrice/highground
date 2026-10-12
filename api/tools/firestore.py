@@ -6,6 +6,8 @@ import google.auth
 from google.auth.credentials import AnonymousCredentials, Credentials
 from google.cloud import firestore
 
+from api.tools.emulators import loopback_endpoint
+
 if TYPE_CHECKING:
     from api.config import Settings
 
@@ -14,6 +16,7 @@ def _credentials(settings: 'Settings') -> Credentials:
     if not settings.gcp_project.strip():
         raise ValueError('GCP_PROJECT is required for Firestore')
     if os.environ.get('FIRESTORE_EMULATOR_HOST'):
+        loopback_endpoint(os.environ['FIRESTORE_EMULATOR_HOST'])
         return AnonymousCredentials()
     credentials, _ = google.auth.default(
         scopes=['https://www.googleapis.com/auth/cloud-platform'],

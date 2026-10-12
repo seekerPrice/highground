@@ -35,7 +35,7 @@ def create_coordinator(settings: 'Settings', *, model: BaseLlm | None = None,
         loss_model = Gemini(model=settings.gemini_pro_model, client=client)
     loss_model = loss_model or model
     config = types.GenerateContentConfig(
-        max_output_tokens=1024, temperature=0,
+        max_output_tokens=1024,
         thinking_config=types.ThinkingConfig(thinking_level='LOW'),
         http_options=types.HttpOptions(timeout=50000,
                                        retry_options=types.HttpRetryOptions(attempts=1)),
