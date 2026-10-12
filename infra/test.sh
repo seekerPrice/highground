@@ -16,6 +16,7 @@ fi
 
 .venv/bin/python -m unittest discover -s infra/tests -v
 .venv/bin/python -m pytest api/tests -q
+npm --prefix web run test
 npm --prefix web run lint
 npm --prefix web run typecheck
 npm --prefix web run build

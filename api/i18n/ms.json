@@ -100,5 +100,18 @@
   "stock_recorded": "Pengangkatan stok direkodkan sebagai penyempurnaan laporan kendiri daripada snapshot anggaran yang dipaparkan.",
   "stock_already_recorded": "Snapshot stok yang dipaparkan ini telah pun direkodkan.",
   "video_update_optional": "Kemas kini video pantas 30 saat (pilihan): /refresh",
-  "inventory_processing_unavailable": "Muat naik tersebut tidak dapat dinilai. Tiada inventori atau penilaian baharu disahkan. Cuba /refresh kemudian hanya apabila tiada Bahaya yang aktif."
+  "inventory_processing_unavailable": "Muat naik tersebut tidak dapat dinilai. Tiada inventori atau penilaian baharu disahkan. Cuba /refresh kemudian hanya apabila tiada Bahaya yang aktif.",
+  "recovery_owner_required": "Hanya pemilik kedai yang berdaftar boleh memulakan atau mengubah laporan pemulihan.",
+  "recovery_baseline_required": "Inventori garis dasar yang boleh dilihat diperlukan sebelum laporan pemulihan. Gunakan /inventory apabila tiada Bahaya yang aktif.",
+  "recovery_declaration": "Isytiharkan bahawa banjir telah tamat dengan butang atau /report confirm. Ini adalah pengisytiharan anda, bukan bukti bebas pelepasan. /cancel keluar dari aliran kerja ini.",
+  "recovery_declare_button": "Banjir telah tamat — Saya isytiharkan pemulihan",
+  "recovery_after_request": "Apabila tiada Bahaya yang aktif, hantar video selepas banjir berdurasi 30–45 saat (20 MB atau kurang). Garis dasar beku anda akan dipelihara. Foto garis air pilihan boleh dilampirkan; /cancel untuk keluar.",
+  "recovery_blocked": "Pemulihan belum disahkan selamat. Bahaya rasmi, tidak diketahui atau simulasi memerlukan laluan pemulihan yang dibenarkan.",
+  "recovery_processing_unavailable": "Anggaran pemulihan tidak tersedia. Cuba semula muat naik yang sama ini kemudian, atau gunakan /report untuk memulakan percubaan baharu dengan video lain apabila tiada Bahaya yang aktif.",
+  "recovery_complete": "Laporan pemulihan direkodkan dengan bukti peribadi. Ini adalah anggaran, bukan penilaian insurans. Gunakan /waterline untuk melampirkan foto garis air pilihan, atau /inventory untuk garis dasar baharu.",
+  "recovery_estimate": "Anggaran kerugian yang dinilai: RM{value_rm}. Item yang tidak diketahui dikecualikan.",
+  "recovery_estimate_unavailable": "Anggaran kerugian tidak tersedia: tiada item garis dasar yang dapat dinilai. Kerugian yang tidak diketahui bukan sifar.",
+  "recovery_photo_received": "Foto garis air dilampirkan sebagai bukti peribadi di lokasi kedai anda yang disahkan. Tiada kedalaman air atau ketulenan rakaman yang disimpulkan.",
+  "recovery_photo_request": "Apabila tiada Bahaya yang aktif, hantar foto garis air pilihan dari lokasi kedai anda yang disahkan. /cancel untuk keluar.",
+  "recovery_exited": "Input pemulihan ditutup. Gunakan /report untuk memulakan semula."
 }

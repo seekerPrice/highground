@@ -22,6 +22,7 @@ def create_app(settings: Settings | None = None, handler: TelegramHandler | None
                 await app.state.poll_service.close()
             active=app.state.telegram_handler
             if app.state.owns_telegram and active is not None:
+                if active.recovery is not None:await active.recovery.close()
                 if active.inventory is not None:await active.inventory.close()
                 if active.photos is not None:await active.photos.close()
                 for service in (active.confirmations,active.stock_confirmations):
@@ -36,6 +37,11 @@ def create_app(settings: Settings | None = None, handler: TelegramHandler | None
     application.state.telegram_handler = handler
     from api.dispatch_router import create_dispatch_router
     application.include_router(create_dispatch_router(settings or load_settings, dispatch_service))
+
+    from api.report_api import create_report_router
+    from api.dashboard import create_dashboard_router
+    application.include_router(create_report_router(settings or load_settings))
+    application.include_router(create_dashboard_router(settings or load_settings))
 
     application.state.poll_service = None
 
@@ -80,7 +86,7 @@ def create_app(settings: Settings | None = None, handler: TelegramHandler | None
         except (ValueError, ValidationError, RecursionError):
             raise HTTPException(400, "Invalid Telegram update") from None
         active = application.state.telegram_handler
-        if update.message is not None and update.message.date is None and (active is None or active.onboarding is not None or active.photos is not None or active.inventory is not None):
+        if update.message is not None and update.message.date is None and (active is None or active.onboarding is not None or active.photos is not None or active.inventory is not None or active.recovery is not None):
             raise HTTPException(400, "Telegram message timestamp is required")
         try:
             active = application.state.telegram_handler
@@ -116,7 +122,8 @@ def create_app(settings: Settings | None = None, handler: TelegramHandler | None
                 from api.stock_confirmations import StockActionStore, StockConfirmationService
                 inventory=LazyInventoryService(configuration)
                 stock_confirmations=StockConfirmationService(StockActionStore(client), ConfirmationSinks(), hash_salt=configuration.hash_salt)
-                active = TelegramHandler(FirestoreInbox(client), TelegramAPI(configuration.telegram_bot_token), onboarding, confirmations, photos, inventory, stock_confirmations)
+                from api.recovery import LazyRecoveryService
+                active = TelegramHandler(FirestoreInbox(client), TelegramAPI(configuration.telegram_bot_token), onboarding, confirmations, photos, inventory, stock_confirmations, LazyRecoveryService(configuration))
                 application.state.telegram_handler = active
                 application.state.owns_telegram=True
             await active.handle(update)

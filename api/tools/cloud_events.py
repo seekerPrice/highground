@@ -38,14 +38,20 @@ def create_event_sinks(settings: 'Settings') -> 'GoogleEventSinks':
         publisher = pubsub_v1.PublisherClient(credentials=AnonymousCredentials())
     else:
         publisher = pubsub_v1.PublisherClient(credentials=_adc(settings))
-    if bq_host:
-        endpoint = loopback_endpoint(bq_host, http=True)
-        analytics = bigquery.Client(project=settings.gcp_project, credentials=AnonymousCredentials(),
-                                    client_options=ClientOptions(api_endpoint=endpoint))
-    else:
-        analytics = bigquery.Client(project=settings.gcp_project, credentials=_adc(settings))
+    analytics = create_analytics_client(settings)
     return GoogleEventSinks(publisher, analytics, settings.gcp_project,
                             settings.pubsub_topic, settings.bigquery_dataset)
+
+
+def create_analytics_client(settings):
+    if not settings.gcp_project.strip():raise ValueError('GCP_PROJECT is required for analytics')
+    bq_host=os.environ.get('BIGQUERY_EMULATOR_HOST')
+    if bq_host:
+        endpoint = loopback_endpoint(bq_host, http=True)
+        return bigquery.Client(project=settings.gcp_project, credentials=AnonymousCredentials(),
+                                    client_options=ClientOptions(api_endpoint=endpoint))
+    else:
+        return bigquery.Client(project=settings.gcp_project, credentials=_adc(settings))
 
 
 class GoogleEventSinks:

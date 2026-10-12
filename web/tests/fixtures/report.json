@@ -1,0 +1,70 @@
+{
+  "report_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "created_at": "2026-10-13T10:00:00Z",
+  "shop_name": "Synthetic Sri Muda shop",
+  "is_demo": true,
+  "baseline_estimate_rm": 160.0,
+  "estimated_loss_rm": 30.0,
+  "estimate_status": "available",
+  "coverage": "partial",
+  "assessed_items": 1,
+  "baseline_items": 2,
+  "confidence": 0.65,
+  "confidence_note": "Synthetic still-derived comparison; visual replacement-price estimates remain uncertain.",
+  "summary_text": "1 of 2 baseline items were assessed. Assessed estimated loss is RM30.00. Unknown losses are excluded; this estimate is partial.",
+  "recovery_attribution": "Owner declared recovery; not independent proof of flood clearance.",
+  "items": [
+    {
+      "item_id": "baseline:0",
+      "condition": "damaged",
+      "estimated_loss_rm": 30.0,
+      "evidence_timestamp_s": 2.0,
+      "uncertainty": "Visible evidence supports an estimate; valuation remains uncertain.",
+      "name": "Synthetic rice bags",
+      "qty": 2.0,
+      "baseline_estimate_rm": 60.0
+    },
+    {
+      "item_id": "baseline:1",
+      "condition": "unassessed",
+      "estimated_loss_rm": null,
+      "evidence_timestamp_s": null,
+      "uncertainty": "Not assessed in the after-video; loss is unknown.",
+      "name": "Synthetic counter fan with a deliberately long descriptive name",
+      "qty": 1.0,
+      "baseline_estimate_rm": 100.0
+    }
+  ],
+  "evidence": [
+    {
+      "media_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "kind": "baseline_video",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "bytes": 1024,
+      "mime_type": "video/mp4",
+      "uploaded_at": "2026-10-13T10:00:00Z",
+      "telegram_date": "2026-10-13T10:00:00Z",
+      "lat": 3.027,
+      "lng": 101.532,
+      "location_attribution": "confirmed_shop",
+      "is_demo": true,
+      "integrity_status": "not_checked"
+    },
+    {
+      "media_id": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "kind": "after_video",
+      "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "bytes": 1024,
+      "mime_type": "video/mp4",
+      "uploaded_at": "2026-10-13T10:00:00Z",
+      "telegram_date": "2026-10-13T10:00:00Z",
+      "lat": 3.027,
+      "lng": 101.532,
+      "location_attribution": "confirmed_shop",
+      "is_demo": true,
+      "integrity_status": "not_checked"
+    }
+  ],
+  "disclaimer": "Replacement-price and loss estimates only. Unknown items are excluded from the assessed total. File integrity does not authenticate the scene, time, location or valuation.",
+  "assessment_media_id": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+}

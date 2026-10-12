@@ -56,6 +56,11 @@ class PollStore:
                                      source_valid_until=w.valid_until or w.observed_at+self.max_age)
                 intents.append((item.event_id,{'kind':'event','request_json':request.model_dump_json(),'status':'pending'}))
             if emitted:recovery_episode=None
+            # Exact/stale retries have no new domain facts. Keeping them
+            # read-only avoids competing shared-read to write-lock upgrades;
+            # the separate source-status document still records the check.
+            if old is not None and states[key]==old and not intents and recovery_episode==data.get('recovery_episode'):
+                return
             # The watermark excludes exact retries, including completed NORMAL
             # intents; avoid additional conflicting reads inside the transaction.
             tx.set(ref,{'source_key':key,'state':asdict(states[key]),'checked_at':checked_at,'recovery_episode':recovery_episode})

@@ -53,7 +53,7 @@ Root subsequently created local dataset `highground_v2` with all five finalized 
 
 The first failed query also showed that `retry=None` does not disable the BigQuery SDK's separate query-job retry policy. Set `job_retry=None` on diagnostic query/result calls as well as request retry/timeouts; otherwise a retryable emulator internal error can outlast the intended result wait. Root interrupted only its own probe and the cleanup completed. This is a diagnostic correction, not evidence of a completed application hardening change.
 
-## Current BigQuery runtime after the second OOM
+## Earlier persistent BigQuery runtime after the second OOM
 
 At19:23:18UTC the in-memory BigQuery process was killed again (`OOMKilled=true`, exit137). Both the original and copied datasets were lost. Root retained the stopped container as `highground-bigquery-oom-20261013` and started the same pinned0.8.1image as `highground-bigquery`, with named volume `highground-bigquery-data`, `--database=/data/bigquery.db`, `GOMEMLIMIT=256MiB`, `GOGC=50`, a768MiB container memory limit and1GiB memory-plus-swap limit. Only the loopback9050 port is published. No unrelated project was stopped or reconfigured. The image's own `--help` confirmed the persistent database option.
 
@@ -68,3 +68,18 @@ The API was restarted on reviewed candidate `8d28cc8f72d51f61a519035bd8bc4b9b472
 Actual HTTP probes returned health 200, unauthenticated polling 403 and authorized local polling 200. JPS and MET both reported degraded status and zero intents were processed; this does not claim all-clear or validated live warning coverage. The successful repeated probe completed in0.508 seconds. Its first harness assertion incorrectly expected401 rather than the route's documented403; correcting that expectation required no application change. The global fixture collection contained one explicitly synthetic shop and no non-demo shops before the probe.
 
 The final synthetic video journey at `033a8da` completed all assertions and cleanup with exit0 in9.410 seconds, using actual configured Pro and local Firestore/GCS/BigQuery with virtual Telegram delivery and synthetic download. Its displayed, confirmed and aggregated estimated stock value matched. Subsequent `8d28cc8` changes affect recovery/confirmation state, not the model/media integration; all243 backend tests passed after those changes. No application cloud resources were deployed.
+
+
+## Current BigQuery runtime after query-result accumulation recovery
+
+During Tasks12/13/15 verification, the pinned emulator was OOM-killed at both768MiB and1536MiB limits. Increasing the cap did not fix the workload. Root backed up the complete SQLite volume and verified integrity, then used a separate reversible copy for diagnosis. Official query-job metadata identified106 derived result datasets whose dataset/table identifiers exactly matched the query job UUID. Only these proven derived results were removed from the copy; all19 retained physical business/job/history tables had identical SHA256 content, and SQLite integrity passed. The original database and backup were preserved.
+
+An isolated test container on loopback9051 using that copy at768MiB then passed all three previously failing BigQuery integration tests in5.09s, with observed resident memory188.6MiB. Root adopted the recovered volume **`highground-bigquery-recovered-data`** for the current `highground-bigquery` service on loopback9050, retaining the same pinned image and768MiB limit. The original volume **`highground-bigquery-data`** remains intact, and the stopped original container is **`highground-bigquery-oom-2117`**. The temporary9051 container was stopped. No Docker VM or unrelated project settings changed.
+
+This A/B result establishes recovery for the tested query workload; a final consolidated gate is running. Task17 must prevent anonymous result datasets from accumulating during long-lived dashboard polling, using a tested, supported explicit scratch-result lifecycle with concurrency isolation. Do not repeat direct database recovery as ordinary application cleanup. Root retains the copied-database recovery script, table comparisons and result evidence outside the public repository.
+
+## Firestore replacement after the image-build-window OOM
+
+Root observed that the original ephemeral Firestore emulator was OOM-killed during the serial image-build window (reported finish time2026-10-12T21:36:43Z). No intentional stop occurred. The earlier270-test API gate predates this loss and remains historical evidence; it does not establish that development fixtures survived. The private recovery browser fixture and previous own-chat Firestore records must be treated as lost unless rebuilt and reverified.
+
+The stopped container is retained as `highground-firestore-oom-2136`. Its replacement `highground-firestore` uses the same pinned Google emulator image, loopback8787,768MiB memory/1GiB memory-plus-swap, and `JAVA_TOOL_OPTIONS=-Xms64m -Xmx384m`. Root's actual official SDK create/read/delete smoke passed for highground-2026-lucas; resident memory was268.5MiB. Focused tests may resume with fresh isolated namespaces. Pub/Sub remained available at293.8MiB but still requires bounded Java configuration in Task17. No unrelated service changed. Task16 will rebuild approved synthetic scenario records; private report/browser acceptance must use a newly created fixture rather than claim recovery of the lost one.

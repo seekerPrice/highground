@@ -100,5 +100,18 @@
   "stock_recorded": "Stock lifting recorded as self-reported completion of the displayed estimated snapshot.",
   "stock_already_recorded": "This displayed stock snapshot was already recorded.",
   "video_update_optional": "Quick 30-second video update (optional): /refresh",
-  "inventory_processing_unavailable": "The upload could not be assessed. No new inventory or valuation is confirmed. Try /refresh later only when there is no active Danger."
+  "inventory_processing_unavailable": "The upload could not be assessed. No new inventory or valuation is confirmed. Try /refresh later only when there is no active Danger.",
+  "recovery_owner_required": "Only the registered shop owner can start or change a recovery report.",
+  "recovery_baseline_required": "A visible baseline inventory is required before a recovery report. Use /inventory when there is no active Danger.",
+  "recovery_declaration": "Declare that the flood is over with the button or /report confirm. This is your declaration, not independent proof of clearance. /cancel exits this workflow.",
+  "recovery_declare_button": "Flood is over — I declare recovery",
+  "recovery_after_request": "When there is no active Danger, send a 30–45 second after-flood video (20 MB or less). Your frozen baseline will be preserved. Optional water-line photo can be attached; /cancel exits.",
+  "recovery_blocked": "Recovery is not cleared. Official, unknown or simulated Danger requires its authorized recovery path.",
+  "recovery_processing_unavailable": "The recovery estimate is unavailable. Retry this same upload later, or use /report to begin a new attempt with another video when there is no active Danger.",
+  "recovery_complete": "Recovery report recorded with private evidence. This is an estimate, not an insurance valuation. Use /waterline to attach an optional water-line photo, or /inventory for a new baseline.",
+  "recovery_estimate": "Assessed estimated loss: RM{value_rm}. Unknown items are excluded.",
+  "recovery_estimate_unavailable": "Loss estimate unavailable: no baseline items could be assessed. Unknown loss is not zero.",
+  "recovery_photo_received": "Water-line photo attached as private evidence at your confirmed shop location. No water depth or recording authenticity is inferred.",
+  "recovery_photo_request": "When there is no active Danger, send an optional water-line photo from your confirmed shop location. /cancel exits.",
+  "recovery_exited": "Recovery input closed. Use /report to start again."
 }

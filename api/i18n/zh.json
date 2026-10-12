@@ -100,5 +100,18 @@
   "stock_recorded": "存货搬抬已记录为自我报告完成所显示的预估快照。",
   "stock_already_recorded": "此显示的存货快照已被记录。",
   "video_update_optional": "30秒快速视频更新（可选）：/refresh",
-  "inventory_processing_unavailable": "无法评估上传内容。未确认任何新库存或估值。请仅在没有活动危险时稍后尝试 /refresh。"
+  "inventory_processing_unavailable": "无法评估上传内容。未确认任何新库存或估值。请仅在没有活动危险时稍后尝试 /refresh。",
+  "recovery_owner_required": "只有注册的店主才能发起或修改恢复报告。",
+  "recovery_baseline_required": "在生成恢复报告之前，需要有可见的基准库存。在没有活动危险（Danger）时使用 /inventory。",
+  "recovery_declaration": "使用按钮或 /report confirm 声明洪水已结束。这是您的声明，并非解除危险的独立证明。/cancel 退出此流程。",
+  "recovery_declare_button": "洪水已结束 — 我声明恢复",
+  "recovery_after_request": "在没有活动危险（Danger）时，发送一段 30–45 秒的洪灾后视频（20 MB 或更小）。您冻结的基准将被保留。可附加可选的水位线照片；/cancel 退出。",
+  "recovery_blocked": "恢复尚未获得许可。官方、未知或模拟的危险（Danger）需要其授权的恢复路径。",
+  "recovery_processing_unavailable": "恢复评估不可用。稍后重试此相同上传，或在没有活动危险（Danger）时使用 /report 通过另一个视频开始新的尝试。",
+  "recovery_complete": "已记录附带私人证据的恢复报告。这是估算值，不是保险估价。使用 /waterline 附加可选的水位线照片，或使用 /inventory 建立新基准。",
+  "recovery_estimate": "评估的估计损失：RM{value_rm}。未知物品不包含在内。",
+  "recovery_estimate_unavailable": "损失估算不可用：无法评估任何基准物品。未知损失不为零。",
+  "recovery_photo_received": "水位线照片已作为您确认的商店位置的私人证据附加。未推断任何水深或记录的真实性。",
+  "recovery_photo_request": "在没有活动危险（Danger）时，从您确认的商店位置发送一张可选的水位线照片。/cancel 退出。",
+  "recovery_exited": "恢复输入已关闭。使用 /report 重新开始。"
 }

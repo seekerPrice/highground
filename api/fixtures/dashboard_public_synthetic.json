@@ -1,0 +1,58 @@
+{
+  "generated_at": "2026-10-13T10:00:00Z",
+  "status": "available",
+  "is_demo": true,
+  "scenario_started_at": "2026-10-13T10:00:00Z",
+  "shops": [
+    {
+      "shop_id": "synthetic-shop",
+      "shop_name": "Synthetic Sri Muda shop",
+      "shop_type": "grocery",
+      "lat": 3.027,
+      "lng": 101.532,
+      "level": "warning",
+      "risk_score": 60,
+      "is_demo": true
+    }
+  ],
+  "events": [
+    {
+      "event_id": "synthetic-event",
+      "created_at": "2026-10-13T10:00:00Z",
+      "level": "warning",
+      "lat": 3.027,
+      "lng": 101.532,
+      "radius_m": 1000,
+      "reason": "Synthetic warning for demonstration only",
+      "confidence": 1.0,
+      "is_demo": true
+    }
+  ],
+  "destinations": [],
+  "sources": [
+    {
+      "source": "jps",
+      "status": "unavailable",
+      "checked_at": null,
+      "note": "Source observation time unknown; missing data is not an all-clear."
+    },
+    {
+      "source": "met",
+      "status": "unavailable",
+      "checked_at": null,
+      "note": "Source observation time unknown; missing data is not an all-clear."
+    }
+  ],
+  "stats": {
+    "status": "available",
+    "synthetic_shops": 1,
+    "alerts_accepted": 2,
+    "average_alert_acceptance_ms": 840.0,
+    "vehicles_reported_moved": 1,
+    "estimated_stock_value_reported_lifted_rm": 160.0,
+    "stock_value_label": "Estimated stock value reported lifted",
+    "stock_value_definition": "Maximum actually displayed confirmed stock estimate per shop and episode, summed across shops and episodes; self-reported.",
+    "vehicle_definition": "One self-reported vehicle completion per shop and episode.",
+    "alert_definition": "Telegram API acceptance; does not establish delivery or reading. Latency is measured from event receipt to API acceptance."
+  }
+}
