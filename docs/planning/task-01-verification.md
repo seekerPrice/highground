@@ -1,6 +1,6 @@
 # Task 1 verification
 
-Status: implementation, dependency correction and local acceptance passed; candidate commit and independent Matt review pending.
+Status: Task 1 implementation, dependency correction, local acceptance and both independent Matt reviews passed.
 
 Review baseline: `bb1b098616759804449c5fbe4bd919ac05d3a32b`.
 
@@ -15,6 +15,9 @@ Review baseline: `bb1b098616759804449c5fbe4bd919ac05d3a32b`.
 - Astra checked all 20 Section 15 environment names against .env.example; model IDs and secret values are blank. The test script is executable and git whitespace checks passed.
 - Source inspection found no cloud/deploy/setup implementation, mock future services, external fonts or prohibited automation. MIT licence and exact local setup/run commands are present.
 
+- Parent independently reran `./infra/test.sh`: exit 0; 1 API test passed in 0.22 seconds, lint and TypeScript clean, production build completed. Full `npm --prefix web audit --json` exited 0 with zero vulnerabilities. Real API and dashboard HTTP requests both returned 200.
+- Parent reviewed the final framework-generated production type import paths; they were generated and checked by that successful local gate.
+
 ## Corrections and final dependency state
 
 - Sol corrected a PostCSS anonymous-export lint finding.
@@ -27,6 +30,18 @@ Review baseline: `bb1b098616759804449c5fbe4bd919ac05d3a32b`.
 
 ## Independent review
 
-Pending candidate commit from parent, then separate Matt Standards and Spec reviews of the actual baseline-to-HEAD diff. Completion will be recorded after findings are addressed and rechecked.
+Candidate commit: `71cbc75ebbd4a76bd0d3e3efa7af0da631f9b9a8`. Both reviewers inspected the actual `bb1b098...71cbc75` diff independently.
+
+### Standards
+
+No actionable findings: zero documented-standard breaches and zero baseline smell findings. The scaffold respects the fixed stack, small typed modules, environment configuration, local-only checks, honest empty state and Task 1 boundary. No abstraction or responsibility issue warrants expansion.
+
+### Spec
+
+No actionable findings: required directories, MIT licence, exact local setup/run instructions, complete configuration example, typed health endpoint, contract test, blank Next/Tailwind shell and dependency locks are present. No future-task implementation, prohibited automation, credentials or hard-coded model IDs found. Recorded HTTP/browser/build results support acceptance.
+
+Standards: 0 findings, no worst issue. Spec: 0 findings, no worst issue. No further Sol correction was required from these reviews; the earlier dependency defect was corrected and its affected checks rerun before the candidate.
+
+The local Next type-generation command can rewrite next-env.d.ts route imports between development and production type directories; this framework-generated change was identified separately and is not a review defect.
 
 No deployed verification belongs to Task 1. The first deployment is a later explicitly authorized task. Task 2 has not started.

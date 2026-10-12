@@ -31,7 +31,7 @@ These apply to the affected task; they do not globally block Task 1 scaffolding.
 
 ## Execution contract
 
-Astra coordinates Sol, inspects actual changes and local checks, sends defects back and rechecks corrections before completion is reported. Matt review runs independent Standards and Spec axes; findings return to Sol and are rechecked. A checkbox is marked only with observed evidence. Skill-required review agents run only for actual implementation review, not to create premature implementation. Task 1 is in progress under Astra coordination; no later task is authorized.
+Astra coordinates Sol, inspects actual changes and local checks, sends defects back and rechecks corrections before completion is reported. Matt review runs independent Standards and Spec axes; findings return to Sol and are rechecked. A checkbox is marked only with observed evidence. Skill-required review agents run only for actual implementation review, not to create premature implementation. Task 1 implementation, local acceptance and both review axes are complete. No later task is authorized.
 
 The ordered workflow remains Tasks 1–22, with explicit user confirmation before each next task. Dates are targets and work may finish earlier; Shoulds may start earlier than Friday only after Tasks 1–17 are deployed and accepted. Stretch is pitch-only. Review uses each task-start committed baseline; Task 1 baseline is bb1b098. User authorization includes the review/correction loop.
 
@@ -45,10 +45,10 @@ Scope: Must/foundation. Deliverable: Local API health and blank dashboard run fr
 - [x] Sol implemented only Task 1 scaffold.
 - [x] Relevant local checks passed; results recorded in task-01-verification.md.
 - [x] Astra inspected actual source, real health HTTP response and rendered browser page; Sol lint correction passed the final gate.
-- [ ] Matt Standards review completed; relevant findings corrected and rechecked.
-- [ ] Matt Spec review completed; relevant findings corrected and rechecked.
-- [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
-- [ ] User next-task gate satisfied.
+- [x] Matt Standards review completed against bb1b098...71cbc75: no actionable findings.
+- [x] Matt Spec review completed against bb1b098...71cbc75: no actionable findings.
+- [x] Task 1 local acceptance met; evidence in task-01-verification.md. No deployment belongs to this task.
+- [ ] Await user Task 2 instruction; do not advance automatically.
 
 ### Task 2 — GCP setup script
 

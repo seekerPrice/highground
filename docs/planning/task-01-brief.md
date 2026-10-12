@@ -1,6 +1,6 @@
 # Task 1 — implementation brief
 
-Status: authorized, implementation starting. Issue: https://github.com/seekerPrice/highground/issues/2. Source: docs/spec/01-build-spec.md, Section 12 Task 1; current user decisions override dates and retain Task N gates.
+Status: implementation, local acceptance and both Matt reviews complete. Issue: https://github.com/seekerPrice/highground/issues/2. Source: docs/spec/01-build-spec.md, Section 12 Task 1; current user decisions override dates and retain Task N gates.
 
 Review baseline: `bb1b098` (committed planning state). Captured workspace HEAD was `64398a5d361fcf9c039fe0432ee54ba2cd0397f9`, a GitButler workspace commit with an identical tree; use the stable underlying commit for Matt review. Parent manages commits and remote updates; Astra coordinates Sol and inspects actual code/tests. No later task is authorized.
 

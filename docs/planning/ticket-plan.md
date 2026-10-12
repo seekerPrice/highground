@@ -15,7 +15,7 @@ APPROVED order: Task 15 follows Task 14 for the Must deployment target. Dates al
 
 **Acceptance:** API health returns success; frontend opens locally; example environment contains no secrets; no prohibited automation.
 
-**Status:** In progress under Astra coordination with 6.1 Sol; local checks and reviews pending.
+**Status:** Implementation and local acceptance complete; Astra correction loop and both Matt review axes passed. Task 2 remains gated on user instruction.
 
 ## 02 — GCP setup script
 
