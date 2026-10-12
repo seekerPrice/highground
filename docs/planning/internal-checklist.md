@@ -36,7 +36,7 @@ These apply to the affected task; they do not globally block Task 1 scaffolding.
 
 ## Execution contract
 
-Astra coordinates Sol, inspects actual changes and local checks, sends defects back and rechecks corrections before completion is reported. Matt review runs independent Standards and Spec axes; findings return to Sol and are rechecked. A checkbox is marked only with observed evidence. Skill-required review agents run only for actual implementation review, not to create premature implementation. Task 1 implementation, local acceptance and both review axes are complete. Foundation Tasks 2/3/4/6 passed local checks and both independent Matt axes after the privacy correction (final 69 API tests). Tasks 3/4/6 local acceptance is complete; Task 2 cloud provisioning remains deferred. Tasks 5/7 local acceptance and both Matt axes passed against final candidate 8818a93. Tasks 8/9 implementation and both Matt axes passed through 1a4d7b1; the complete local gate passed 6 infrastructure and 175 API tests with frontend checks. Task 8 live own-chat acceptance passed; Task 9 integrated local acceptance passed with actual service emulators/configured Flash and explicitly virtual Telegram edges. Actual Telegram photo upload remains pending consent. Tasks 10/11 are now in progress in the two Sol lanes.
+Astra coordinates Sol, inspects actual changes and local checks, sends defects back and rechecks corrections before completion is reported. Matt review runs independent Standards and Spec axes; findings return to Sol and are rechecked. A checkbox is marked only with observed evidence. Skill-required review agents run only for actual implementation review, not to create premature implementation. Task 1 implementation, local acceptance and both review axes are complete. Foundation Tasks 2/3/4/6 passed local checks and both independent Matt axes after the privacy correction (final 69 API tests). Tasks 3/4/6 local acceptance is complete; Task 2 cloud provisioning remains deferred. Tasks 5/7 local acceptance and both Matt axes passed against final candidate 8818a93. Tasks 8/9 implementation and both Matt axes passed through 1a4d7b1; the complete local gate passed 6 infrastructure and 175 API tests with frontend checks. Task 8 live own-chat acceptance passed; Task 9 integrated local acceptance passed with actual service emulators/configured Flash and explicitly virtual Telegram edges. Actual Telegram photo upload remains pending consent. Tasks 10/11 passed the 233-test API gate and actual configured-Pro local journey at 033a8da; the final cross-store recovery/action correction and independent review rechecks remain in progress under one Sol owner.
 
 The active technical graph is in dependency-plan.md; Task numbers remain traceability labels. Independent work may proceed in parallel without new Task N approval. Dates are targets and work may finish earlier; Shoulds may start earlier than Friday only after all Must behaviour is locally verified; hosting is deferred. Stretch is pitch-only. Review uses each task-start committed baseline; Task 1 baseline is bb1b098. User authorization includes the review/correction loop.
 
@@ -170,7 +170,7 @@ Scope: Must/foundation. Deliverable: Scheduled real-source polling and escalatin
 
 - [x] Astra dispatched the bounded task brief from reviewed baseline 1a4d7b1; parallel lanes coordinate shared risk/episode interfaces and files.
 - [x] Sol implemented the bounded task slice and froze it for review.
-- [x] Affected local checks passed; evidence in tasks-10-11-verification.md. Final consolidated gate remains pending.
+- [x] Affected checks and the 233-test API gate passed at 033a8da; the final recovery/action correction gate remains pending. Evidence is in tasks-10-11-verification.md.
 - [x] Astra inspected actual files, returned concrete defects and independently rechecked corrections.
 - [ ] Matt Standards review completed; relevant findings corrected and rechecked.
 - [ ] Matt Spec review completed; relevant findings corrected and rechecked.
@@ -183,7 +183,7 @@ Scope: Must/foundation. Deliverable: Video becomes an estimated inventory and ra
 
 - [x] Astra dispatched the bounded task brief from reviewed baseline 1a4d7b1; parallel lanes coordinate shared risk/episode interfaces and files.
 - [x] Sol implemented the bounded task slice and froze it for review.
-- [x] Affected local checks passed; evidence in tasks-10-11-verification.md. Final consolidated gate remains pending.
+- [x] Affected checks and the 233-test API gate passed at 033a8da; the final recovery/action correction gate remains pending. Evidence is in tasks-10-11-verification.md.
 - [x] Astra inspected actual files, returned concrete defects and independently rechecked corrections.
 - [ ] Matt Standards review completed; relevant findings corrected and rechecked.
 - [ ] Matt Spec review completed; relevant findings corrected and rechecked.

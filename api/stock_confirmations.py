@@ -26,6 +26,7 @@ class StockActionStore(VehicleActionStore):
             shop_data=self.client.collection(self.shops).document(shop.shop_id).get(transaction=tx).to_dict() or {}
             risk=self.client.collection(self.risks).document(shop.shop_id).get(transaction=tx).to_dict() or {}
             state=ActiveRiskStore._view(risk,shop_data)
+            record['danger_generation']=risk.get('danger_generation',0)
             if existing.exists:return existing.to_dict()
             if state.active_danger or (state.episode_id is None or state.episode_id!=frozen.episode_id):record['state']='superseded'
             tx.create(ref,record);return record
@@ -46,7 +47,7 @@ class StockActionStore(VehicleActionStore):
             member=next((r for r in shop.get('recipients',[]) if r.get('telegram_chat_id')==sender_chat_id and r.get('role') in ('owner','worker')),None)
             if not member or alert.get('message_id')!=message_id or alert.get('status')!='accepted':return 'unavailable','en',None
             language=member['language'];state=ActiveRiskStore._view(risk,shop)
-            if action['state']!='active' or state.active_danger or (state.episode_id is None or state.episode_id!=action['episode_id']):return 'superseded',language,None
+            if action['state']!='active' or action.get('danger_generation',0)!=risk.get('danger_generation',0) or state.active_danger or (state.episode_id is None or state.episode_id!=action['episode_id']):return 'superseded',language,None
             snapshot=ActionSnapshot.model_validate(action['snapshot']);displayed=ActionSnapshot.model_validate(alert['snapshot'])
             if action['kind']!='stock' or alert.get('level')!='warning' or snapshot!=displayed or displayed.stock_action_id!=action_id or not snapshot.items or not snapshot.inventory_id:return 'unavailable',language,None
             expected=round(sum(item.value_rm for item in snapshot.items),2)
@@ -57,7 +58,7 @@ class StockActionStore(VehicleActionStore):
                 confirmed_at=now,is_demo=action['is_demo'],self_reported=True,confirmed_by_hash=sender_hash,
                 snapshot=action['snapshot'],bigquery='pending'))
             return 'recorded',language,action_id
-        return confirm(self.client.transaction())
+        return confirm(self.client.transaction(max_attempts=10))
 
 class StockConfirmationService(VehicleConfirmationService):
     """Reuse the existing recipient hashing and bounded confirmation sink outbox."""

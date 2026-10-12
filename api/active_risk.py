@@ -106,12 +106,18 @@ class ActiveRiskStore:
         def apply(tx):
             old=reference.get(transaction=tx).to_dict() or {}
             shop=shop_ref.get(transaction=tx).to_dict() or {}
+            current_ref=self.client.collection(self.current_actions).document(shop_id)
+            current_action=current_ref.get(transaction=tx)
+            prior_danger=self._view(old,shop).active_danger
+            if 'danger_generation' not in old and self._view(old,shop).active_danger:
+                old={**old,'danger_generation':1,'legacy_unknown':self._view(old,shop).legacy_unknown}
             source_rejection=self._source_rejection(event,tx)
             if source_rejection:return RiskDecision(None,source_rejection)
             if not shop:return RiskDecision(None,'missing_shop')
             if shop.get('is_demo',False)!=event['is_demo']:return RiskDecision(None,'simulation_mismatch')
             if old.get('closed_at') and observed<=old['closed_at']:return RiskDecision(None,'closed_episode')
             old=self._reconcile_recoveries(old,shop,event,observed,tx)
+            danger_before=self._view(old,shop).active_danger
             sources=dict(old.get('sources',{}))
             key=event.get('source_key') or ('demo:'+event['source'] if event['is_demo'] else 'photo:'+event['event_id'])
             prior=sources.get(key)
@@ -124,6 +130,13 @@ class ActiveRiskStore:
             episode=old.get('episode_id') or sha256(f"{shop_id}:{event['event_id']}".encode()).hexdigest()
             record={**old,'episode_id':episode,'sources':sources,'legacy_unknown':self._view(old,shop).legacy_unknown}
             danger=self._view(record,shop).active_danger
+            record['danger_generation']=old.get('danger_generation',0)+int(danger and not danger_before)
+            # Fresh receipt reconciliation is a recovery path too. Release only
+            # the pointer; the old vehicle action remains irreversibly superseded.
+            if danger and (not current_action.exists or not current_action.to_dict().get('blocked')):
+                tx.set(current_ref,{'blocked':True,'event_id':event['event_id'],'episode_id':episode,'created_at':event['created_at']})
+            elif current_action.exists and not danger and (current_action.to_dict().get('blocked') or prior_danger):
+                tx.update(current_ref,{'blocked':False,'action_id':None})
             tx.set(reference,record)
             tx.update(shop_ref,{'active_danger':danger,'active_episode_id':episode})
             return RiskDecision(episode,'accepted')
@@ -158,13 +171,17 @@ class ActiveRiskStore:
             record=ref.get(transaction=tx).to_dict() or {};shop=shop_ref.get(transaction=tx).to_dict() or {}
             action=current.get(transaction=tx)
             if not predicate(record,shop):return 0
+            prior_danger=self._view(record,shop).active_danger
+            if 'danger_generation' not in record and self._view(record,shop).active_danger:
+                record={**record,'danger_generation':1,'legacy_unknown':self._view(record,shop).legacy_unknown}
             sources=remove(record.get('sources',{}))
             updated={**record,'sources':sources,'legacy_unknown':False if clear_legacy else self._view(record,shop).legacy_unknown,
                      'recovery_provenance':provenance,'recovered_at':at}
             if not sources and not updated['legacy_unknown']:updated.update(episode_id=None,closed_at=at)
             danger=self._view(updated,shop).active_danger
             tx.set(ref,updated);tx.update(shop_ref,{'active_danger':danger,'active_episode_id':updated.get('episode_id')})
-            if action.exists and not danger:tx.update(current,{'blocked':False,'action_id':None})
+            if action.exists and not danger and (action.to_dict().get('blocked') or prior_danger or updated.get('episode_id') is None):
+                tx.update(current,{'blocked':False,'action_id':None})
             return 1
         return recover(self.client.transaction())
 

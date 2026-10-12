@@ -34,8 +34,6 @@ class DispatchService:
             if decision.reason!='accepted':
                 await asyncio.to_thread(self.store.mark_suppressed,event['event_id'],decision.reason)
                 return {'event_id':event['event_id'],'status':'superseded','reason':decision.reason}
-            if event['level']=='danger' and self.vehicle_actions is not None:
-                await asyncio.to_thread(self.vehicle_actions.supersede,event['reporter_shop_id'],event_id=event['event_id'],episode_id=decision.episode_id,at=event['created_at'])
         return await self.resume(event['event_id'])
 
     async def resume(self, event_id: str) -> dict:
@@ -77,7 +75,7 @@ class DispatchService:
                     shop = Shop.model_validate(raw)
                     shop_event={**event,'episode_id':raw.get('episode_id') or event.get('episode_id')}
                     snapshot = await self.composer.action_snapshot(shop_event, shop)
-                    if self.vehicle_actions is not None and event['level'] == 'danger':
+                    if self.active_risk is None and self.vehicle_actions is not None and event['level'] == 'danger':
                         await asyncio.to_thread(self.vehicle_actions.supersede, shop.shop_id, event_id=event_id, episode_id=shop_event.get('episode_id') or event_id, at=event['created_at'])
                     from api.vehicle_confirmations import vehicle_action_id
                     snapshot=snapshot.model_copy(update={
