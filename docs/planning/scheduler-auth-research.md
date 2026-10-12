@@ -1,0 +1,11 @@
+# Scheduler authentication research
+
+Checked 13 October 2026 for the future Task 10 implementation. No Scheduler job, service account or deployment was created by this research.
+
+The [official Scheduler HTTP authentication guide](https://docs.cloud.google.com/scheduler/docs/http-target-auth?hl=en) requires a caller service account in the job's project, distinct from the Scheduler service agent. Set an explicit OIDC audience without query parameters. Keep the service agent's token-minting role intact. The [Cloud Run scheduling guide](https://docs.cloud.google.com/run/docs/triggering/using-scheduler) uses the service URL as audience and grants the caller Run Invoker.
+
+HighGround inference: because Telegram needs the shared API's webhook reachable publicly, platform-wide public ingress cannot authorize `/jobs/poll-warnings`. The application must verify the Google-signed token and the exact configured Scheduler caller for that endpoint. A valid token for another caller is insufficient. Use an explicit configured audience that matches the manually prepared Scheduler script; do not derive trust from an arbitrary Host or forwarding header. An explicit local development path must remain disabled in hosted configuration.
+
+Inspected the installed `google-auth 2.61.0` implementation of `google.oauth2.id_token.verify_oauth2_token`: it calls `verify_token` with the supplied audience and checks the accepted Google issuers. Omitting audience disables that check. It does not authorize the expected service account for the application: compare the verified claims to the configured caller, including verified email. The [official source](https://github.com/googleapis/google-auth-library-python/blob/main/google/oauth2/id_token.py) documents these boundaries.
+
+The installed `google.auth.transport.requests.Request.__call__` defaults to a 120-second timeout. Use a bounded certificate-fetch transport and keep synchronous network verification off the async event loop. Do not add a caching library merely for this task; any cache must respect certificate expiry. Never log the raw bearer token. Unit verification must include bad signature/expiry/issuer/audience/caller and absent configuration; a mocked verifier alone does not establish cryptographic rejection. Actual hosted IAM/identity acceptance remains deferred.

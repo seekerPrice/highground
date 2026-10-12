@@ -2,6 +2,7 @@
 from datetime import UTC, datetime, timedelta
 from hashlib import sha256
 from uuid import uuid4
+import json
 
 from google.cloud import firestore
 from google.api_core.exceptions import AlreadyExists
@@ -23,17 +24,22 @@ class FirestoreDispatchStore:
 
     def ensure_event(self, request: EventRequest, now: datetime) -> dict:
         event_id = sha256(f'{request.source}:{request.request_id}'.encode()).hexdigest()
-        fingerprint = sha256(request.model_dump_json().encode()).hexdigest()
+        fingerprint = sha256(request.model_dump_json(exclude={'processing_started_at'}).encode()).hexdigest()
         ref = self.client.collection(self.events).document(event_id)
         record = dict(request.model_dump(), event_id=event_id, fingerprint=fingerprint,
-                      created_at=now, is_demo=request.source == 'demo', prepared=False,
+                      created_at=now, processing_started_at=request.processing_started_at or now,
+                      is_demo=request.source == 'demo' or request.simulation, prepared=False,
                       alert_ids=[], status='pending', pubsub='pending', bigquery='pending')
         try:
             ref.create(record)
         except AlreadyExists:
             record = ref.get().to_dict()
             if record.get('fingerprint') != fingerprint:
-                raise RequestConflict('Request identity was already used for different facts')
+                # Old records predate optional internal fields. Compare semantic
+                # facts, never receipt metadata; a retry cannot change first receipt.
+                facts = request.model_dump(exclude={'processing_started_at'})
+                if any(record.get(key, EventRequest.model_fields[key].default) != value for key, value in facts.items()):
+                    raise RequestConflict('Request identity was already used for different facts')
         return record
 
     def get_event(self, event_id: str) -> dict:
@@ -94,6 +100,10 @@ class FirestoreDispatchStore:
         ref = self.client.collection(self.alerts).document(alert['alert_id'])
         delivery_ref = self.client.collection(self.deliveries).document(alert['alert_id'])
         public_record = {key:value for key,value in alert.items() if key != 'telegram_chat_id'}
+        # Firestore rejects array-of-arrays, while Telegram requires that exact
+        # inline_keyboard shape. Serialize at rest and restore only on read.
+        if public_record.get('reply_markup') is not None:
+            public_record['reply_markup'] = json.dumps(public_record['reply_markup'], ensure_ascii=False, separators=(',', ':'), allow_nan=False)
         @firestore.transactional
         def create(tx):
             if ref.get(transaction=tx).exists:
@@ -107,6 +117,11 @@ class FirestoreDispatchStore:
         delivery = self.client.collection(self.deliveries).document(alert_id).get().to_dict()
         if not alert or not delivery:
             raise RuntimeError('Private alert delivery state missing')
+        if isinstance(alert.get('reply_markup'), str):
+            markup = json.loads(alert['reply_markup'])
+            if not isinstance(markup, dict):
+                raise ValueError('Stored Telegram markup must be an object')
+            alert['reply_markup'] = markup
         return dict(alert, telegram_chat_id=delivery['telegram_chat_id'])
 
     def begin_send(self, alert_id: str, event_id: str, owner: str) -> bool:

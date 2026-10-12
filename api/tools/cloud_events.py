@@ -76,6 +76,13 @@ class GoogleEventSinks:
                    delivered=alert['status'] == 'accepted', latency_ms=alert.get('latency_ms'))
         self._insert('alerts', row, alert['alert_id'])
 
+    def insert_confirmation(self, confirmation: dict) -> None:
+        row = {key: confirmation[key] for key in ('confirmation_id', 'action_id', 'episode_id', 'alert_id',
+                                                  'event_id', 'shop_id', 'kind', 'protected_value_rm', 'is_demo')}
+        row['confirmed_at'] = confirmation['confirmed_at'].isoformat()
+        row['self_reported'] = True
+        self._insert('confirmations', row, confirmation['confirmation_id'])
+
     def _insert(self, table: str, row: dict, row_id: str) -> None:
         errors = self.analytics.insert_rows_json(f'{self.dataset}.{table}', [row], row_ids=[row_id], timeout=10, retry=None)
         if errors:

@@ -58,5 +58,10 @@
     "name": "is_demo",
     "type": "BOOLEAN",
     "mode": "NULLABLE"
+  },
+  {
+    "name": "location_source",
+    "type": "STRING",
+    "mode": "NULLABLE"
   }
 ]

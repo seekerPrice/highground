@@ -15,11 +15,12 @@ from api.tools.telegram import TelegramSendError
 
 class DispatchService:
     def __init__(self, store: FirestoreDispatchStore, telegram, sinks, *, hash_salt: str,
-                 composer: AlertComposer | None = None,
+                 composer: AlertComposer | None = None, vehicle_actions=None,
                  clock: Callable[[], datetime] = lambda: datetime.now(UTC)) -> None:
         if not hash_salt:
             raise ValueError('HASH_SALT is required for dispatch')
         self.store, self.telegram, self.sinks = store, telegram, sinks
+        self.vehicle_actions = vehicle_actions
         self.hash_salt, self.composer, self.clock = hash_salt, composer or AlertComposer(), clock
 
     async def process(self, request: EventRequest) -> dict:
@@ -41,6 +42,8 @@ class DispatchService:
                     targets = []
                     for shop in shops:
                         # Simulations have an absolute recipient boundary; real events do not target demos.
+                        if shop.shop_id == event.get('reporter_shop_id'):
+                            continue
                         if shop.is_demo != event['is_demo']:
                             continue
                         distance = distance_m(event['lat'], event['lng'], shop.lat, shop.lng)
@@ -55,10 +58,19 @@ class DispatchService:
                 ids = []
                 for raw in event['targets']:
                     shop = Shop.model_validate(raw)
+                    snapshot = await self.composer.action_snapshot(event, shop)
+                    if self.vehicle_actions is not None and event['level'] == 'danger':
+                        await asyncio.to_thread(self.vehicle_actions.supersede, shop.shop_id, event_id=event_id, episode_id=event.get('episode_id') or event_id, at=event['created_at'])
+                    action_enabled = True
+                    if self.vehicle_actions is not None and event['level'] == 'warning' and snapshot.vehicle_type:
+                        action = await asyncio.to_thread(self.vehicle_actions.prepare, event, shop, snapshot, self.hash_salt)
+                        from api.dispatch_models import ActionSnapshot
+                        snapshot = ActionSnapshot.model_validate(action['snapshot'])
+                        action_enabled = action['state'] == 'active'
                     for recipient in shop.recipients:
                         recipient_hash = session_user_id(recipient.telegram_chat_id, self.hash_salt)
                         alert_id = sha256(f'{event_id}:{shop.shop_id}:{recipient_hash}'.encode()).hexdigest()
-                        text, snapshot, markup = await self.composer.compose(event, shop, recipient.language)
+                        text, snapshot, markup = await self.composer.compose(event, shop, recipient.language, snapshot_override=snapshot, vehicle_action_enabled=action_enabled)
                         alert = dict(
                             alert_id=alert_id, event_id=event_id, shop_id=shop.shop_id,
                             telegram_chat_id=recipient.telegram_chat_id, telegram_chat_id_hash=recipient_hash,
@@ -88,7 +100,7 @@ class DispatchService:
                         sent_at = self.clock()
                         await asyncio.to_thread(self.store.update_alert, alert_id, event_id, owner,
                                                 status='accepted', message_id=message_id, sent_at=sent_at,
-                                                latency_ms=max(0, int((sent_at-event['created_at']).total_seconds()*1000)))
+                                                latency_ms=max(0, int((sent_at-(event.get('processing_started_at') or event['created_at'])).total_seconds()*1000)))
             event = await asyncio.to_thread(self.store.get_event, event_id)
             for stage, action in [('pubsub', self.sinks.publish_event), ('bigquery', self.sinks.insert_event)]:
                 if event[stage] != 'done':
@@ -141,9 +153,12 @@ def create_dispatch_service(settings) -> DispatchService:
     from api.tools.firestore import create_firestore_client
     from api.tools.telegram import TelegramAPI
     from api.agents.warning_selector import WarningSelector
-    composer = AlertComposer(selector=WarningSelector(settings),
+    from api.destinations import DestinationLookup
+    from api.vehicle_confirmations import VehicleActionStore
+    client = create_firestore_client(settings)
+    composer = AlertComposer(selector=WarningSelector(settings), destinations=DestinationLookup(client, radius_m=settings.destination_search_radius_m),
                              vehicle_minutes=settings.vehicle_action_target_minutes,
                              stock_minutes=settings.stock_action_target_minutes)
-    return DispatchService(FirestoreDispatchStore(create_firestore_client(settings)),
+    return DispatchService(FirestoreDispatchStore(client),
                            TelegramAPI(settings.telegram_bot_token), create_event_sinks(settings),
-                           hash_salt=settings.hash_salt, composer=composer)
+                           hash_salt=settings.hash_salt, composer=composer, vehicle_actions=VehicleActionStore(client))

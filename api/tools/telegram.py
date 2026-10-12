@@ -32,7 +32,7 @@ class TelegramAPI:
         self._transport = transport
 
     def send_message(self, chat_id: int, text: str, reply_markup: dict[str, Any] | None = None) -> int:
-        payload: dict[str, Any] = {"chat_id": chat_id, "text": text}
+        payload: dict[str, Any] = {"chat_id": chat_id, "text": text, "link_preview_options": {"is_disabled": True}}
         if reply_markup is not None:
             payload["reply_markup"] = reply_markup
         return self._send("sendMessage", payload)
@@ -42,6 +42,19 @@ class TelegramAPI:
         if reply_markup is not None:
             payload["reply_markup"] = reply_markup
         return self._send("sendVenue", payload)
+
+    def answer_callback_query(self, callback_query_id: str, text: str) -> None:
+        if not 0 <= len(text) <= 200:
+            raise ValueError('Callback feedback must fit Telegram limit')
+        try:
+            with httpx.Client(transport=self._transport, timeout=5) as client:
+                response = client.post(f'https://api.telegram.org/bot{self._token}/answerCallbackQuery',
+                                       json={'callback_query_id': callback_query_id, 'text': text})
+            body = response.json()
+            if not response.is_success or not isinstance(body, dict) or body.get('ok') is not True or body.get('result') is not True:
+                raise TelegramSendError(uncertain=True)
+        except (httpx.HTTPError, ValueError):
+            raise TelegramSendError(uncertain=True) from None
 
     def _send(self, method: str, payload: dict[str, Any]) -> int:
         # Never expose raw HTTP exceptions: their URLs contain the bot token.

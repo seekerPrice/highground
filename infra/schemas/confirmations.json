@@ -38,5 +38,20 @@
     "name": "is_demo",
     "type": "BOOLEAN",
     "mode": "NULLABLE"
+  },
+  {
+    "name": "action_id",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "episode_id",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "self_reported",
+    "type": "BOOLEAN",
+    "mode": "NULLABLE"
   }
 ]
