@@ -88,5 +88,17 @@
   "level_watch": "Watch",
   "level_warning": "Warning",
   "level_danger": "Danger",
-  "assessment_unavailable": "unavailable"
+  "assessment_unavailable": "unavailable",
+  "inventory_request": "When there is no active Danger, send a 30–45 second shop walkthrough video (20 MB or less). Only visible goods can be estimated. Use /refresh to update inventory without registering again.",
+  "inventory_invalid": "This video metadata is unsupported. Send a native MP4 video with a valid duration.",
+  "inventory_oversize": "The video exceeds 20 MB. When there is no active Danger, send a shorter or compressed 30–45 second clip.",
+  "inventory_complete": "Visible inventory recorded. Replacement values and quantities are estimates. If water comes, lift these first:",
+  "inventory_total": "All visible items: estimated total RM{value_rm}. Visual confidence: {confidence}.",
+  "integrity_verified": "File integrity verified: stored bytes match their recorded SHA-256 and completed evidence ledger. This does not verify recording authenticity.",
+  "integrity_pending": "File integrity verification is pending. Recording authenticity is unverified.",
+  "stock_done_button": "✅ Done — stock lifted",
+  "stock_recorded": "Stock lifting recorded as self-reported completion of the displayed estimated snapshot.",
+  "stock_already_recorded": "This displayed stock snapshot was already recorded.",
+  "video_update_optional": "Quick 30-second video update (optional): /refresh",
+  "inventory_processing_unavailable": "The upload could not be assessed. No new inventory or valuation is confirmed. Try /refresh later only when there is no active Danger."
 }

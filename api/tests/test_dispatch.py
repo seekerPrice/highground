@@ -310,6 +310,10 @@ def test_factory_danger_without_vertex_configuration_never_initializes_model(mon
     monkeypatch.setattr(destinations.DestinationLookup, 'nearest', lambda *args: None)
     import api.vehicle_confirmations as confirmations
     monkeypatch.setattr(confirmations.VehicleActionStore, 'supersede', lambda *args, **kwargs: None)
+    import api.active_risk as risks
+    monkeypatch.setattr(risks.ActiveRiskStore,'apply_event_decision',lambda *args:risks.RiskDecision('synthetic-episode','accepted'))
+    monkeypatch.setattr(risks.ActiveRiskStore,'claim_delivery',lambda *args:('claimed','synthetic-owner'))
+    monkeypatch.setattr(risks.ActiveRiskStore,'release_delivery',lambda *args:None)
     monkeypatch.setattr(firestore,'create_firestore_client',lambda settings:object())
     monkeypatch.setattr(dispatch,'FirestoreDispatchStore',lambda client:store)
     monkeypatch.setattr(cloud,'create_event_sinks',lambda settings:sinks)

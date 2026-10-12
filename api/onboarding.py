@@ -44,6 +44,8 @@ class Onboarding:
         if key == "join_prompt":
             values = {"shop_name": state["join_shop_name"]}
         rendered = text(language, key, **values)
+        if key == 'registered':
+            rendered += '\n\n' + text(language, 'inventory_request')
         if not catalog(language)["_reviewed"]:
             rendered += "\n" + text(language, "translation_notice")
         if stage in ("language", "worker_language"):

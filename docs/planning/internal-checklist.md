@@ -169,9 +169,9 @@ Scope: Must/foundation. Deliverable: Uploaded photos preserve downloaded bytes, 
 Scope: Must/foundation. Deliverable: Scheduled real-source polling and escalating events use deterministic safety handling.
 
 - [x] Astra dispatched the bounded task brief from reviewed baseline 1a4d7b1; parallel lanes coordinate shared risk/episode interfaces and files.
-- [ ] Sol implements only this task.
-- [ ] Relevant local checks run; results captured.
-- [ ] Astra inspects files and results, returns defects to Sol, and rechecks corrections.
+- [x] Sol implemented the bounded task slice and froze it for review.
+- [x] Affected local checks passed; evidence in tasks-10-11-verification.md. Final consolidated gate remains pending.
+- [x] Astra inspected actual files, returned concrete defects and independently rechecked corrections.
 - [ ] Matt Standards review completed; relevant findings corrected and rechecked.
 - [ ] Matt Spec review completed; relevant findings corrected and rechecked.
 - [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
@@ -182,9 +182,9 @@ Scope: Must/foundation. Deliverable: Scheduled real-source polling and escalatin
 Scope: Must/foundation. Deliverable: Video becomes an estimated inventory and ranked lift-first list that warning confirmations reference.
 
 - [x] Astra dispatched the bounded task brief from reviewed baseline 1a4d7b1; parallel lanes coordinate shared risk/episode interfaces and files.
-- [ ] Sol implements only this task.
-- [ ] Relevant local checks run; results captured.
-- [ ] Astra inspects files and results, returns defects to Sol, and rechecks corrections.
+- [x] Sol implemented the bounded task slice and froze it for review.
+- [x] Affected local checks passed; evidence in tasks-10-11-verification.md. Final consolidated gate remains pending.
+- [x] Astra inspected actual files, returned concrete defects and independently rechecked corrections.
 - [ ] Matt Standards review completed; relevant findings corrected and rechecked.
 - [ ] Matt Spec review completed; relevant findings corrected and rechecked.
 - [ ] Acceptance met, deployment verified where required, and completion reported with evidence.

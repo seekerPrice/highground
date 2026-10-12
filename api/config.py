@@ -21,6 +21,11 @@ class Settings:
     geocoding_user_agent: str = ""
     geocoding_base_url: str = "https://nominatim.openstreetmap.org"
     demo_mode: bool = False
+    local_development: bool = False
+    scheduler_local_auth: bool = False
+    scheduler_audience: str = ""
+    scheduler_caller_email: str = ""
+    scheduler_caller_subject: str = ""
     pubsub_topic: str = "flood-events"
     bigquery_dataset: str = "highground"
     vehicle_action_target_minutes: int = 15
@@ -41,7 +46,13 @@ def load_settings() -> Settings:
     load_dotenv(Path(__file__).resolve().parents[1] / ".env", override=False)
     env_names = {"operator_token": "DEMO_OPERATOR_TOKEN", "bigquery_dataset": "BQ_DATASET"}
     defaults = Settings()
-    values = {name: os.environ.get(env_names.get(name, name.upper()), getattr(defaults, name)) for name in Settings.__dataclass_fields__ if name not in ("demo_mode", "vehicle_action_target_minutes", "stock_action_target_minutes", "default_alert_radius_m", "destination_search_radius_m")}
+    values = {name: os.environ.get(env_names.get(name, name.upper()), getattr(defaults, name)) for name in Settings.__dataclass_fields__ if name not in ("local_development", "scheduler_local_auth", "demo_mode", "vehicle_action_target_minutes", "stock_action_target_minutes", "default_alert_radius_m", "destination_search_radius_m")}
+    flags = {}
+    for name in ("local_development", "scheduler_local_auth"):
+        value = os.environ.get(name.upper(), "false").lower()
+        if value not in ("true", "false"):
+            raise ValueError(name + " must be true or false")
+        flags[name] = value == "true"
     demo = os.environ.get("DEMO_MODE", "false").lower()
     if demo not in ("true", "false"):
         raise ValueError("DEMO_MODE must be true or false")
@@ -52,4 +63,4 @@ def load_settings() -> Settings:
         destination_radius = int(os.environ.get("DESTINATION_SEARCH_RADIUS_M", "20000"))
     except ValueError:
         raise ValueError("Action target minutes must be integers") from None
-    return Settings(**values, demo_mode=demo == "true", vehicle_action_target_minutes=vehicle, stock_action_target_minutes=stock, default_alert_radius_m=radius, destination_search_radius_m=destination_radius)
+    return Settings(**values, **flags, demo_mode=demo == "true", vehicle_action_target_minutes=vehicle, stock_action_target_minutes=stock, default_alert_radius_m=radius, destination_search_radius_m=destination_radius)

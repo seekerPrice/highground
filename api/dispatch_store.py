@@ -42,6 +42,9 @@ class FirestoreDispatchStore:
                     raise RequestConflict('Request identity was already used for different facts')
         return record
 
+    def mark_suppressed(self,event_id,reason):
+        self.client.collection(self.events).document(event_id).update({'status':'superseded','suppression_reason':reason})
+
     def get_event(self, event_id: str) -> dict:
         data = self.client.collection(self.events).document(event_id).get().to_dict()
         if not data:

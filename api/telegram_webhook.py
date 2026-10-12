@@ -9,6 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictFloat
 
 from api.telegram_inbox import FirestoreInbox
 from api.tools.telegram import TelegramAPI, TelegramSendError
+from api.inventory_models import VideoMedia, InventoryReply
 
 
 if TYPE_CHECKING:
@@ -39,6 +40,7 @@ class Message(BaseModel):
     chat: Chat
     text: str | None = None
     location: Location | None = None
+    video: 'VideoMedia | None' = None
     photo: list[PhotoSize] | None = Field(default=None, min_length=1, max_length=20)
 
 
@@ -65,12 +67,14 @@ class WebhookRetry(Exception):
 
 
 class TelegramHandler:
-    def __init__(self, inbox: FirestoreInbox, api: TelegramAPI, onboarding: "Onboarding | None" = None, confirmations=None, photos=None) -> None:
+    def __init__(self, inbox: FirestoreInbox, api: TelegramAPI, onboarding: "Onboarding | None" = None, confirmations=None, photos=None, inventory=None, stock_confirmations=None) -> None:
         self.inbox = inbox
         self.api = api
         self.onboarding = onboarding
         self.confirmations = confirmations
         self.photos = photos
+        self.inventory = inventory
+        self.stock_confirmations = stock_confirmations
 
     async def handle(self, update: Update) -> Literal["done", "uncertain"]:
         received_at = datetime.now(UTC)
@@ -87,18 +91,22 @@ class TelegramHandler:
             return await self.handle_callback(update, owner, operation_id)
         message = update.message
         words = message.text.split() if message and message.text else []
-        if message is None or message.chat.type != "private" or (not words and message.location is None and message.photo is None) or (self.onboarding is None and self.photos is None and (not words or words[0] != "/start")):
+        if message is None or message.chat.type != "private" or (not words and message.location is None and message.photo is None and message.video is None) or (self.onboarding is None and self.photos is None and self.inventory is None and (not words or words[0] != "/start")):
             await run_in_threadpool(self.inbox.transition, update.update_id, owner, "done", operation_id=operation_id, outcome="unsupported")
             return "done"
         media_reply = False
         reply_markup = None
         venue = None
         response_text = "Welcome to HighGround. Shop onboarding is not connected yet."
-        if self.onboarding is not None or self.photos is not None:
+        if self.onboarding is not None or self.photos is not None or self.inventory is not None:
             location = {"lat": message.location.latitude, "lng": message.location.longitude} if message.location else None
             try:
                 pending = await self.photos.pending_location_report_id(message.chat.id) if self.photos is not None and location else None
-                if self.photos is not None and message.photo:
+                if self.inventory is not None and message.video:
+                    reply = await self.inventory.handle_video(message.chat.id, update.update_id, message.message_id, message.date, message.video, processing_started_at=received_at)
+                elif self.inventory is not None and words and words[0] in ('/refresh','/inventory'):
+                    reply = await self.inventory.request_video(message.chat.id)
+                elif self.photos is not None and message.photo:
                     media_reply = True
                     from api.photo_models import PhotoMedia
                     largest = max(message.photo, key=lambda item: (item.width * item.height, item.file_size or 0))
@@ -121,6 +129,13 @@ class TelegramHandler:
             try:
                 reply = await self.photos.recheck_reply(message.chat.id, reply)
                 response_text, reply_markup, venue = reply.text, reply.reply_markup, reply.venue
+            except Exception:
+                await run_in_threadpool(self.inbox.transition, update.update_id, owner, 'retryable', operation_id=operation_id)
+                raise WebhookRetry() from None
+        if self.inventory is not None:
+            try:
+                guarded = await self.inventory.recheck_reply(message.chat.id, InventoryReply(text=response_text, reply_markup=reply_markup, venue=venue, kind='prompt'))
+                response_text, reply_markup, venue = guarded.text, guarded.reply_markup, guarded.venue
             except Exception:
                 await run_in_threadpool(self.inbox.transition, update.update_id, owner, 'retryable', operation_id=operation_id)
                 raise WebhookRetry() from None
@@ -177,7 +192,10 @@ class TelegramHandler:
         if self.confirmations is not None and message is not None and message.chat.type == 'private' and re.fullmatch(r'vehicle:[0-9a-f]{32}', query.data or ''):
             status, language, confirmation_id = await self.confirmations.record(query.data.split(':')[1], sender_chat_id=query.sender.id,
                                                                              message_chat_id=message.chat.id, message_id=message.message_id)
-        key = {'recorded': 'vehicle_recorded', 'already_recorded': 'vehicle_already_recorded',
+        stock_callback = bool(re.fullmatch(r'stock:[0-9a-f]{32}', query.data or ''))
+        if self.stock_confirmations is not None and stock_callback and message is not None and message.chat.type == 'private':
+            status, language, confirmation_id = await self.stock_confirmations.record(query.data.split(':')[1], sender_chat_id=query.sender.id, message_chat_id=message.chat.id, message_id=message.message_id)
+        key = {'recorded': 'stock_recorded' if stock_callback else 'vehicle_recorded', 'already_recorded': 'stock_already_recorded' if stock_callback else 'vehicle_already_recorded',
                'superseded': 'confirmation_superseded', 'unavailable': 'confirmation_unavailable'}[status]
         feedback = text(language, key)
         if not catalog(language)['_reviewed']:
@@ -188,6 +206,6 @@ class TelegramHandler:
         except TelegramSendError:
             pass  # Expired/ambiguous callback answer does not undo completion.
         if confirmation_id:
-            await self.confirmations.flush(confirmation_id)
+            await (self.stock_confirmations if stock_callback else self.confirmations).flush(confirmation_id)
         await run_in_threadpool(self.inbox.transition, update.update_id, owner, 'done', operation_id=operation_id, outcome=status)
         return 'done'

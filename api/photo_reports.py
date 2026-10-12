@@ -195,7 +195,7 @@ class PhotoReportService:
                 reporter_shop_id=record['shop_id'],processing_started_at=record['processing_started_at'],
                 warning_structure='warning_intro_fallback',level=level,lat=record['lat'],lng=record['lng'],
                 radius_m=radius,confidence=confidence,reason=reason)
-            if level=='danger' and getattr(self.dispatch,'vehicle_actions',None):
+            if level=='danger' and getattr(self.dispatch,'vehicle_actions',None) and getattr(self.dispatch,'active_risk',None) is None:
                 event_id=sha256(f'{event.source}:{event.request_id}'.encode()).hexdigest()
                 await asyncio.to_thread(self.dispatch.vehicle_actions.supersede,record['shop_id'],event_id=event_id,
                                         episode_id=event_id,at=record['processing_started_at'])
