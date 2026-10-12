@@ -123,3 +123,10 @@ Astra independently read the selected-media API/parser/UI changes and ran the fo
 
 
 Final selected-video contract gate: `infra/test.sh` **exit0**; six infrastructure cases in3.775s; **283 API cases**, no skips, five dependency warnings,42.86s; **14 frontend cases**, no skips,10.117s; lint, type checking and production build all passed (639ms compilation). Root's additional current public-API check against the retained actual-Pro b8ceeaaa job passed exit0: the DTO selection equals stored job.media_id, identifies exactly one included after-video, preserves all three evidence receipts, and missing capability returns404. No additional model calls were needed. Whitespace/diff check passed. Independent exact-SHA rechecks remain the final code-review gate; print/reset/resumer/query-lifecycle/hosting limitations remain explicit.
+
+
+## Final independent review outcome
+
+At **f914f9aed9379298af43cf476d81a8cd78a7280b**, both original reviewers independently returned **Standards0 / Spec0 outstanding findings**. Standards verified the typed selected-media reference and rejected all five invalid-selection variants without external calls; the original cold-guard finding remains resolved. Spec independently ran30 backend cases against isolated Firestore (8.91s) and five frontend contract cases, confirmed candidate bytes, and found the selected/retained evidence relationship clear with the prior preservation/replacement findings still resolved. Neither recheck claims new browser/PDF, model or hosted verification.
+
+The reviewed code checkpoint is accepted for dependent Must implementation. Task12 local backend acceptance is complete. Task13 still needs PDF/remaining visual acceptance; Task15 still needs Task16 race-safe reset. Task14 packaging and Task16 demo/scenario work may proceed in parallel without waiting for desktop unlock. Full local Must acceptance, Should implementation, automatic outbox recovery, emulator query lifecycle, and hosting remain governed by their separate gates.
