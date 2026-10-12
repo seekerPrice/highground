@@ -48,7 +48,8 @@
       "lng": 101.532,
       "location_attribution": "confirmed_shop",
       "is_demo": true,
-      "integrity_status": "not_checked"
+      "integrity_status": "not_checked",
+      "origin": "telegram"
     },
     {
       "media_id": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
@@ -62,7 +63,8 @@
       "lng": 101.532,
       "location_attribution": "confirmed_shop",
       "is_demo": true,
-      "integrity_status": "not_checked"
+      "integrity_status": "not_checked",
+      "origin": "telegram"
     }
   ],
   "disclaimer": "Replacement-price and loss estimates only. Unknown items are excluded from the assessed total. File integrity does not authenticate the scene, time, location or valuation.",

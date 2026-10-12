@@ -1,0 +1,7 @@
+# Task 17 query lifecycle — component verification
+
+The new `api/tools/bigquery_queries.py` materializes bounded query results before cleaning an explicitly local emulator's exact current-job destination. It verifies the configured project, actual client loopback endpoint and `dataset_id == table_id == job_id`. Production performs no cleanup. Query parameters, billing bounds and result limits pass through unchanged; SDK query/result retries are disabled. Materialized rows remain usable after cleanup failure, with a structured cleanup status; original query/result exceptions remain primary. No job listing, broad resource selection or database mutation is used.
+
+Sol observed RED with a temporary broken cleanup path: materialized rows existed but the expected `cleaned` result was `not_required`. The corrected fake-boundary suite passed 11 cases. Root authorized one isolated actual-SDK query; it passed in 4.25s, returned the expected row, removed only its current result dataset and verified NotFound through the SDK. The test's final cleanup is exact-identity constrained and always closes its client.
+
+Astra read both files and independently reran the 11 fake-boundary cases: 11 passed, one actual-SDK case deliberately deselected, in 0.12s. The actual probe is separate evidence, not inferred from this focused run. Dashboard/integration-test adoption, visible cleanup-failure handling, independent Matt reviews and the complete Task 17 gate remain pending.

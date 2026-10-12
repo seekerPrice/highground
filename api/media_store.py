@@ -26,6 +26,11 @@ class MediaStore:
         return record
     def get(self,media_id:str)->MediaRecord:
         return MediaRecord.model_validate(self.client.collection(self.collection).document(media_id).get().to_dict())
+    def pending_ledger_ids(self,limit:int=20) -> list[str]:
+        from google.cloud.firestore_v1.base_query import FieldFilter
+        query=self.client.collection(self.collection).where(filter=FieldFilter('storage_status','==','done')).where(filter=FieldFilter('ledger_status','==','pending'))
+        return [doc.id for doc in query.limit(limit).stream(timeout=5,retry=None)]
+
     def claim(self,media_id:str)->str:
         ref=self.client.collection(self.collection).document(media_id);owner=uuid4().hex;now=datetime.now(UTC)
         @firestore.transactional

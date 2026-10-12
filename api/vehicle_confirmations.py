@@ -1,3 +1,4 @@
+from api.demo_scenario import scenario_collection, current_scenario, event_is_current
 """Recipient-bound immutable actions and self-reported completion outbox."""
 import asyncio
 from datetime import UTC, datetime, timedelta
@@ -38,19 +39,20 @@ class VehicleActionStore:
             'action_id': action_id, 'event_id': event['event_id'], 'shop_id': shop.shop_id,
             'episode_id': scoped_episode, 'kind': 'vehicle', 'snapshot': frozen.model_dump(mode='json'),
             'recipient_hashes': [session_user_id(r.telegram_chat_id, hash_salt) for r in shop.recipients],
-            'is_demo': event['is_demo'], 'created_at': event['created_at'], 'state': 'active',
+            'is_demo': event['is_demo'], 'scenario_generation':event.get('scenario_generation',0), 'created_at': event['created_at'], 'state': 'active',
         }
 
         @firestore.transactional
         def save(transaction: firestore.Transaction) -> dict[str, Any]:
             existing = reference.get(transaction=transaction)
             current = current_ref.get(transaction=transaction).to_dict() or {}
+            scenario=current_scenario(self.client,scenario_collection(self.shops),transaction) if event.get('is_demo') else {}
             if existing.exists:
                 return existing.to_dict()
             old_ref = self.client.collection(self.actions).document(current['action_id']) if current.get('action_id') else None
             old = old_ref.get(transaction=transaction) if old_ref else None
             newer = not current or (event['created_at'], event['event_id']) >= (current['created_at'], current['event_id'])
-            if current.get('blocked') or not newer:
+            if not event_is_current(event,scenario) or current.get('blocked') or not newer:
                 record['state'] = 'superseded'
             else:
                 if old and old.exists:
@@ -99,11 +101,12 @@ class VehicleActionStore:
             current = current_ref.get(transaction=transaction).to_dict() or {}
             alert = alert_ref.get(transaction=transaction).to_dict() or {}
             existing = confirmation_ref.get(transaction=transaction)
+            scenario=current_scenario(self.client,scenario_collection(self.shops),transaction) if action.get('is_demo') else {}
             recipient = next((r for r in shop.get('recipients', []) if r.get('telegram_chat_id') == sender_chat_id and r.get('role') in ('owner', 'worker')), None)
             if not recipient or not alert or alert.get('message_id') != message_id or alert.get('status') != 'accepted':
                 return 'unavailable', 'en', None
             language = recipient.get('language', 'en')
-            if action['state'] != 'active' or current.get('blocked') or current.get('action_id') != action_id or shop.get('active_danger', False) is not False:
+            if not event_is_current(action,scenario) or action['state'] != 'active' or current.get('blocked') or current.get('action_id') != action_id or shop.get('active_danger', False) is not False:
                 return 'superseded', language, None
             snapshot = ActionSnapshot.model_validate(action['snapshot'])
             alert_snapshot = ActionSnapshot.model_validate(alert['snapshot'])
@@ -115,11 +118,15 @@ class VehicleActionStore:
                 'confirmation_id': action_id, 'action_id': action_id, 'episode_id': action['episode_id'],
                 'event_id': action['event_id'], 'alert_id': alert_id, 'shop_id': action['shop_id'],
                 'kind': 'vehicle', 'protected_value_rm': None, 'confirmed_at': now,
-                'is_demo': action['is_demo'], 'self_reported': True,
+                'scenario_generation':action.get('scenario_generation',0),'is_demo': action['is_demo'], 'self_reported': True,
                 'confirmed_by_hash': sender_hash, 'snapshot': action['snapshot'], 'bigquery': 'pending',
             })
             return 'recorded', language, action_id
         return confirm(self.client.transaction())
+
+    def pending_ids(self,limit:int=20) -> list[str]:
+        from google.cloud.firestore_v1.base_query import FieldFilter
+        return [doc.id for doc in self.client.collection(self.confirmations).where(filter=FieldFilter('bigquery','==','pending')).limit(limit).stream(timeout=5,retry=None)]
 
     def claim_sink(self, confirmation_id: str, now: datetime) -> tuple[str, dict[str, Any]] | None:
         ref = self.client.collection(self.confirmations).document(confirmation_id)

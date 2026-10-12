@@ -65,7 +65,7 @@ def test_public_dashboard_reset_filters_private_history_and_late_facts():
             assert 'PRIVATE' not in result.text and '123' not in result.text and len(result.json()['shops'])==1
             assert result.json()['sources'][0]['status']=='stale' and result.json()['stats']['estimated_stock_value_reported_lifted_rm']==10.
             assert (await api.post('/demo/reset',json={})).status_code==403
-            assert (await api.post('/demo/reset',headers={'Authorization':'Bearer synthetic'},json={})).status_code==200
+            assert (await api.post('/demo/reset',headers={'Authorization':'Bearer synthetic'},json={'request_id':'reset-test'})).status_code==200
             assert store.collection('events').document('e').get().exists and store.collection('confirmations').document('c').get().exists
             # Late confirmation of an older event must not repopulate the current display.
             store.collection('confirmations').document('late').set(dict(confirmed_at=now,shop_id='s',episode_id='episode',event_id='e',alert_id='a',is_demo=True,self_reported=True,kind='stock',protected_value_rm=10.,snapshot=snapshot(10.)))
@@ -77,13 +77,15 @@ def test_public_dashboard_reset_filters_private_history_and_late_facts():
         client.close()
 
 
-def test_bigquery_stats_bounded_identity_query_and_unavailable():
+def test_bigquery_stats_bounded_identity_query_and_unavailable(monkeypatch):
+    monkeypatch.delenv('BIGQUERY_EMULATOR_HOST',raising=False)
     from api.dashboard_analytics import DashboardAnalytics
     class Job:
         def result(self,**kwargs):
             assert kwargs==dict(timeout=4,retry=None,job_retry=None,max_results=1)
-            return [dict(alert_count=1,latency_count=1,latency_ms=25.,confirmation_count=1,vehicles=0,stock_value=10.)]
+            return [dict(virtual_count=0,alert_count=1,latency_count=1,latency_ms=25.,confirmation_count=1,vehicles=0,stock_value=10.)]
     class Client:
+        project='synthetic-project'
         def query(self,sql,**kwargs):
             assert kwargs['retry'] is None and kwargs['job_retry'] is None and kwargs['timeout']==4
             assert 'MAX(value_rm)' in sql and 'GROUP BY alert_id' in sql and 'IN UNNEST(@confirmations)' in sql
@@ -94,6 +96,37 @@ def test_bigquery_stats_bounded_identity_query_and_unavailable():
     facts=[dict(confirmation_id='c',alert_id='a',shop_id='s',event_id='e',episode_id='ep',is_demo=True,self_reported=True,kind='stock',snapshot=snapshot(10.),protected_value_rm=10.)]
     result=analytics.stats([{'shop_id':'s'}],[{'event_id':'e'}],alerts,facts,complete=True)
     assert result.status=='available' and result.estimated_stock_value_reported_lifted_rm==10.
-    assert {p.name:p.values for p in client.parameters}=={'shops':['s'],'events':['e'],'alerts':['a'],'confirmations':['c']}
+    assert {p.name:p.values for p in client.parameters}=={'shops':['s'],'events':['e'],'alerts':['a'],'confirmations':['c'],'virtual_alerts':[]}
     assert analytics.stats([{'shop_id':'s'}],[],alerts,facts,complete=True).status=='unavailable'
     assert analytics.stats([],[],[],[],complete=False).alerts_accepted is None
+
+def test_materialized_dashboard_survives_cleanup_failure_without_private_logs(monkeypatch,caplog):
+    from types import SimpleNamespace
+    from api.dashboard_analytics import DashboardAnalytics
+    monkeypatch.setenv('BIGQUERY_EMULATOR_HOST','http://127.0.0.1:9050')
+    class Job:
+        job_id='exact_job';destination=SimpleNamespace(project='synthetic-project',dataset_id='exact_job',table_id='exact_job')
+        def result(self,**kwargs):return [dict(virtual_count=0,alert_count=0,latency_count=0,latency_ms=None,confirmation_count=0,vehicles=0,stock_value=0.)]
+    class Client:
+        project='synthetic-project';_connection=SimpleNamespace(API_BASE_URL='http://127.0.0.1:9050')
+        def query(self,*args,**kwargs):return Job()
+        def delete_dataset(self,*args,**kwargs):raise RuntimeError('PRIVATE-SDK-BODY')
+    analytics=DashboardAnalytics(Client(),'synthetic-project','synthetic')
+    result=analytics.stats([],[],[],[],complete=True)
+    assert result.status=='available' and result.alerts_accepted==0 and analytics.last_cleanup_status=='failed'
+    assert 'Dashboard local query cleanup: failed (RuntimeError)' in caplog.text and 'PRIVATE' not in caplog.text
+
+@pytest.mark.parametrize('endpoint',[None,''])
+def test_optional_empty_emulator_host_matches_unset_no_cleanup(endpoint,monkeypatch):
+    from api.dashboard_analytics import DashboardAnalytics
+    if endpoint is None:monkeypatch.delenv('BIGQUERY_EMULATOR_HOST',raising=False)
+    else:monkeypatch.setenv('BIGQUERY_EMULATOR_HOST',endpoint)
+    class Job:
+        def result(self,**kwargs):return [dict(virtual_count=0,alert_count=0,latency_count=0,latency_ms=None,confirmation_count=0,vehicles=0,stock_value=0.)]
+    class Client:
+        project='synthetic-project'
+        def query(self,*args,**kwargs):return Job()
+        def delete_dataset(self,*args,**kwargs):pytest.fail('Disabled emulator cleanup deleted production result')
+    analytics=DashboardAnalytics(Client(),'synthetic-project','synthetic')
+    assert analytics.stats([],[],[],[],complete=True).status=='available'
+    assert analytics.last_cleanup_status=='not_required'

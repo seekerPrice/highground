@@ -5,19 +5,22 @@ import hmac
 import json
 from typing import Literal
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request,Response
 from pydantic import ValidationError
 
 from api.config import Settings, load_settings
 from api.telegram_webhook import TelegramHandler, Update
+from api.recovery_jobs import ResumeRequest,ResumeResult
 
 
-def create_app(settings: Settings | None = None, handler: TelegramHandler | None = None, dispatch_service=None) -> FastAPI:
+def create_app(settings: Settings | None = None, handler: TelegramHandler | None = None, dispatch_service=None, recovery_jobs_service=None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app):
         try:
             yield
         finally:
+            if app.state.owns_recovery_jobs and app.state.recovery_jobs is not None:
+                await app.state.recovery_jobs.close()
             if app.state.poll_service is not None:
                 await app.state.poll_service.close()
             active=app.state.telegram_handler
@@ -44,6 +47,8 @@ def create_app(settings: Settings | None = None, handler: TelegramHandler | None
     application.include_router(create_dashboard_router(settings or load_settings))
 
     application.state.poll_service = None
+    application.state.recovery_jobs=recovery_jobs_service
+    application.state.owns_recovery_jobs=recovery_jobs_service is None
 
     @application.post('/jobs/poll-warnings')
     async def poll_warnings(request: Request):
@@ -60,6 +65,27 @@ def create_app(settings: Settings | None = None, handler: TelegramHandler | None
             return await application.state.poll_service.poll()
         except Exception:
             raise HTTPException(503,'Warning polling unavailable; retry later') from None
+
+    @application.post('/jobs/resume-pending',response_model=ResumeResult)
+    async def resume_pending(request:Request,response:Response):
+        response.headers['Cache-Control']='no-store'
+        configuration=settings or load_settings()
+        from api.scheduler_auth import authorize_scheduler
+        from api.recovery_jobs import ResumeRequest
+        try:await authorize_scheduler(request.headers.get('Authorization',''),configuration)
+        except Exception:raise HTTPException(403,'Scheduler authorization rejected') from None
+        payload=bytearray()
+        async for chunk in request.stream():
+            payload.extend(chunk)
+            if len(payload)>1000:raise HTTPException(413,'Recovery request too large')
+        try:body=ResumeRequest.model_validate_json(bytes(payload) or b'{}')
+        except ValueError:raise HTTPException(400,'Invalid bounded recovery request') from None
+        try:
+            if application.state.recovery_jobs is None:
+                from api.recovery_jobs import create_recovery_jobs_service
+                application.state.recovery_jobs=create_recovery_jobs_service(configuration)
+            return await application.state.recovery_jobs.resume(body.limit)
+        except Exception:raise HTTPException(503,'Pending work recovery unavailable; retry later') from None
 
     @application.get("/healthz")
     def healthz() -> dict[str, Literal["ok"]]:

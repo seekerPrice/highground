@@ -1,6 +1,6 @@
 """Private validated upload metadata. These times/locations do not authenticate a scene."""
 from typing import Literal
-from pydantic import AwareDatetime,BaseModel,ConfigDict,Field,StrictInt
+from pydantic import AwareDatetime,BaseModel,ConfigDict,Field,StrictInt,model_validator
 
 MAX_UPLOAD_BYTES=20_000_000
 MediaKind=Literal['baseline_video','update_video','after_video','flood_photo','waterline_photo']
@@ -33,7 +33,8 @@ class MediaRecord(BaseModel):
     mime_type:str|None=None
     gcs_uri:str|None=None
     uploaded_at:AwareDatetime
-    telegram_date:AwareDatetime
+    origin:Literal['telegram','local_fixture']='telegram'
+    telegram_date:AwareDatetime|None
     received_at:AwareDatetime
     lat:float
     lng:float
@@ -42,6 +43,12 @@ class MediaRecord(BaseModel):
     storage_status:Literal['pending','done']='pending'
     ledger_status:Literal['pending','done']='pending'
     status:Literal['pending','complete']='pending'
+
+    @model_validator(mode='after')
+    def origin_timestamp(self):
+        if self.origin=='telegram' and self.telegram_date is None:raise ValueError('Telegram original requires its receipt date')
+        if self.origin=='local_fixture' and (not self.is_demo or self.telegram_date is not None):raise ValueError('Local fixture must be synthetic without a Telegram date')
+        return self
 
 class MediaIngestError(RuntimeError):
     def __init__(self,code:str):

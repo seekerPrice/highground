@@ -138,6 +138,6 @@ class EvidenceLedger:
         self.analytics,self.table=analytics,f'{project}.{dataset}.evidence_ledger'
     def append(self,record:MediaRecord)->None:
         row={key:getattr(record,key) for key in ('media_id','shop_id','kind','gcs_uri','sha256','bytes','sender_hash','lat','lng','is_demo')}
-        row.update(uploaded_at=record.uploaded_at.isoformat(),telegram_date=record.telegram_date.isoformat(),location_source=record.location_attribution)
+        row.update(uploaded_at=record.uploaded_at.isoformat(),telegram_date=record.telegram_date.isoformat() if record.telegram_date else None,location_source=record.location_attribution)
         errors=self.analytics.insert_rows_json(self.table,[row],row_ids=[record.media_id],timeout=8,retry=None)
         if errors:raise MediaIngestError('ledger_pending')

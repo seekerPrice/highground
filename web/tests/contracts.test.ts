@@ -50,3 +50,19 @@ test("capability is accepted only in exact single fragment field",()=>{
  }
  const missing={...input};delete missing.assessment_media_id;assert.throws(()=>parseReport(missing,input.report_id));
  });
+
+test("synthetic fixture receipts cannot imply a Telegram message timestamp",async()=>{
+ const input=report();const receipt=input.evidence[0];receipt.origin="local_fixture";receipt.telegram_date=null;
+ const parsed=parseReport(input,input.report_id);
+ assert.equal(parsed.evidence[0].telegram_date,null);
+ const labels=await import("../lib/contracts.ts");assert.equal(labels.evidenceOriginCaption(parsed.evidence[0]),"Synthetic local fixture — no Telegram upload receipt");
+ for(const patch of [{origin:"telegram",telegram_date:null},{origin:"local_fixture",telegram_date:"2026-10-13T00:00:00Z"},{origin:"local_fixture",is_demo:false}]){
+  const bad=report();Object.assign(bad.evidence[0],patch);assert.throws(()=>parseReport(bad,bad.report_id));
+ }
+});
+
+test("dashboard separates virtual simulations and durable resetting generation",()=>{
+ const input=dashboard();input.scenario_generation=3;input.scenario_state="resetting";input.stats.virtual_alerts_simulated=6;input.stats.virtual_alert_definition="Virtual transport only; no Telegram API acceptance.";
+ const parsed=parseDashboard(input);assert.equal(parsed.stats.virtual_alerts_simulated,6);assert.equal(parsed.scenario_state,"resetting");assert.equal(parsed.scenario_generation,3);
+ assert.throws(()=>parseDashboard({...input,scenario_generation:-1}));
+});

@@ -1,0 +1,18 @@
+# Allowlist keeps private configuration and host caches out of image layers.
+**
+!app/
+!app/**
+!components/
+!components/**
+!lib/
+!lib/**
+!public/
+!public/**
+!package.json
+!package-lock.json
+!next.config.ts
+!next-env.d.ts
+!tsconfig.json
+!postcss.config.mjs
+**/.env*
+**/__pycache__/

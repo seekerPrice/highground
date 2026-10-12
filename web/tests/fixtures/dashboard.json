@@ -53,6 +53,10 @@
     "stock_value_label": "Estimated stock value reported lifted",
     "stock_value_definition": "Maximum actually displayed confirmed stock estimate per shop and episode, summed across shops and episodes; self-reported.",
     "vehicle_definition": "One self-reported vehicle completion per shop and episode.",
-    "alert_definition": "Telegram API acceptance; does not establish delivery or reading. Latency is measured from event receipt to API acceptance."
-  }
+    "alert_definition": "Telegram API acceptance; does not establish delivery or reading. Latency is measured from event receipt to API acceptance.",
+    "virtual_alerts_simulated": 0,
+    "virtual_alert_definition": "Local virtual transport; not Telegram API acceptance or phone delivery."
+  },
+  "scenario_generation": 0,
+  "scenario_state": "ready"
 }

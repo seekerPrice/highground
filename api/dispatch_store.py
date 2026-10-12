@@ -10,6 +10,7 @@ from google.cloud.firestore_v1.base_query import FieldFilter
 from pydantic import ValidationError
 
 from api.dispatch_models import EventRequest, Shop
+from api.demo_scenario import scenario_collection, current_scenario, event_is_current, ScenarioResetBusy
 
 
 class RequestConflict(ValueError):
@@ -30,17 +31,25 @@ class FirestoreDispatchStore:
                       created_at=now, processing_started_at=request.processing_started_at or now,
                       is_demo=request.source == 'demo' or request.simulation, prepared=False,
                       alert_ids=[], status='pending', pubsub='pending', bigquery='pending')
-        try:
-            ref.create(record)
-        except AlreadyExists:
-            record = ref.get().to_dict()
-            if record.get('fingerprint') != fingerprint:
-                # Old records predate optional internal fields. Compare semantic
-                # facts, never receipt metadata; a retry cannot change first receipt.
-                facts = request.model_dump(exclude={'processing_started_at'})
-                if any(record.get(key, EventRequest.model_fields[key].default) != value for key, value in facts.items()):
-                    raise RequestConflict('Request identity was already used for different facts')
-        return record
+        @firestore.transactional
+        def create(tx):
+            existing=ref.get(transaction=tx).to_dict()
+            scenario=current_scenario(self.client,scenario_collection(self.shops),tx) if record['is_demo'] else {}
+            if existing:
+                if existing.get('fingerprint') != fingerprint:
+                    facts=request.model_dump(exclude={'processing_started_at'})
+                    if any(existing.get(key,EventRequest.model_fields[key].default)!=value for key,value in facts.items()):
+                        raise RequestConflict('Request identity was already used for different facts')
+                return existing
+            if record['is_demo']:
+                if scenario.get('state')=='resetting':raise ScenarioResetBusy('Demo reset in progress')
+                record['scenario_generation']=scenario.get('generation',0)
+            tx.create(ref,record)
+            return record
+        return create(self.client.transaction())
+
+    def is_current(self,event):
+        return event_is_current(event,current_scenario(self.client,scenario_collection(self.shops)))
 
     def mark_suppressed(self,event_id,reason):
         self.client.collection(self.events).document(event_id).update({'status':'superseded','suppression_reason':reason})
@@ -92,9 +101,12 @@ class FirestoreDispatchStore:
 
     def target_shops(self) -> list[Shop]:
         shops = []
+        scope=current_scenario(self.client,scenario_collection(self.shops)).get('fixture_shop_ids')
         for doc in self.client.collection(self.shops).stream():
             try:
-                shops.append(Shop.model_validate(dict(doc.to_dict(), shop_id=doc.id)))
+                shop=Shop.model_validate(dict(doc.to_dict(),shop_id=doc.id))
+                if shop.is_demo and scope is not None and doc.id not in scope:continue
+                shops.append(shop)
             except (ValidationError, TypeError):
                 continue
         return shops
@@ -102,7 +114,7 @@ class FirestoreDispatchStore:
     def prepare_alert(self, alert: dict) -> None:
         ref = self.client.collection(self.alerts).document(alert['alert_id'])
         delivery_ref = self.client.collection(self.deliveries).document(alert['alert_id'])
-        public_record = {key:value for key,value in alert.items() if key != 'telegram_chat_id'}
+        public_record = {key:value for key,value in alert.items() if key not in ('telegram_chat_id','virtual_recipient')}
         # Firestore rejects array-of-arrays, while Telegram requires that exact
         # inline_keyboard shape. Serialize at rest and restore only on read.
         if public_record.get('reply_markup') is not None:
@@ -111,7 +123,7 @@ class FirestoreDispatchStore:
         def create(tx):
             if ref.get(transaction=tx).exists:
                 return
-            tx.set(delivery_ref, {'telegram_chat_id':alert['telegram_chat_id']})
+            tx.set(delivery_ref, {key:alert[key] for key in ('telegram_chat_id','virtual_recipient') if key in alert})
             tx.set(ref, public_record)
         create(self.client.transaction())
 
@@ -125,7 +137,7 @@ class FirestoreDispatchStore:
             if not isinstance(markup, dict):
                 raise ValueError('Stored Telegram markup must be an object')
             alert['reply_markup'] = markup
-        return dict(alert, telegram_chat_id=delivery['telegram_chat_id'])
+        return dict(alert, **delivery)
 
     def begin_send(self, alert_id: str, event_id: str, owner: str) -> bool:
         ref = self.client.collection(self.alerts).document(alert_id)
@@ -134,8 +146,12 @@ class FirestoreDispatchStore:
         def begin(tx):
             event = event_ref.get(transaction=tx).to_dict()
             alert = ref.get(transaction=tx).to_dict()
+            scenario=current_scenario(self.client,scenario_collection(self.shops),tx) if event.get('is_demo') else {}
             if event.get('owner') != owner:
                 raise RuntimeError('Event claim changed')
+            if not event_is_current(event,scenario,alert['shop_id']):
+                if alert['status'] in ('pending','retryable'):tx.update(ref,{'status':'superseded','bigquery':'done','suppression_reason':'obsolete_scenario'})
+                return False
             if alert['status'] == 'sending':
                 # An earlier process may have sent before dying: never blindly resend.
                 tx.update(ref, {'status': 'uncertain'})
@@ -158,4 +174,4 @@ class FirestoreDispatchStore:
         update(self.client.transaction())
 
     def pending_event_ids(self, limit: int = 20) -> list[str]:
-        return [doc.id for doc in self.client.collection(self.events).where(filter=FieldFilter('status', '==', 'pending')).limit(limit).stream()]
+        return [doc.id for doc in self.client.collection(self.events).where(filter=FieldFilter('status', '==', 'pending')).limit(limit).stream(timeout=5,retry=None)]

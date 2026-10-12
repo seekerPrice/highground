@@ -1,0 +1,37 @@
+# Task16 — reproducible local synthetic scenario
+
+Review baseline:6ccc9b06341d5ed0b285a02c21f6c03ce2959f52 (reviewed application f914f9a). The source remains docs/spec/01-build-spec.md with approved-decisions.md; the user authorizes all tasks locally and in parallel. This task completes the demo seed and the Task15 reset boundary. Hosting is deferred; no CI, cloud provisioning, real-recipient guesses or Should features.
+
+## Files and interfaces
+
+Backend Sol owns a small scenario/fixture module, a local seed command and synthetic fixture data, affected dispatch/risk/dashboard models and services, configuration/example names strictly needed for explicit demo transport, and corresponding backend tests. Keep application modules small and typed. Frontend Sol owns Task14's six packaging files; do not change them, frontend locks or UI without first agreeing the exact interface with Astra. Root owns shared runtimes, actual global seeding/recipient binding, Git and publication.
+
+Reuse existing event/action/outbox/ActiveRiskStore boundaries. Inspect their real call chain before choosing the smallest generation mechanism. A server-owned scenario generation and reset-in-progress state must govern demo creation, risk application and final delivery. Clients cannot supply trusted generation or self-select demo/virtual status. Current public dashboard must expose only synthetic records and no recipient identifiers.
+
+## Implementation steps
+
+1. Create six explicitly labelled synthetic shops, realistic varied risk/inventory/lift-first data, and three vehicles. Preserve the two sourced historical destination records and their unknown opening/floor labels. Seed repeatably through validated loopback emulator clients with bounded operations; fail closed on cloud endpoints. Do not overwrite ordinary registrations or unrelated fixtures. No committed real chat ID, token or private capability.
+2. Give each fixture a usable immutable baseline association when claiming inventory/report readiness. If fixture media is used, preserve its actual bytes/hash through existing storage/receipt paths and label the inventory provenance synthetic; do not invent a receipt, hash, model run or valuation accuracy. Fixed synthetic inventories may support demonstrations, while actual model transport/assessment acceptance remains separate recorded evidence.
+3. Use explicit virtual delivery for virtual fixture recipients, never send fabricated IDs to Telegram. Virtual mode must be both local-development and server-owned demo scoped. Only an explicit operator fixture operation may bind the already-consenting real test chat to one synthetic shop. Root performs that actual binding; defaults must not send to a real chat. Persist delivery provenance and make public demo evidence distinguish simulated delivery from real Telegram API acceptance/read receipts. If this requires a small dashboard DTO/UI amendment, propose the exact contract before editing frontend files.
+4. Replace sequential-reset/timestamp-only behavior with a resumable generation boundary. Mark reset in progress before changing shops; block/retry new demo creation while incomplete. Old-generation delayed events must not update new risk/actions, send after the reset boundary, or reappear in current counters through late analytics writes. Reuse the existing delivery lease/final guard where possible. Define what happens to an already in-flight external send honestly; do not claim it can be unsent. Partial reset/retry must not wipe a newly started scenario.
+5. Close only demo risk episodes and invalidate old vehicle/stock buttons. Preserve original media, immutable receipts, reports, action snapshots, confirmations and history. New scenario activity must be immediately visible in the dashboard while old scenario metrics stay excluded. Do not clear official/non-demo Danger, infer recovery from stale data, or mutate real shops.
+6. Provide exact local seed/reset/run instructions and evidence. Use fresh isolated namespaces for development tests; root will seed the shared six-shop scenario only after review. No model calls or external messages are required merely to prove generation races; use actual Firestore and transport doubles with explicit provenance.
+
+## Acceptance checks
+
+- Six synthetic shops and three vehicles; repeat seeding preserves stable identities and immutable facts, leaves a non-demo sentinel unchanged, and uses no fabricated Telegram delivery.
+- Actual application factory honors local-only virtual transport and refuses virtual privileges for non-demo/cloud contexts. Real versus virtual provenance remains visible without exposing recipients.
+- Public authenticated reset rejects missing/wrong operator credentials and excessive/malformed requests. Race tests cover reset during model preparation, before risk application, before delivery, in-flight delivery/lease handling, partial reset/restart, duplicate requests and late old-generation sink completion.
+- Old callbacks stay invalid after reset; fresh-generation vehicle and stock confirmations use exact immutable displayed snapshots. Metrics retain the agreed distinct-vehicle/MAX-stock semantics and exclude prior scenario rows even across different event IDs.
+- No original/evidence/report deletion and no private data in public output. Native translation/Danger templates remain unchanged.
+- Run meaningful RED/GREEN regressions, affected local checks, Astra actual review and both Matt axes. Document any emulator/real-phone limitation; do not claim full local Must acceptance until Task17 and pending report print/visual gates are satisfied.
+
+Task17 separately owns supported query-result lifecycle cleanup, bounded emulator start/status/stop, actual authenticated outbox resumer wiring and the final consolidated journey. Do not silently claim those are automatic while only helper methods exist.
+
+## Agreed implementation contracts
+
+Reset requests carry a stable `request_id` that the client retains across retries. Successful responses retain `status: reset`; incomplete lease draining returns `status: resetting`, with the scenario generation and explicit unknown in-flight outcome count. The dashboard exposes the server's `ready` or `resetting` state. A repeated request cannot reset activity created after that request completed; each per-shop mutation must check the current request/generation in the same transaction as the risk/action change.
+
+Virtual recipients have typed string identities, never fabricated Telegram chat IDs. Virtual delivery records `simulated`/`local_virtual` provenance, performs no Telegram call, and contributes only to a separately labelled simulated-alert count. There are no virtual owner/worker self-reports or invented confirmations. Actual action confirmations use root's explicit binding of a consenting registered recipient. Local fixture originals use `origin: local_fixture`, are necessarily synthetic, and have no Telegram timestamp; ordinary Telegram receipts retain their required timestamp and `origin: telegram`. The UI must distinguish those origins, and incoming Telegram payloads cannot select fixture privileges.
+
+The existing shared bot runtime remains on its previously reviewed source while implementation tests use isolated namespaces. Root alone restarts the reviewed application and seeds/binds the shared scenario. Do not populate global virtual fixtures while the old runtime is still serving them.

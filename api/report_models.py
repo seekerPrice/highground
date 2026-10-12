@@ -51,12 +51,19 @@ class EvidenceReceipt(DTO):
     bytes: int
     mime_type: str
     uploaded_at: AwareDatetime
-    telegram_date: AwareDatetime
+    origin: Literal['telegram','local_fixture'] = 'telegram'
+    telegram_date: AwareDatetime | None
     lat: float
     lng: float
     location_attribution: Literal['confirmed_shop','confirmed_shared','unconfirmed_shop']
     is_demo: bool
     integrity_status: Literal['not_checked'] = 'not_checked'
+
+    @model_validator(mode='after')
+    def origin_timestamp(self):
+        if self.origin=='telegram' and self.telegram_date is None:raise ValueError('Telegram receipt requires date')
+        if self.origin=='local_fixture' and (not self.is_demo or self.telegram_date is not None):raise ValueError('Local fixture receipt must be synthetic without Telegram date')
+        return self
 
 class Report(DTO):
     report_id: str
