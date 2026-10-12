@@ -96,7 +96,7 @@ class FixtureSeeder:
             if scenario.get('state')=='resetting':raise ScenarioResetBusy('Demo reset in progress')
             owners=[Recipient.model_validate(r).model_dump() for r in registered.get('recipients',[]) if r.get('role')=='owner']
             if fixture.get('fixture_origin')!=FIXTURE_ORIGIN or not fixture.get('is_demo') or registered.get('is_demo') or len(owners)!=1:raise ValueError('An ordinary registered owner and owned fixture are required')
-            tx.update(ref,{'recipients':owners,'virtual_recipient':None,'binding_provenance':'explicit_operator_registered_owner'})
+            tx.update(ref,{'recipients':owners,'virtual_recipient':None,'binding_provenance':'explicit_operator_registered_owner','recipient_scope':'alerts_confirmations_only'})
         bind(self.client.transaction())
 
 

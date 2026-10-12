@@ -52,7 +52,7 @@ class FirestoreDispatchStore:
         return event_is_current(event,current_scenario(self.client,scenario_collection(self.shops)))
 
     def mark_suppressed(self,event_id,reason):
-        self.client.collection(self.events).document(event_id).update({'status':'superseded','suppression_reason':reason})
+        self.client.collection(self.events).document(event_id).update({'status':'pending','delivery_superseded':True,'suppression_reason':reason})
 
     def get_event(self, event_id: str) -> dict:
         data = self.client.collection(self.events).document(event_id).get().to_dict()
@@ -150,7 +150,7 @@ class FirestoreDispatchStore:
             if event.get('owner') != owner:
                 raise RuntimeError('Event claim changed')
             if not event_is_current(event,scenario,alert['shop_id']):
-                if alert['status'] in ('pending','retryable'):tx.update(ref,{'status':'superseded','bigquery':'done','suppression_reason':'obsolete_scenario'})
+                if alert['status'] in ('pending','retryable'):tx.update(ref,{'status':'superseded','suppression_reason':'obsolete_scenario'})
                 return False
             if alert['status'] == 'sending':
                 # An earlier process may have sent before dying: never blindly resend.
@@ -172,6 +172,11 @@ class FirestoreDispatchStore:
                 raise RuntimeError('Event claim changed')
             tx.update(alert_ref, fields)
         update(self.client.transaction())
+
+    def event_alert_ids(self,event_id:str) -> list[str]:
+        docs=list(self.client.collection(self.alerts).where(filter=FieldFilter('event_id','==',event_id)).limit(1001).stream(timeout=5,retry=None))
+        if len(docs)>1000:raise ValueError('Historical alert scope exceeds bound')
+        return [doc.id for doc in docs]
 
     def pending_event_ids(self, limit: int = 20) -> list[str]:
         return [doc.id for doc in self.client.collection(self.events).where(filter=FieldFilter('status', '==', 'pending')).limit(limit).stream(timeout=5,retry=None)]

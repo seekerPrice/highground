@@ -15,6 +15,16 @@ class ScenarioResetBusy(ValueError):
     pass
 
 
+def alerts_only_fixture(shop_id:str,record:dict) -> bool:
+    """Only owned fixture bindings carry alert membership without media ownership.
+
+    Older bindings predate explicit scope; their exact owned provenance retains
+    the same documented boundary. Ordinary synthetic registrations stay ordinary.
+    """
+    scoped=record.get('recipient_scope')=='alerts_confirmations_only' or (record.get('recipient_scope') is None and record.get('binding_provenance')=='explicit_operator_registered_owner')
+    return bool(scoped and shop_id in SHOP_IDS and record.get('is_demo') is True and record.get('fixture_origin')==FIXTURE_ORIGIN)
+
+
 def scenario_collection(shops: str) -> str:
     return shops.removesuffix('shops')+'demo_scenario'
 

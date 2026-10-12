@@ -16,7 +16,7 @@ def scope():
     client=create_firestore_client(Settings(gcp_project='highground-scenario-tests'))
     prefix='scenario-'+uuid4().hex+'-'
     yield client,prefix
-    for name in ('shops','events','events-plans','alerts','alerts-delivery','demo_scenario','demo_resets','active_risks','current_vehicle_actions','shop_delivery_claims','media','inventories','vehicle_actions','stock_actions','confirmations','safe_points'):
+    for name in ('shops','events','events-plans','alerts','alerts-delivery','demo_scenario','demo_resets','active_risks','current_vehicle_actions','shop_delivery_claims','media','inventories','vehicle_actions','stock_actions','confirmations','safe_points','inbox'):
         for doc in client.collection(prefix+name).stream():doc.reference.delete()
     client.close()
 
@@ -391,3 +391,114 @@ def test_seeded_scope_excludes_unrelated_demo_projection_delivery_and_reset(scop
     assert 'other-demo' not in {shop.shop_id for shop in store.target_shops()}
     assert DemoScenarioStore(client,risk,prefix=p).reset('owned-scope')['shops_reset']==6
     assert client.collection(p+'shops').document('other-demo').get().to_dict()==outside
+
+def test_bound_alert_recipient_preserves_ordinary_media_report_lookup_and_ambiguity(scope):
+    from pathlib import Path
+    from api.demo_seed import FixtureSeeder,SHOP_IDS
+    from api.photo_store import PhotoStore
+    from api.inventory_store import InventoryStore
+    from api.report_store import ReportStore
+    from api.tests.test_media import request as media_request
+    client,p=scope
+    ordinary=dict(shop_name='Ordinary',lat=3.,lng=101.,is_demo=False,recipients=[dict(telegram_chat_id=123,language='en',role='owner')])
+    client.collection(p+'shops').document('ordinary').set(ordinary)
+    class Storage:
+        def uri(self,identity):return 'gs://synthetic/originals/'+identity
+        def create_original(self,*args):pass
+    class Ledger:
+        def append(self,*args):pass
+    seed=FixtureSeeder(client,Storage(),Ledger(),prefix=p)
+    seed.seed((Path(__file__).resolve().parents[2]/'demo/media/synthetic-before-still.mp4').read_bytes())
+    stores=[PhotoStore(client,'synthetic',p),InventoryStore(client,'synthetic',p),ReportStore(client,'synthetic',p)]
+    assert all(store.shop_for_sender(123)['shop_id']=='ordinary' for store in stores)
+    seed.bind_registered(1,'ordinary');seed.seed((Path(__file__).resolve().parents[2]/'demo/media/synthetic-before-still.mp4').read_bytes())
+    assert all(store.shop_for_sender(123)['shop_id']=='ordinary' for store in stores)
+    assert stores[2].owner_shop(123)['shop_id']=='ordinary'
+    assert all(store.authorize_media(media_request(shop_id='ordinary',is_demo=False)) for store in stores)
+    assert not any(store.authorize_media(media_request(shop_id=SHOP_IDS[0],is_demo=True)) for store in stores)
+    assert client.collection(p+'shops').document('ordinary').get().to_dict()==ordinary
+    # The prior committed binding shape has provenance but no explicit scope.
+    from google.cloud import firestore
+    client.collection(p+'shops').document(SHOP_IDS[0]).update({'recipient_scope':firestore.DELETE_FIELD})
+    assert all(store.shop_for_sender(123)['shop_id']=='ordinary' for store in stores)
+    assert not any(store.authorize_media(media_request(shop_id=SHOP_IDS[0],is_demo=True)) for store in stores)
+    # Ordinary test registrations may themselves be synthetic; don't exclude them.
+    client.collection(p+'shops').document('ordinary').update({'is_demo':True})
+    assert stores[0].shop_for_sender(123)['shop_id']=='ordinary'
+    client.collection(p+'shops').document('second-ordinary').set(ordinary)
+    assert all(store.shop_for_sender(123) is None for store in stores)
+
+
+def test_bound_fixture_cannot_bypass_preexisting_ordinary_danger_prompt_guard(scope):
+    from pathlib import Path
+    from api.demo_seed import FixtureSeeder
+    from api.inventory import InventoryService
+    from api.inventory_store import InventoryStore
+    from api.inventory_models import InventoryReply
+    from api.i18n import danger_text
+    import asyncio
+    client,p=scope
+    ordinary=dict(shop_name='Ordinary',lat=3.,lng=101.,is_demo=False,active_danger=True,recipients=[dict(telegram_chat_id=123,language='en',role='owner')])
+    client.collection(p+'shops').document('ordinary').set(ordinary)
+    class Storage:
+        def uri(self,identity):return 'gs://synthetic/originals/'+identity
+        def create_original(self,*args):pass
+    class Ledger:
+        def append(self,*args):pass
+    seed=FixtureSeeder(client,Storage(),Ledger(),prefix=p)
+    seed.seed((Path(__file__).resolve().parents[2]/'demo/media/synthetic-before-still.mp4').read_bytes());seed.bind_registered(1,'ordinary')
+    active=InventoryService(InventoryStore(client,'synthetic',p),None,None)
+    reply=asyncio.run(active.recheck_reply(123,InventoryReply(text='Send a baseline video',kind='prompt')))
+    assert reply.kind=='danger' and reply.text==danger_text('en',is_demo=False)
+
+def test_scoped_binding_retains_dispatch_and_vehicle_stock_callback_authorization(scope):
+    from pathlib import Path
+    import asyncio,httpx
+    from api.demo_seed import FixtureSeeder,SHOP_IDS
+    from api.dispatch import DispatchService
+    from api.dispatch_models import ActionSnapshot
+    from api.vehicle_confirmations import VehicleActionStore,VehicleConfirmationService
+    from api.stock_confirmations import StockActionStore,StockConfirmationService
+    from api.telegram_webhook import TelegramHandler
+    from api.telegram_inbox import FirestoreInbox
+    from api.main import create_app
+    client,p=scope;store,risk=services(scope)
+    ordinary=dict(shop_name='Ordinary',lat=3.,lng=101.,is_demo=False,recipients=[dict(telegram_chat_id=123,language='en',role='owner')])
+    client.collection(p+'shops').document('ordinary').set(ordinary)
+    class Storage:
+        def uri(self,identity):return 'gs://synthetic/originals/'+identity
+        def create_original(self,*args):pass
+    class Ledger:
+        def append(self,*args):pass
+    seed=FixtureSeeder(client,Storage(),Ledger(),prefix=p);seed.seed((Path(__file__).resolve().parents[2]/'demo/media/synthetic-before-still.mp4').read_bytes());seed.bind_registered(1,'ordinary')
+    class Bot:
+        def __init__(self):self.messages=[];self.answers=[]
+        def send_message(self,*args,**kwargs):self.messages.append(args);return 77
+        def answer_callback_query(self,*args):self.answers.append(args)
+    class Sinks:
+        def publish_event(self,*args):pass
+        def insert_event(self,*args):pass
+        def insert_alert(self,*args):pass
+        def insert_confirmation(self,*args):pass
+    bot=Bot();sinks=Sinks()
+    vehicles=VehicleActionStore(client,actions=p+'vehicle_actions',current=p+'current_vehicle_actions',confirmations=p+'confirmations',alerts=p+'alerts',shops=p+'shops')
+    stocks=StockActionStore(client,actions=p+'stock_actions',confirmations=p+'confirmations',alerts=p+'alerts',shops=p+'shops',risks=p+'active_risks')
+    dispatch=DispatchService(store,bot,sinks,hash_salt='synthetic',active_risk=risk,vehicle_actions=vehicles,stock_actions=stocks)
+    handler=TelegramHandler(FirestoreInbox(client,p+'inbox'),bot,confirmations=VehicleConfirmationService(vehicles,sinks,hash_salt='synthetic'),stock_confirmations=StockConfirmationService(stocks,sinks,hash_salt='synthetic'))
+    app=create_app(Settings(telegram_webhook_secret='synthetic'),handler)
+    async def run():
+        event=await dispatch.process(EventRequest(request_id='bound',level='warning',lat=3.0315,lng=101.5356,warning_structure='warning_intro_fallback'))
+        assert event['alerts']=={'accepted':1} and len(bot.messages)==1
+        alert=store.get_alert(store.get_event(event['event_id'])['alert_ids'][0])
+        assert alert['shop_id']==SHOP_IDS[0]
+        snapshot=ActionSnapshot.model_validate(alert['snapshot'])
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app),base_url='http://test') as api:
+            for i,(kind,identity) in enumerate((('vehicle',snapshot.vehicle_action_id),('stock',snapshot.stock_action_id))):
+                body=dict(update_id=100+i,callback_query=dict(id=f'bound-{kind}',**{'from':dict(id=123)},message=dict(message_id=77,chat=dict(id=123,type='private')),data=f'{kind}:{identity}'))
+                assert (await api.post('/telegram/webhook',headers={'X-Telegram-Bot-Api-Secret-Token':'synthetic'},json=body)).status_code==200
+        facts=[doc.to_dict() for doc in client.collection(p+'confirmations').stream()]
+        assert {row['kind'] for row in facts}=={'vehicle','stock'} and len(facts)==2
+        assert all(row['shop_id']==SHOP_IDS[0] and row['snapshot']==alert['snapshot'] for row in facts)
+        assert len(bot.answers)==2 and client.collection(p+'shops').document('ordinary').get().to_dict()==ordinary
+    asyncio.run(run())
+    for doc in client.collection(p+'inbox').stream():doc.reference.delete()

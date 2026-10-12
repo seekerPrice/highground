@@ -104,7 +104,10 @@ class RecoveryJobsService:
         async def dispatch(identity):
             service=await asyncio.to_thread(self._dispatch)
             result=await service.resume(identity)
-            return 'complete' if result['status'] in ('complete','superseded') else 'needs_review' if result['status']=='needs_review' else 'pending'
+            if result['status']=='superseded':
+                event=await asyncio.to_thread(service.store.get_event,identity)
+                return 'pending' if event['status']=='pending' else 'complete'
+            return 'complete' if result['status']=='complete' else 'needs_review' if result['status']=='needs_review' else 'pending'
         async def confirmation(identity):
             service=await asyncio.to_thread(self._confirmations);await service.flush(identity)
             record=await asyncio.to_thread(lambda:service.store.client.collection(service.store.confirmations).document(identity).get(timeout=5,retry=None).to_dict())

@@ -34,7 +34,7 @@ class DispatchService:
             decision=await asyncio.to_thread(self.active_risk.apply_event_decision,event,event['reporter_shop_id'])
             if decision.reason!='accepted':
                 await asyncio.to_thread(self.store.mark_suppressed,event['event_id'],decision.reason)
-                return {'event_id':event['event_id'],'status':'superseded','reason':decision.reason}
+                return await self.resume(event['event_id'])
         return await self.resume(event['event_id'])
 
     async def resume(self, event_id: str) -> dict:
@@ -43,9 +43,8 @@ class DispatchService:
             return {'event_id': event_id, 'status': 'busy'}
         try:
             event = await asyncio.to_thread(self.store.get_event, event_id)
-            if hasattr(self.store,'is_current') and not await asyncio.to_thread(self.store.is_current,event):
-                await asyncio.to_thread(self.store.mark_suppressed,event_id,'obsolete_scenario')
-                return {'event_id':event_id,'status':'superseded','reason':'obsolete_scenario'}
+            if event.get('delivery_superseded') or (hasattr(self.store,'is_current') and not await asyncio.to_thread(self.store.is_current,event)):
+                return await self._settle_suppressed(event,owner,event.get('suppression_reason') or 'obsolete_scenario')
             if not event['prepared']:
                 if 'targets' not in event:
                     shops = await asyncio.to_thread(self.store.target_shops)
@@ -75,8 +74,7 @@ class DispatchService:
                                             has_inventory=any(shop.baseline_inventory_id for shop in target_shops),
                                             has_vehicle=any(shop.has_vehicle for shop in target_shops))
                 if hasattr(self.store,'is_current') and not await asyncio.to_thread(self.store.is_current,event):
-                    await asyncio.to_thread(self.store.mark_suppressed,event_id,'obsolete_scenario')
-                    return {'event_id':event_id,'status':'superseded','reason':'obsolete_scenario'}
+                    return await self._settle_suppressed(event,owner,'obsolete_scenario')
                 ids = []
                 for raw in event['targets']:
                     shop = Shop.model_validate(raw)
@@ -132,7 +130,7 @@ class DispatchService:
                     if disposition=='busy':continue
                     if disposition=='superseded':
                         if alert['status'] in ('pending','retryable'):
-                            await asyncio.to_thread(self.store.update_alert,alert_id,event_id,owner,status='superseded',suppression_reason='active_risk_or_expired_episode',bigquery='done')
+                            await asyncio.to_thread(self.store.update_alert,alert_id,event_id,owner,status='superseded',suppression_reason='active_risk_or_expired_episode')
                         continue
                 try:
                     if await asyncio.to_thread(self.store.begin_send,alert_id,event_id,owner):
@@ -155,39 +153,59 @@ class DispatchService:
                 finally:
                     if delivery_owner is not None:
                         await asyncio.to_thread(self.active_risk.release_delivery,alert['shop_id'],delivery_owner)
-            event = await asyncio.to_thread(self.store.get_event, event_id)
-            for stage, action in [('pubsub', self.sinks.publish_event), ('bigquery', self.sinks.insert_event)]:
-                if event[stage] != 'done':
-                    try:
-                        await asyncio.to_thread(action, event)
-                    except Exception:
-                        # Keep durable pending progress; external sink outcome may be ambiguous.
-                        pass
-                    else:
-                        await asyncio.to_thread(self.store.update_event, event_id, owner, **{stage: 'done'})
-            counts = Counter()
-            pending = False
-            for alert_id in event['alert_ids']:
-                alert = await asyncio.to_thread(self.store.get_alert, alert_id)
-                counts[alert['status']] += 1
-                if alert['status'] in ('accepted', 'uncertain', 'simulated') and alert['bigquery'] != 'done':
-                    try:
-                        await asyncio.to_thread(self.sinks.insert_alert, alert)
-                    except Exception:
-                        pass
-                    else:
-                        await asyncio.to_thread(self.store.update_alert, alert_id, event_id, owner, bigquery='done')
-                        alert['bigquery'] = 'done'
-                if alert['status'] in ('pending', 'sending', 'retryable') or alert['bigquery'] != 'done':
-                    pending = True
-            latest = await asyncio.to_thread(self.store.get_event, event_id)
-            pending |= latest['pubsub'] != 'done' or latest['bigquery'] != 'done'
-            status = 'pending' if pending else ('needs_review' if counts.get('uncertain') else 'complete')
-            await asyncio.to_thread(self.store.update_event, event_id, owner, status=status)
-            # No chat IDs, recipient hashes, private snapshots or message bodies leave this boundary.
-            return {'event_id': event_id, 'status': status, 'alerts': dict(counts)}
+            return await self._flush_sinks(event_id,owner)
         finally:
             await asyncio.to_thread(self.store.release, event_id, owner)
+
+    async def _settle_suppressed(self,event:dict,owner:str,reason:str) -> dict:
+        event_id=event['event_id']
+        children=await asyncio.to_thread(self.store.event_alert_ids,event_id)
+        ids=sorted(set(event['alert_ids'])|set(children))
+        if len(ids)>1000:raise ValueError('Historical alert scope exceeds bound')
+        await asyncio.to_thread(self.store.update_event,event_id,owner,alert_ids=ids,delivery_superseded=True,suppression_reason=reason,status='pending')
+        for alert_id in ids:
+            alert=await asyncio.to_thread(self.store.get_alert,alert_id)
+            if alert['status'] in ('pending','retryable'):
+                await asyncio.to_thread(self.store.update_alert,alert_id,event_id,owner,status='superseded',suppression_reason=reason)
+            elif alert['status']=='sending':
+                # Prior external completion is unknown; retain its honest history,
+                # never perform another send while recovering optional sinks.
+                await asyncio.to_thread(self.store.update_alert,alert_id,event_id,owner,status='uncertain')
+        return await self._flush_sinks(event_id,owner,superseded=True)
+
+    async def _flush_sinks(self,event_id:str,owner:str,*,superseded:bool=False) -> dict:
+        event = await asyncio.to_thread(self.store.get_event, event_id)
+        for stage, action in [('pubsub', self.sinks.publish_event), ('bigquery', self.sinks.insert_event)]:
+            if event[stage] != 'done':
+                try:
+                    await asyncio.to_thread(action, event)
+                except Exception:
+                    # Keep durable pending progress; external sink outcome may be ambiguous.
+                    pass
+                else:
+                    await asyncio.to_thread(self.store.update_event, event_id, owner, **{stage: 'done'})
+        counts = Counter()
+        pending = False
+        for alert_id in event['alert_ids']:
+            alert = await asyncio.to_thread(self.store.get_alert, alert_id)
+            counts[alert['status']] += 1
+            if alert['status'] in ('accepted', 'uncertain', 'simulated', 'superseded') and alert['bigquery'] != 'done':
+                try:
+                    await asyncio.to_thread(self.sinks.insert_alert, alert)
+                except Exception:
+                    pass
+                else:
+                    await asyncio.to_thread(self.store.update_alert, alert_id, event_id, owner, bigquery='done')
+                    alert['bigquery'] = 'done'
+            if alert['status'] in ('pending', 'sending', 'retryable') or alert['bigquery'] != 'done':
+                pending = True
+        latest = await asyncio.to_thread(self.store.get_event, event_id)
+        pending |= latest['pubsub'] != 'done' or latest['bigquery'] != 'done'
+        status = 'pending' if pending else 'superseded' if superseded else ('needs_review' if counts.get('uncertain') else 'complete')
+        await asyncio.to_thread(self.store.update_event, event_id, owner, status=status)
+        # No chat IDs, recipient hashes, private snapshots or message bodies leave this boundary.
+        if superseded:return {'event_id':event_id,'status':'superseded','reason':event.get('suppression_reason','obsolete_scenario')}
+        return {'event_id': event_id, 'status': status, 'alerts': dict(counts)}
 
     async def close(self) -> None:
         if self.composer.selector is not None and hasattr(self.composer.selector, 'close'):

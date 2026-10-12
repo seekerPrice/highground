@@ -5,6 +5,7 @@ from uuid import uuid4
 from google.cloud import firestore
 from google.cloud.firestore_v1.base_query import FieldFilter
 from api.agents.sessions import session_user_id
+from api.demo_scenario import alerts_only_fixture
 from api.photo_models import PhotoMedia
 from api.tools.geo import distance_m
 from api.media_models import MediaIngestError, MediaRequest
@@ -19,13 +20,14 @@ class PhotoStore:
         matches=[]
         for doc in self.collection('shops').stream():
             value=doc.to_dict()
+            if alerts_only_fixture(doc.id,value):continue
             member=next((r for r in value.get('recipients',[]) if r.get('telegram_chat_id')==chat_id),None)
             if member:matches.append(dict(value,shop_id=doc.id,language=member['language']))
         # Do not guess which shop when membership is ambiguous.
         return matches[0] if len(matches)==1 else None
     def authorize_media(self,request: MediaRequest)->bool:
         shop=self.collection('shops').document(request.shop_id).get().to_dict()
-        return bool(shop and bool(shop.get('is_demo',False))==request.is_demo
+        return bool(shop and not alerts_only_fixture(request.shop_id,shop) and bool(shop.get('is_demo',False))==request.is_demo
                     and any(r.get('telegram_chat_id')==request.sender_chat_id for r in shop.get('recipients',[])))
     def begin(self,shop:dict,sender:int,message_id:int,telegram_date:datetime,photo:PhotoMedia,now:datetime)->dict:
         sender_hash=session_user_id(sender,self.hash_salt)

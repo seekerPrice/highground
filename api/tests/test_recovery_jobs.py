@@ -20,7 +20,8 @@ from api.tools.firestore import create_firestore_client
 from api.recovery_jobs import RecoveryJobsService
 
 @pytest.mark.skipif(not os.environ.get('FIRESTORE_EMULATOR_HOST'),reason='Firestore emulator required')
-def test_actual_protected_outage_recovery_one_fact_receipt_no_extra_send(monkeypatch):
+@pytest.mark.parametrize('reset_before_resume',[False,True])
+def test_actual_protected_outage_recovery_one_fact_receipt_no_extra_send(monkeypatch,reset_before_resume):
     from api.dispatch import DispatchService
     from api.dispatch_store import FirestoreDispatchStore
     from api.dispatch_models import Shop,EventRequest,ActionSnapshot,LiftItem
@@ -39,11 +40,12 @@ def test_actual_protected_outage_recovery_one_fact_receipt_no_extra_send(monkeyp
     vehicles=VehicleActionStore(client,actions=p+'vehicle',current=p+'current',confirmations=p+'confirmations',alerts=p+'alerts',shops=p+'shops')
     stocks=StockActionStore(client,actions=p+'stock',confirmations=p+'confirmations',alerts=p+'alerts',shops=p+'shops',risks=p+'risk')
     class Sink:
-        def __init__(self):self.fail=True;self.confirmations={};self.receipts={}
+        def __init__(self):self.fail=True;self.confirmations={};self.receipts={};self.events={};self.alerts={};self.published={}
         def publish_event(self,*args):
             if self.fail:raise OSError('PRIVATE-OUTAGE')
-        def insert_event(self,*args):self.publish_event()
-        def insert_alert(self,*args):self.publish_event()
+            if args:self.published[args[0]['event_id']]=args[0]
+        def insert_event(self,record):self.publish_event();self.events[record['event_id']]=record
+        def insert_alert(self,record):self.publish_event();self.alerts[record['alert_id']]=record
         def insert_confirmation(self,record):self.publish_event();self.confirmations[record['confirmation_id']]=record
         def append(self,record):self.publish_event();self.receipts[record.media_id]=record
     class Bot:
@@ -73,6 +75,9 @@ def test_actual_protected_outage_recovery_one_fact_receipt_no_extra_send(monkeyp
                 assert (await api.post('/telegram/webhook',headers={'X-Telegram-Bot-Api-Secret-Token':'synthetic'},json=payload)).status_code==200
                 assert (await api.post('/telegram/webhook',headers={'X-Telegram-Bot-Api-Secret-Token':'synthetic'},json=payload)).status_code==200
             assert len(bot.answers)==2 and len(list(client.collection(p+'confirmations').stream()))==2
+            if reset_before_resume:
+                from api.demo_scenario import DemoScenarioStore
+                DemoScenarioStore(client,risk,prefix=p).reset('after-accepted-send')
             auth={'Authorization':'Bearer synthetic'}
             pending=await api.post('/jobs/resume-pending',headers=auth,json={'limit':20})
             assert pending.status_code==200 and pending.json()['dispatch']['pending']==1 and pending.json()['confirmations']['pending']==2 and pending.json()['media_ledger']['pending']==1
@@ -83,13 +88,26 @@ def test_actual_protected_outage_recovery_one_fact_receipt_no_extra_send(monkeyp
             again=await api.post('/jobs/resume-pending',headers=auth,json={'limit':20})
             assert all(again.json()[stage]['scanned']==0 for stage in ('dispatch','confirmations','media_ledger'))
             assert 'PRIVATE' not in recovered.text and event['event_id'] not in recovered.text and receipt.record.media_id not in recovered.text
+        assert len(sink.events)==1 and len(sink.alerts)==1 and len(sink.published)==1
+        assert store.get_event(event['event_id'])['pubsub']=='done' and store.get_event(event['event_id'])['bigquery']=='done'
+        assert store.get_alert(alert['alert_id'])['status']=='accepted' and store.get_alert(alert['alert_id'])['bigquery']=='done'
         assert len(bot.messages)==1 and len(sink.confirmations)==2 and len(sink.receipts)==1 and download.calls==1
         assert media_store.get(receipt.record.media_id).status=='complete' and media_store.get(missing.media_id).storage_status=='pending'
         assert next(row for row in sink.confirmations.values() if row['kind']=='stock')['protected_value_rm']==30.
+        if reset_before_resume:
+            from api.dashboard import DashboardStore
+            from api.dashboard_analytics import unavailable
+            fresh=await dispatch.process(EventRequest(request_id='fresh',level='danger',lat=3.,lng=101.))
+            class Analytics:
+                def stats(self,shops,events,alerts,facts,**kwargs):
+                    assert {row['event_id'] for row in events}=={fresh['event_id']}
+                    assert len(alerts)==1 and alerts[0]['event_id']==fresh['event_id'] and facts==[]
+                    return unavailable(len(shops))
+            assert len(bot.messages)==2 and len(DashboardStore(client,Settings(),prefix=p,analytics=Analytics()).read().events)==1
         await jobs.close()
     try:asyncio.run(run())
     finally:
-        for name in ('events','events-plans','alerts','alerts-delivery','shops','risk','deliveries','current','vehicle','stock','confirmations','inbox','media'):
+        for name in ('events','events-plans','alerts','alerts-delivery','shops','risk','deliveries','current','vehicle','stock','confirmations','inbox','media','demo_scenario','demo_resets'):
             for doc in client.collection(p+name).stream():doc.reference.delete()
         client.close()
 
@@ -170,7 +188,12 @@ def test_protected_resumer_suppresses_obsolete_generation_without_send(monkeypat
     class Empty:
         def pending_ids(self,limit):return []
         def pending_ledger_ids(self,limit):return []
-    jobs=RecoveryJobsService(dispatch=DispatchService(store,Poison(),Poison(),hash_salt='synthetic',active_risk=risk),confirmations=SimpleNamespace(store=Empty()),media=SimpleNamespace(store=Empty()))
+    history=[]
+    class Sinks:
+        def publish_event(self,event):history.append(('publish',event['event_id']))
+        def insert_event(self,event):history.append(('event',event['event_id']))
+        def insert_alert(self,event):pytest.fail('Unprepared event invented an alert')
+    jobs=RecoveryJobsService(dispatch=DispatchService(store,Poison(),Sinks(),hash_salt='synthetic',active_risk=risk),confirmations=SimpleNamespace(store=Empty()),media=SimpleNamespace(store=Empty()))
     async def run():
         config=Settings(local_development=True,scheduler_local_auth=True,demo_mode=True,operator_token='synthetic')
         app=create_app(config,recovery_jobs_service=jobs)
@@ -178,6 +201,7 @@ def test_protected_resumer_suppresses_obsolete_generation_without_send(monkeypat
             response=await api.post('/jobs/resume-pending',headers={'Authorization':'Bearer synthetic'},json={'limit':1})
             assert response.status_code==200 and response.json()['dispatch']['completed']==1
         assert store.get_event(event['event_id'])['status']=='superseded' and not risk.get('s').active_danger
+        assert history==[('publish',event['event_id']),('event',event['event_id'])]
         await jobs.close()
     try:asyncio.run(run())
     finally:
@@ -203,3 +227,54 @@ def test_owned_client_closure_survives_another_close_failure():
     jobs=RecoveryJobsService(dispatch=Dispatch(),settings=Settings(),client=Client())
     with pytest.raises(OSError):asyncio.run(jobs.close())
     assert closed==['dispatch','client']
+
+@pytest.mark.skipif(not os.environ.get('FIRESTORE_EMULATOR_HOST'),reason='Firestore emulator required')
+@pytest.mark.parametrize('child_status',['pending','sending','simulated'])
+def test_partial_preparation_reset_recovers_persisted_child_history(child_status):
+    from api.dispatch import DispatchService
+    from api.dispatch_store import FirestoreDispatchStore
+    from api.dispatch_models import EventRequest,ActionSnapshot
+    from api.active_risk import ActiveRiskStore
+    from api.demo_scenario import DemoScenarioStore
+    client=create_firestore_client(Settings(gcp_project='highground-resumer-tests'));p='child-history-'+uuid4().hex+'-'
+    store=FirestoreDispatchStore(client,events=p+'events',alerts=p+'alerts',shops=p+'shops')
+    risk=ActiveRiskStore(client,risks=p+'risk',shops=p+'shops',current_actions=p+'current',deliveries=p+'deliveries')
+    client.collection(p+'shops').document('s').set({'is_demo':True,'active_danger':False})
+    event=store.ensure_event(EventRequest(request_id='partial',level='danger',lat=3.,lng=101.),datetime.now(UTC))
+    alert=dict(alert_id='child',event_id=event['event_id'],shop_id='s',telegram_chat_id=123,telegram_chat_id_hash='synthetic',level='danger',language='en',is_demo=True,text='Synthetic',snapshot=ActionSnapshot().model_dump(mode='json'),created_at=event['created_at'],status=child_status,bigquery='pending',sent_at=event['created_at'] if child_status=='simulated' else None,delivery_provenance='local_virtual' if child_status=='simulated' else 'telegram_api')
+    if child_status=='simulated':alert.pop('telegram_chat_id');alert['virtual_recipient']='fixture-child'
+    store.prepare_alert(alert)
+    assert store.get_event(event['event_id'])['alert_ids']==[] and not store.get_event(event['event_id'])['prepared']
+    DemoScenarioStore(client,risk,prefix=p).reset('partial-reset')
+    class Poison:
+        def __getattr__(self,name):raise AssertionError('Historical replay touched Telegram/model')
+    class Sinks:
+        fail=True
+        def __init__(self):self.events={};self.alerts={};self.published={}
+        def publish_event(self,record):
+            if self.fail:raise OSError('optional outage')
+            self.published[record['event_id']]=record
+        def insert_event(self,record):
+            if self.fail:raise OSError('optional outage')
+            self.events[record['event_id']]=record
+        def insert_alert(self,record):
+            if self.fail:raise OSError('optional outage')
+            self.alerts[record['alert_id']]=record
+    sinks=Sinks();dispatch=DispatchService(store,Poison(),sinks,hash_salt='synthetic',active_risk=risk,composer=Poison())
+    expected={'pending':'superseded','sending':'uncertain','simulated':'simulated'}[child_status]
+    async def run():
+        first=await dispatch.resume(event['event_id'])
+        assert first==dict(event_id=event['event_id'],status='superseded',reason='obsolete_scenario')
+        child=store.get_alert('child');assert child['status']==expected and child['bigquery']=='pending'
+        assert store.pending_event_ids()==[event['event_id']]
+        sinks.fail=False
+        assert (await dispatch.resume(event['event_id']))['status']=='superseded'
+        assert len(sinks.events)==len(sinks.published)==len(sinks.alerts)==1
+        assert sinks.alerts['child']['status']==expected and sinks.alerts['child']['status']!='accepted'
+        assert store.get_alert('child')['sent_at']==alert['sent_at'] and store.get_event(event['event_id'])['status']=='superseded'
+        assert await dispatch.resume_pending()==[]
+    try:asyncio.run(run())
+    finally:
+        for name in ('shops','events','events-plans','alerts','alerts-delivery','demo_scenario','demo_resets','risk','current','deliveries'):
+            for doc in client.collection(p+name).stream():doc.reference.delete()
+        client.close()
