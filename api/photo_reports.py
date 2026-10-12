@@ -145,15 +145,19 @@ class PhotoReportService:
         owner=await asyncio.to_thread(self.store.claim,record['report_id'])
         prior_elapsed=record.get('ingest_elapsed_ms',0)/1000+max(0,(self.clock()-record['confirmed_at']).total_seconds())
         start=time.monotonic()-prior_elapsed
+        # Persisted immutable Danger triage is this report's prepared dispatch intent.
+        # It may resume its same Danger event after reporter invalidation; no lower level may bypass the guard.
+        resume_danger = record.get('triage', {}).get('level') == 'danger'
         try:
             # The first confirmed processing clock persists across retries; confirmation wait remains separate.
-            if self.clock()-record['received_at']>timedelta(minutes=30):return await self._reply('report_stale',record)
+            if not resume_danger and self.clock()-record['received_at']>timedelta(minutes=30):
+                return await self._reply('report_stale',record)
             private=await asyncio.to_thread(self.store.private,record['report_id'])
             request=self._media_request(record,sender,private)
             try:media=await self.media.ingest_media(request,defer_ledger=True)
             except MediaIngestError as error:return await self._reply('upload_too_large' if error.code=='upload_too_large' else 'source_unavailable',record)
             await asyncio.to_thread(self.store.update,record['report_id'],owner,media_id=media.record.media_id,sha256=media.record.sha256)
-            if await asyncio.to_thread(self.store.danger_active,record['shop_id']):
+            if not resume_danger and await asyncio.to_thread(self.store.danger_active,record['shop_id']):
                 return await self._reply('danger',record)
             assessment=PhotoAssessment.model_validate(record['assessment']) if record.get('assessment') else None
             if assessment is None and not record.get('assessment_attempted'):
@@ -177,7 +181,7 @@ class PhotoReportService:
                                     corroboration_eligible=eligible,confidence=assessment.confidence if assessment else 0)
             if rejected:return await self._reply('report_rejected',record)
             # A Danger arriving during assessment cannot be reduced by this report.
-            if await asyncio.to_thread(self.store.danger_active,record['shop_id']):
+            if not resume_danger and await asyncio.to_thread(self.store.danger_active,record['shop_id']):
                 return await self._reply('danger',record)
             if record.get('triage'):
                 rule=record['triage']

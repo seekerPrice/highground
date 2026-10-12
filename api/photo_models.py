@@ -19,6 +19,9 @@ class PhotoAssessment(BaseModel):
     reason:str=Field(min_length=1,max_length=200)
     @model_validator(mode='after')
     def consistency(self):
+        if self.scene=='unreadable' and (self.assessment_status!='uncertain' or self.is_flooding is not False
+                                         or self.water_location!='none' or self.est_depth_cm is not None):
+            raise ValueError('Unreadable depiction cannot supply reliable water evidence')
         if self.scene in ('unrelated','staged','screenshot','old') and (self.assessment_status!='assessed' or self.is_flooding is not False or self.water_location!='none'):
             raise ValueError('Rejected scene cannot supply flood evidence')
         if self.is_flooding and self.water_location=='none':raise ValueError('Positive depiction must locate water')

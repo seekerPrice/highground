@@ -215,3 +215,67 @@ def test_photo_danger_invalidates_reporter_action_and_concurrent_danger_guards_r
         for name in ('shops','photo_reports','photo_pending','photo_rate','vehicle_actions','current_vehicle_actions'):
             for doc in store.collection(name).stream():doc.reference.delete()
         client.close()
+
+
+@pytest.mark.parametrize('changes', [
+    dict(assessment_status='assessed'),
+    dict(is_flooding=True,water_location='inside_premises',assessment_status='assessed',confidence=.99),
+    dict(is_flooding=True,water_location='street'),
+    dict(est_depth_cm=5),
+])
+def test_unreadable_cannot_assert_reliable_water_evidence(changes):
+    values=dict(scene='unreadable',assessment_status='uncertain',is_flooding=False,
+                water_location='none',est_depth_cm=None,confidence=.2)
+    values.update(changes)
+    with pytest.raises(ValidationError):assessment(**values)
+
+def test_unreadable_requires_independent_corroboration_for_warning_only():
+    unreadable=assessment(scene='unreadable',assessment_status='uncertain',is_flooding=False,
+                          water_location='none',confidence=.2)
+    reports=[dict(shop_id='a',sha256='one',confidence=.2,corroboration_eligible=True),
+             dict(shop_id='b',sha256='two',confidence=.2,corroboration_eligible=True)]
+    assert triage_photo(unreadable,[])[0]=='watch'
+    assert triage_photo(unreadable,reports[:1])[0]=='watch'
+    assert triage_photo(unreadable,reports)[0]=='warning'
+
+@pytest.mark.skipif(not __import__('os').environ.get('FIRESTORE_EMULATOR_HOST'),reason='Firestore emulator required')
+def test_prepared_photo_danger_resumes_after_dispatch_failure_without_reassessment():
+    from hashlib import sha256
+    from api.vehicle_confirmations import VehicleActionStore
+    client=create_firestore_client(Settings(gcp_project='highground-task9-tests'))
+    prefix='danger-retry-'+uuid4().hex+'-';store=PhotoStore(client,'synthetic',prefix)
+    store.collection('shops').document('reporter').set(dict(lat=3.,lng=101.,is_demo=True,
+        recipients=[dict(telegram_chat_id=123,language='en',role='owner')]))
+    media,*_=media_service();media.authorize=store.authorize_media
+    assessor=Assessor(assessment(water_location='inside_premises'))
+    class FailOnce(Dispatch):
+        def __init__(self):super().__init__();self.attempts=[];self.logical={}
+        async def process(self,event):
+            self.attempts.append(event.model_dump())
+            if len(self.attempts)==1:raise RuntimeError('synthetic failure before event creation')
+            event_id=sha256(f'{event.source}:{event.request_id}'.encode()).hexdigest()
+            self.logical.setdefault(event_id,event)
+            return dict(event_id=event_id,status='complete')
+    dispatch=FailOnce()
+    dispatch.vehicle_actions=VehicleActionStore(client,actions=prefix+'vehicle_actions',current=prefix+'current_vehicle_actions',shops=prefix+'shops')
+    active=PhotoReportService(store,media,assessor,dispatch)
+    async def run():
+        now=datetime.now(UTC)
+        reply=await active.handle_photo(123,1,1,int(now.timestamp()),PhotoMedia(file_id='id',file_unique_id='unique',file_size=len(image_bytes())))
+        with pytest.raises(RuntimeError):await active.confirm_report_location(123,reply.report_id,at_shop=True)
+        saved=store.get(reply.report_id)
+        assert saved['triage']['level']=='danger' and store.danger_active('reporter')
+        assert not saved.get('event_id') and assessor.calls==1
+        restarted=PhotoReportService(store,media,assessor,dispatch)
+        retried=await restarted.confirm_report_location(123,reply.report_id,at_shop=True)
+        assert retried.code=='danger' and assessor.calls==1
+        assert dispatch.attempts[0]==dispatch.attempts[1]
+        assert dispatch.attempts[1]['reporter_shop_id']=='reporter'
+        assert len(dispatch.logical)==1
+        assert store.get(reply.report_id)['triage']==saved['triage']
+        assert store.get(reply.report_id)['event_id'] in dispatch.logical
+    try:asyncio.run(run())
+    finally:
+        for name in ('shops','photo_reports','photo_pending','photo_rate','vehicle_actions','current_vehicle_actions'):
+            for doc in store.collection(name).stream():doc.reference.delete()
+        client.close()
