@@ -57,5 +57,6 @@
   "situation_watch": "已报告早期洪水隐患。",
   "situation_warning": "该区域发布了洪水预警。",
   "vehicle_target_unavailable": "{vehicle_type} 的车辆行动目标：{deadline}。停车信息不可用；不建议前往任何目的地。",
-  "warning_intro_actions": "⚠️ 警告：{reason} 请查看下方的行动目标。"
+  "warning_intro_actions": "⚠️ 警告：{reason} 请查看下方的行动目标。",
+  "warning_distance": "报告事件：距离本店约 {distance_m} 米。"
 }

@@ -31,3 +31,7 @@ Local artifacts: `/Users/lucaslt/.codex/outputs/highground/setup/task7-live-resu
 ## Remaining acceptance boundaries
 
 Native review of seven generated translations and a two-person consenting phone journey are unavailable. Current destination availability and final source coverage remain external limitations. Task 8 supplies destinations and confirmations; Tasks 9/10 supply report/polling integration; final Must acceptance includes actual media, escalation and latency checks. Hosting and cloud IAM/signed-URL behaviour remain deferred.
+
+## Final source cross-check correction
+
+Candidate `34d443b` omitted Warning distance required by Sections 6.2/11. Sol added deterministic event-to-shop haversine distance and one committed key in all eight catalogs; seven new translations used configured Vertex. Astra compared actual bytes with that candidate and confirmed that no Danger literal or review metadata changed. Astra independently reran dispatch/i18n tests: **37 passed in 0.73 seconds**, exit 0. Near/far cases show 0, 2 and 222 metres; missing coordinates cannot produce a guessed distance. The earlier full local gate and live Telegram observations remain evidence for the pre-correction candidate; this narrow correction has the affected regression evidence stated here.

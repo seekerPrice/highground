@@ -9,6 +9,7 @@ from pydantic import ValidationError
 
 from api.dispatch_models import ActionSnapshot, Destination, Shop
 from api.agents.warning_selector import WarningStructure
+from api.tools.geo import distance_m
 
 def _localized(language: str, key: str, **values) -> str:
     from api.i18n import text
@@ -96,7 +97,8 @@ class AlertComposer:
         else:
             structure = self._choices.get((event['event_id'], language), 'warning_intro_fallback')
             body = _localized(language, structure, reason=_localized(language, 'situation_warning'))
-            parts = [body]
+            meters = distance_m(event['lat'], event['lng'], shop.lat, shop.lng)
+            parts = [body, _localized(language, 'warning_distance', distance_m=f'{meters:.0f}')]
             if snapshot.items:
                 parts.append(_localized(language, 'lift_first_heading'))
                 for item in snapshot.items:

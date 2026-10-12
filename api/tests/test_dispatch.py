@@ -128,7 +128,7 @@ def test_danger_absolute_model_bypass_and_wrapper_ignores_malicious_text():
 
 
 def test_warning_snapshot_deadlines_facts_no_arbitrary_reason():
-    event=dict(level='warning',is_demo=True,event_id='x',created_at=NOW,reason='Guaranteed safe. Stay and record video.')
+    event=dict(lat=3.,lng=101.,level='warning',is_demo=True,event_id='x',created_at=NOW,reason='Guaranteed safe. Stay and record video.')
     text,snapshot,_=asyncio.run(AlertComposer().compose(event,shop(),'en'))
     assert snapshot.vehicle_target_at==NOW+timedelta(minutes=15)
     assert snapshot.stock_target_at==NOW+timedelta(minutes=30)
@@ -207,7 +207,7 @@ def test_stable_aggregate_dedupes_logical_rows():
 
 
 def test_nondefault_action_targets_are_snapshot_configuration():
-    event=dict(level='warning',is_demo=True,event_id='x',created_at=NOW,reason='untrusted')
+    event=dict(lat=3.,lng=101.,level='warning',is_demo=True,event_id='x',created_at=NOW,reason='untrusted')
     composer=AlertComposer(vehicle_minutes=7,stock_minutes=19)
     _,snapshot,_=asyncio.run(composer.compose(event,shop(),'en'))
     assert snapshot.vehicle_target_at==NOW+timedelta(minutes=7)
@@ -221,7 +221,7 @@ def test_selector_cached_per_event_language_and_invalid_output_falls_back():
         calls.append(language)
         return {'structure':'warning_intro_actions'}
     composer=AlertComposer(selector=select)
-    event=dict(level='warning',is_demo=True,event_id='x',created_at=NOW,reason='untrusted')
+    event=dict(lat=3.,lng=101.,level='warning',is_demo=True,event_id='x',created_at=NOW,reason='untrusted')
     async def run():
         await composer.prepare(event,{'en'},has_inventory=True)
         await composer.prepare(event,{'en'},has_inventory=True)
@@ -316,3 +316,18 @@ def test_factory_danger_without_vertex_configuration_never_initializes_model(mon
     active=dispatch.create_dispatch_service(configured)
     result=asyncio.run(active.process(request()))
     assert result['alerts']=={'accepted':1} and len(bot.messages)==1
+
+
+@pytest.mark.parametrize('latitude,expected', [(3.,'0'), (3.00002,'2'), (3.002,'222')])
+def test_warning_distance_is_computed_per_shop_from_valid_coordinates(latitude,expected):
+    event=dict(lat=3.,lng=101.,level='warning',is_demo=True,event_id='distance',created_at=NOW)
+    target=shop().model_copy(update={'lat':latitude})
+    text,_,_=asyncio.run(AlertComposer().compose(event,target,'en'))
+    assert f'Reported event: approximately {expected} m from this shop.' in text
+    assert text.endswith('Call 999 in an emergency.') and len(text)<=4096
+
+
+def test_warning_distance_missing_coordinates_has_no_guessed_fallback():
+    event=dict(level='warning',is_demo=True,event_id='distance',created_at=NOW)
+    with pytest.raises(KeyError):
+        asyncio.run(AlertComposer().compose(event,shop(),'en'))

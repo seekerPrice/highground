@@ -57,5 +57,6 @@
   "situation_watch": "Kekhawatiran awal banjir telah dilaporkan.",
   "situation_warning": "Peringatan banjir berlaku untuk area ini.",
   "vehicle_target_unavailable": "Target tindakan kendaraan untuk {vehicle_type}: {deadline}. Informasi parkir tidak tersedia; tidak ada tujuan yang disarankan.",
-  "warning_intro_actions": "⚠️ Peringatan: {reason} Tinjau target tindakan di bawah ini."
+  "warning_intro_actions": "⚠️ Peringatan: {reason} Tinjau target tindakan di bawah ini.",
+  "warning_distance": "Peristiwa yang dilaporkan: sekitar {distance_m} m dari toko ini."
 }

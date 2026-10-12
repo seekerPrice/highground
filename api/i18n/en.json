@@ -57,5 +57,6 @@
   "situation_watch": "Early flood concern has been reported.",
   "situation_warning": "A flood warning applies to this area.",
   "vehicle_target_unavailable": "Vehicle action target for {vehicle_type}: {deadline}. Parking information is unavailable; no destination is recommended.",
-  "warning_intro_actions": "⚠️ Warning: {reason} Review the action targets below."
+  "warning_intro_actions": "⚠️ Warning: {reason} Review the action targets below.",
+  "warning_distance": "Reported event: approximately {distance_m} m from this shop."
 }

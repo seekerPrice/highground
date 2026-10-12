@@ -57,5 +57,6 @@
   "situation_watch": "Kebimbangan awal banjir telah dilaporkan.",
   "situation_warning": "Amaran banjir berkuat kuasa untuk kawasan ini.",
   "vehicle_target_unavailable": "Sasaran tindakan kenderaan untuk {vehicle_type}: {deadline}. Maklumat tempat letak kereta tidak tersedia; tiada destinasi disyorkan.",
-  "warning_intro_actions": "⚠️ Amaran: {reason} Semak sasaran tindakan di bawah."
+  "warning_intro_actions": "⚠️ Amaran: {reason} Semak sasaran tindakan di bawah.",
+  "warning_distance": "Peristiwa dilaporkan: kira-kira {distance_m} m dari kedai ini."
 }
