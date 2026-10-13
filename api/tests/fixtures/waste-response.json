@@ -28,5 +28,7 @@
     ],
     "definition": "Synthetic estimates from the latest completed assessment per shop, episode and inventory. Missing/unassessed items and unknown quantities remain unknown. Estimated load-equivalents are not required trucks or a collection promise."
   },
-  "note": "Synthetic fixture only. Five shops have no completed waste assessment; estimated load-equivalents do not promise collection."
+  "note": "Synthetic fixture only. Five shops have no completed waste assessment; estimated load-equivalents do not promise collection.",
+  "scenario_generation": null,
+  "map_links": []
 }

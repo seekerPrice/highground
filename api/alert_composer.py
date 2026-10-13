@@ -167,6 +167,7 @@ class AlertComposer:
             for destination, label in [(snapshot.parking_destination, 'parking_route_button'), (snapshot.shelter_destination, 'shelter_route_button')]:
                 if destination:
                     rows.append([{'text': _localized(language, label), 'url': destination.route_link}])
+            rows.append([{'text': _localized(language, 'video_update_optional'), 'callback_data': 'inventory:refresh'}])
         return rendered, snapshot, {'inline_keyboard': rows} if rows else None
 
 

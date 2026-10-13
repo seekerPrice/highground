@@ -284,6 +284,27 @@ class TelegramHandler:
         query = update.callback_query
         status, language, confirmation_id = 'unavailable', 'en', None
         message = query.message
+        if self.inventory and query.data=='inventory:refresh' and message and message.chat.type=='private' and query.sender.id==message.chat.id:
+            try:await run_in_threadpool(self.api.answer_callback_query,query.id,'')
+            except TelegramSendError:pass
+            try:
+                reply=await self.inventory.warning_update(query.sender.id)
+                if reply.kind=='prompt' and self.recovery:await self.recovery.exit(query.sender.id)
+                await run_in_threadpool(self.inbox.transition,update.update_id,owner,'sending',operation_id=operation_id)
+                reply=await self.inventory.warning_update(query.sender.id,reply)
+            except Exception:
+                await run_in_threadpool(self.inbox.transition,update.update_id,owner,'retryable',operation_id=operation_id)
+                raise WebhookRetry() from None
+            try:sent_id=await run_in_threadpool(self.api.send_message,query.sender.id,reply.text,reply_markup=reply.reply_markup)
+            except TelegramSendError as error:
+                await run_in_threadpool(self.inbox.transition,update.update_id,owner,'uncertain' if error.uncertain else 'retryable',operation_id=operation_id)
+                if error.uncertain:return 'uncertain'
+                raise WebhookRetry() from None
+            except Exception:
+                await run_in_threadpool(self.inbox.transition,update.update_id,owner,'uncertain',operation_id=operation_id)
+                return 'uncertain'
+            await run_in_threadpool(self.inbox.transition,update.update_id,owner,'done',operation_id=operation_id,message_id=sent_id)
+            return 'done'
         outcome_match=re.fullmatch(r'outcome:([0-9a-f]{32}):(no|street|entrance|inside)',query.data or '')
         if self.outcomes and outcome_match and message and message.chat.type=='private' and query.sender.id==message.chat.id:
             try:await run_in_threadpool(self.api.answer_callback_query,query.id,'')

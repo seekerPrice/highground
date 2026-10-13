@@ -402,7 +402,7 @@ Scope: Should — full local Must acceptance required; hosting deferred. Deliver
 - [x] Narrow local outcomes migration has seven fake-client checks; actual emulator schema patch failed new-column query as expected, root instead verified a separate highground_v3 copy of all five table row multisets/hashes, new-column queryability and unchanged original dataset, then switched only ignored local BQ_DATASET. No false metadata-only migration success.
 - [x] Astra implemented scoped selected-shop drill handoff, direct demo navigation, explanatory existing simulation controls, tile loading/error/retry feedback and labelled keyboard report-table regions. No new dependencies, flood features or data claims.
 - [x] Root browser review of the new UI passed selected-shop → drill → location handoff, desktop/tablet/320/390px navigation without overflow,46px action buttons and both report-table keyboard scrolling regions with visible focus. Actual basemap loaded15 tiles; report print styles stayed unchanged. Evidence: task20-22-acceptance/ui/drill-ui-proof.json.
-- [ ] Controlled tile-network failure/retry injection remains a separate unperformed robustness check; the retained grey screenshot was not evidence of a live tile failure.
+- [x] Root later injected a controlled tile-network failure through a local CSP fault proxy:15failed/0loaded tiles, pins and keyboard operation retained; Retry continued to show unavailable while the fault persisted. Normal reload outside the fault restored15 tiles. Same-page reconnection and phone airplane mode were not tested; the earlier grey screenshot was not evidence of a live failure.
 - [x] Final local gate/reviews against1646ebc include intended untracked20–22 files and the UI amendment:25infra,629API,33frontend,lint/type/build passed; both independent axes0. Earlier621-case checkpoint and subsequent runtime corrections are retained below as historical evidence, not confused with final acceptance.
 
 ### Final Tasks20–22 correction checkpoint
@@ -429,6 +429,20 @@ Scope: Should — full local Must acceptance required; hosting deferred. Deliver
 - [x] Full-gate-v3 exited0:629API/no skips80.09s;33frontend/no skips;lint/typecheck/production build passed. The final infra-only retained-volume correction was verified separately:25passed10.318s. API629=467+42+36+69+7+8;infra25=24+1.
 - [x] Both original independent Matt reviewers returned0 after query-lock and retained-volume supplements. Source is frozen for root commit-byte verification; no Git writes by Astra.
 - [x] Final actual primary8000 returned eight available reads1.01–5.57s with six responses preserved. Chrome3001 displayed six synthetic shops,RM472 reported lifted,one vehicle,one real API acceptance,five virtual alerts,six seeded responses and0.99/version2; official unavailable status remained explicit.
-- [x] Local Tasks20–22 accepted. Prior diagnostic/then-pending bullets above are historical and superseded by this final checkpoint. Hosting/cloud acceptance,native-language human review,real-shop validation,second physical tester,phone airplane-mode test,controlled tile-failure injection and final recorded video/deck/submission remain outside this local completion claim.
+- [x] Local Tasks20–22 accepted. Prior diagnostic/then-pending bullets above are historical and superseded by this final checkpoint. Hosting/cloud acceptance,native-language human review,real-shop validation,second physical tester,phone airplane-mode test and final recorded video/deck/submission remain outside this local completion claim.
 
 - [ ] Hosted deployment/cloud acceptance remains deferred; local completion does not tick this external gate.
+
+### Requirement-by-requirement audit after 4a992a4
+
+- [x] Read source Sections12/13, approved amendments and actual modules/tests/artifacts; both independent axes found four concrete local gaps. See completion-audit.md. Water-depth estimation remains Stretch and was not added.
+- [x] Astra corrected the shared destination-read outage, optional Warning video button, and current-generation synthetic cleanup map layer. Both Matt axes returned0; observed RED→GREEN evidence is recorded in the audit. Focused58 API/7 web cases and scoped lint passed.
+- [x] Final corrected-source full gate exited0:25infra6.140s,645API/no skips/six dependency warnings80.73s,34web/no skips,lint/typecheck/build. Both independent axes and assertion supplement0. See completion-audit.md for the first failed gate and unchanged concurrency reruns.
+- [x] Corrected-source browser acceptance and README captures passed; final bounded web-image rebuild is tracked separately below. API image112/112 source parity and smoke passed.
+- [x] Added byte-identical inspected1512px desktop and390px phone screenshots to README with controlled reconstructed-case labels; no private capabilities or recipients.
+- [ ] Hosted/cloud and explicit human/external gates remain deferred as above.
+
+- [x] Post-gate runtime loss recorded honestly: Firestore ephemeral state lost after OOM; persistent BQ retained; six virtual shops/distinct-generation history and a captured-output isolated report were explicitly reconstructed. Current API eight-read proof passed; prior private owner/ADK history is not claimed restored. See completion-audit.md.
+- [x] Root's390px cleanup popup screenshot exposed zoom overlap. Astra applied the two-file external native-control toolbar correction and normal-flow loading/error notices; source frozen for independent supplements and final full entrypoint.
+- [x] Final frozen phone correction gate v4 passed25infra/645API/34web plus lint/types/build; both reviewer supplements0. Actual 390px popup unobscured/no overflow, native keyboard zoom changes tiles,1512px desktop no overflow.
+- [x] Final bounded web-image retry passed at1536MiB/2048MiB swap; nonroot/no.env/root/report/proxy smoke passed and builder/container stopped. API image112/112 parity/smoke passed. Both owned services restarted and100 saved Firestore documents restored with exact original-value equality; this is manual restoration of reconstructed fixtures, not old owner history or automatic durability.

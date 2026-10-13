@@ -14,7 +14,8 @@ export interface WasteItem {item_id:string;condition:ReportItem["condition"];dis
 export interface ReportWaste {status:"available"|"not_assessed"|"unavailable";items:WasteItem[];confidence:number|null;owner_confirmed_street:string|null;street_assignment_source:"owner_confirmed_current_shop"|"unassigned";street_confirmed_at:string|null;food_safety_line:string;safety_note:string}
 export interface StreetWaste {street:string;assessment_count:number;shop_count:number;baseline_items:number;assessed_items:number;affected_items:number;unknown_items:number;quantified_volume_items:number;unknown_volume_items:number;quantified_weight_items:number;unknown_weight_items:number;est_volume_m3:number|null;est_weight_kg:number|null;estimated_load_equivalents:number|null}
 export interface WasteAggregate {is_demo:true;lorry_capacity_m3:number;streets:StreetWaste[];definition:string}
-export interface WasteResponse {status:"available"|"empty"|"unavailable";generated_at:string;is_demo:true;registered_synthetic_shops:number|null;assessed_shops:number|null;missing_or_unavailable_shops:number|null;aggregate:WasteAggregate|null;note:string}
+export interface WasteMapLink {shop_id:string;street:string}
+export interface WasteResponse {scenario_generation:number|null;map_links:WasteMapLink[];status:"available"|"empty"|"unavailable";generated_at:string;is_demo:true;registered_synthetic_shops:number|null;assessed_shops:number|null;missing_or_unavailable_shops:number|null;aggregate:WasteAggregate|null;note:string}
 export interface Report {report_id:string;assessment_media_id:string;created_at:string;shop_name:string;is_demo:boolean;baseline_estimate_rm:number;estimated_loss_rm:number|null;estimate_status:"available"|"unavailable";coverage:"complete"|"partial"|"none";assessed_items:number;baseline_items:number;confidence:number;confidence_note:string;summary_text:string;recovery_attribution:string;items:ReportItem[];evidence:Evidence[];disclaimer:string;waste:ReportWaste}
 export interface Integrity {media_id:string;status:"verified"|"mismatch"|"unavailable";sha256:string;note:string}
 
@@ -118,7 +119,9 @@ function parseReportWaste(value:unknown,items:ReportItem[]):ReportWaste {
 }
 
 export function parseWaste(input:unknown):WasteResponse {
- const w=object(input,["status","generated_at","is_demo","registered_synthetic_shops","assessed_shops","missing_or_unavailable_shops","aggregate","note"]),status=choice(w.status,["available","empty","unavailable"]);
+ const w=object(input,["status","generated_at","is_demo","scenario_generation","map_links","registered_synthetic_shops","assessed_shops","missing_or_unavailable_shops","aggregate","note"]),status=choice(w.status,["available","empty","unavailable"]);
+ const generation=nullable(w.scenario_generation,v=>integer(v,0,Number.MAX_SAFE_INTEGER));
+ const links=list(w.map_links,50,value=>{const link=object(value,["shop_id","street"]);return {shop_id:string(link.shop_id,160),street:string(link.street,100)};});
  const registered=nullable(w.registered_synthetic_shops,v=>integer(v,0,50)),assessed=nullable(w.assessed_shops,v=>integer(v,0,50)),missing=nullable(w.missing_or_unavailable_shops,v=>integer(v,0,50));
  const aggregate=nullable(w.aggregate,value=>{
   const a=object(value,["is_demo","lorry_capacity_m3","streets","definition"]),capacity=number(a.lorry_capacity_m3,Number.MIN_VALUE,Number.MAX_VALUE);
@@ -134,5 +137,6 @@ export function parseWaste(input:unknown):WasteResponse {
   return {is_demo:demo(a.is_demo),lorry_capacity_m3:capacity,streets,definition:string(a.definition,600)};
  });
  if(status==="unavailable"?(aggregate!==null||assessed!==null||missing!==null):(registered===null||assessed===null||missing===null||aggregate===null||registered!==assessed+missing||(status==="empty")!==(assessed===0)||(assessed===0)!==(aggregate.streets.length===0)))throw new Error("Invalid waste denominator");
- return {status,generated_at:date(w.generated_at),is_demo:demo(w.is_demo),registered_synthetic_shops:registered,assessed_shops:assessed,missing_or_unavailable_shops:missing,aggregate,note:string(w.note,600)};
+ if(new Set(links.map(link=>link.shop_id)).size!==links.length||links.some(link=>status!=="available"||generation===null||link.street==="Unassigned"||!aggregate?.streets.some(street=>street.street===link.street)))throw new Error("Invalid waste map scope");
+ return {scenario_generation:generation,map_links:links,status,generated_at:date(w.generated_at),is_demo:demo(w.is_demo),registered_synthetic_shops:registered,assessed_shops:assessed,missing_or_unavailable_shops:missing,aggregate,note:string(w.note,600)};
 }

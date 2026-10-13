@@ -9,7 +9,7 @@ from api.photo_store import PhotoStore
 from api.agents.sessions import session_user_id
 from api.report_models import LossAssessment
 from api.waste import aggregate_waste,donation_eligible,validate_waste
-from api.waste_models import WasteRecord,WasteResponse
+from api.waste_models import WasteRecord,WasteResponse,WasteMapLink
 from api.demo_scenario import FIXTURE_ORIGIN,SHOP_IDS
 
 class WasteDanger(ValueError):pass
@@ -144,6 +144,11 @@ class WasteStore(PhotoStore):
                     street=shop.get('owner_confirmed_street') if shop.get('street_assignment_source')=='owner_confirmed_current_shop' and shop.get('street_confirmed_at') else None
                     records.append(row.model_copy(update={'owner_confirmed_street':street}))
             assessed=len({r.shop_id for r in records if r.status=='complete'})
-            return WasteResponse(status='available' if assessed else 'empty',generated_at=now,registered_synthetic_shops=registered,assessed_shops=assessed,missing_or_unavailable_shops=registered-assessed,aggregate=aggregate_waste(records,synthetic_shop_ids=set(scope),lorry_capacity_m3=capacity),note=f'Synthetic estimates only. {unavailable_scopes} latest completed episode/inventory scopes have unavailable waste quantities and are excluded from known totals. Shops without any available latest scope remain missing or unavailable. Street labels are current owner-confirmed values; load-equivalents do not promise collection.')
+            generation=scenario.get('generation')
+            links=tuple(WasteMapLink(shop_id=identity,street=street) for identity,street in sorted({(r.shop_id,r.owner_confirmed_street.strip()) for r in records if r.status=='complete' and r.owner_confirmed_street and r.owner_confirmed_street.strip() not in ('','Unassigned')})) if type(generation) is int else ()
+            # A reset between the reads must not publish an apparently current layer.
+            final_scenario=self.collection('demo_scenario').document('current').get(timeout=5,retry=None).to_dict() or {}
+            if final_scenario.get('state')=='resetting' or final_scenario.get('generation')!=generation:raise ValueError('Scenario changed during projection')
+            return WasteResponse(status='available' if assessed else 'empty',generated_at=now,scenario_generation=generation,map_links=links,registered_synthetic_shops=registered,assessed_shops=assessed,missing_or_unavailable_shops=registered-assessed,aggregate=aggregate_waste(records,synthetic_shop_ids=set(scope),lorry_capacity_m3=capacity),note=f'Synthetic estimates only. {unavailable_scopes} latest completed episode/inventory scopes have unavailable waste quantities and are excluded from known totals. Shops without any available latest scope remain missing or unavailable. Street labels are current owner-confirmed values; load-equivalents do not promise collection.')
         except Exception:
             return WasteResponse(status='unavailable',generated_at=now,registered_synthetic_shops=registered,assessed_shops=None,missing_or_unavailable_shops=None,aggregate=None,note='Synthetic waste estimates are unavailable; this does not establish zero waste.')

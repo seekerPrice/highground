@@ -1,13 +1,17 @@
 """Sourced historical listings; nearest is geography, never an availability claim."""
 from datetime import date
+import logging
 from typing import Literal
 from urllib.parse import urlsplit
 
 from google.cloud import firestore
+from google.api_core.exceptions import GoogleAPICallError, RetryError
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
 
 from api.dispatch_models import Destination
 from api.tools.geo import distance_m
+
+logger = logging.getLogger(__name__)
 
 
 class SafePoint(BaseModel):
@@ -71,7 +75,12 @@ class DestinationLookup:
         if not types or any(kind not in ('pps', 'parking', 'high_ground') for kind in types):
             raise ValueError('Unsupported destination type')
         candidates = []
-        records=list(self.client.collection(self.collection).limit(1001).stream(timeout=8,retry=None))
+        try:
+            records=list(self.client.collection(self.collection).limit(1001).stream(timeout=8,retry=None))
+        except (GoogleAPICallError, RetryError, TimeoutError, ConnectionError) as error:
+            # Missing listing data must not block the committed no-destination Danger variant.
+            logger.warning('Destination registry unavailable: %s', type(error).__name__)
+            return None
         if len(records)>1000:return None # Do not claim nearest from a truncated registry.
         for record in records:
             try:

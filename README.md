@@ -14,7 +14,18 @@ flowchart LR
   Web[Next.js dashboard / private report] -->|fixed backend origin| API
 ```
 
-Local Tasks1–22 have completed their authorized implementation and verification; hosted acceptance remains deferred. Latest milestone:25 infrastructure,629 API and33 frontend tests, lint/typecheck/build, independent reviews and actual runtime/browser checks passed. See [Tasks20–22 verification](docs/planning/tasks-20-22-verification.md) for failures corrected, evidence provenance and remaining limits.
+Local Tasks1–22 and the subsequent [requirement audit](docs/planning/completion-audit.md) passed **25 infrastructure, 645 API and 34 frontend tests**, lint/typecheck/production build, independent Standards/Spec reviews and actual runtime/browser checks. The audit corrected destination-outage Danger fallback, the optional Warning video button, cleanup map coverage and README screenshots. Hosted acceptance remains deferred. See [Tasks20–22 verification](docs/planning/tasks-20-22-verification.md) for evidence provenance and limits.
+
+## Local dashboard preview
+
+These are actual browser captures of a **controlled reconstructed synthetic case**, not a real flood or continuous live shop journey. Captured model output was replayed into a fresh isolated report after ephemeral local Firestore state was lost. A separately labelled generation2 projection joins that same synthetic shop to its confirmed street aggregate: approximately 0.8m³/230kg. The popup reports whole-street estimates and coverage; it does not infer street boundaries, collection routes or safety. No private capability or recipient appears in these images.
+
+![Desktop cleanup map showing the reconstructed synthetic shop and qualified whole-street estimates](docs/images/cleanup-desktop-final.png)
+
+The 390px phone view keeps the full popup readable, with keyboard-operable zoom controls outside the map viewport. The desktop capture is 1512px wide. Both were checked for page overflow.
+
+![390px phone cleanup map with readable popup and separate zoom controls](docs/images/cleanup-phone-final.png)
+
 
 ## Install and configure
 
@@ -176,7 +187,7 @@ Danger uses committed templates with deterministic listed destinations and no ru
 
 Confirmations are self-reported: vehicles count once per shop/episode, and estimated stock value uses the maximum displayed confirmed immutable snapshot per shop/episode, then sums across shops. Telegram acceptance is not a read receipt. Recovery reports exclude unknown item losses and label partial totals. File hashes check stored bytes, not recording authenticity, time, location or insurer acceptance. Original media is private and evidence receipts are retained.
 
-The reviewed local scenario has passed real emulator seeding, protected manual recovery, production dashboard/reset/retry checks and one consenting Telegram owner’s vehicle/stock confirmations. Virtual alerts are counted separately from real Telegram API acceptance; reported actions are not independently verified physical outcomes. The complete local Must gate passed, including actual native PDF content/pagination, the full local suite and independent reviews. Real Telegram media-upload permission, second-phone and hosted acceptance remain pending; Should implementation may now proceed by dependency. See the [operational checkpoint](docs/planning/task-17-operational-verification.md) for exact evidence and limitations.
+Recorded local acceptance includes real emulator seeding, protected manual recovery, production dashboard/reset/retry checks and one consenting Telegram owner’s vehicle/stock confirmations. Later explicitly approved synthetic card and policy uploads passed their own Telegram checks. Virtual alerts remain separate from real API acceptance; reported actions are not independently verified physical outcomes. Native PDF content/pagination, the local suite and independent reviews passed. Firestore is ephemeral: a later OOM required rebuilding synthetic fixtures, not restoring private owner or ADK history. See the [operational checkpoint](docs/planning/task-17-operational-verification.md) and [completion audit](docs/planning/completion-audit.md) for exact evidence and reconstruction limits. Second-phone, real-shop validation and hosted acceptance remain deferred.
 
 ## Packaging, deployment and attribution
 

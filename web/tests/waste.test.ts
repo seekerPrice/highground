@@ -68,3 +68,21 @@ test("missing loss items cannot acquire waste quantities or donation availabilit
   const bad=structuredClone(input);Object.assign(bad.waste.items[0],patch);assert.throws(()=>parseReport(bad,bad.report_id));
  }
 });
+
+test("cleanup pins join only same-generation public shops without duplicating street totals",async()=>{
+ const {wasteMap}=await import("../lib/waste-summary.ts");const {parseWaste,parseDashboard}=await import("../lib/contracts.ts");
+ const input=fixture("waste-response"),dashboard=fixture("dashboard");
+ input.scenario_generation=dashboard.scenario_generation;input.map_links=[{shop_id:dashboard.shops[0].shop_id,street:input.aggregate.streets[0].street}];
+ const value=parseWaste(input),data=parseDashboard(dashboard),layer=wasteMap(data,value);
+ assert.equal(layer.pins.length,1);assert.equal(layer.streets.length,1);assert.equal(layer.streets[0].est_volume_m3,1);
+ const two={...data,shops:[...data.shops,{...data.shops[0],shop_id:"other-public"}]};
+ const joined=wasteMap(two,{...value,map_links:[...value.map_links,{shop_id:"other-public",street:input.aggregate.streets[0].street}]});assert.equal(joined.pins.length,2);assert.equal(joined.streets.length,1);assert.equal(joined.streets[0].est_volume_m3,1);
+ assert.equal(wasteMap({...data,scenario_generation:data.scenario_generation+1},value).pins.length,0);
+ assert.equal(wasteMap({...data,scenario_state:"resetting"},value).pins.length,0);
+ assert.equal(wasteMap({...data,shops:[]},value).pins.length,0);
+ assert.equal(wasteMap(data,{...value,map_links:[{shop_id:"private-or-absent",street:input.aggregate.streets[0].street}]}).pins.length,0);
+ const unknown=structuredClone(input);unknown.aggregate.streets[0].est_volume_m3=null;unknown.aggregate.streets[0].estimated_load_equivalents=null;unknown.aggregate.streets[0].quantified_volume_items=0;unknown.aggregate.streets[0].unknown_volume_items=1;
+ assert.equal(wasteMap(data,parseWaste(unknown)).streets[0].est_volume_m3,null);
+ const duplicate=structuredClone(input);duplicate.map_links.push(duplicate.map_links[0]);assert.throws(()=>parseWaste(duplicate));
+ const unassigned=structuredClone(input);unassigned.map_links[0].street="Unassigned";assert.throws(()=>parseWaste(unassigned));
+});

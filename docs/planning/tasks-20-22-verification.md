@@ -113,3 +113,9 @@ Both supplemental reviewers caught a real lifecycle edge before acceptance: chan
 Final actual-browser evidence: `ui/final-dashboard.png`, `ui/final-dashboard-dom.txt` and `ui/final-dashboard-proof.json` record main3001 across14:14–14:15MYT polling, with available stats and six current seeded responses. Primary BigQuery was running and OOMKilled=false. These are observations of the corrected local runtime, not an uptime guarantee.
 
 Final primary API8000 runs the frozen reviewed workspace through `uvicorn api.main:app`, so local renderer fonts, infrastructure schema files and demo assets remain available. The earlier partial non-test snapshot was a probe boundary, not the final application runtime. No application source change accompanied this launch.
+
+## Subsequent requirement audit and runtime reconstruction
+
+The milestone evidence above is historical at4a992a4. A source-by-source audit then corrected the shared destination-outage fallback, optional Warning update button and current-generation cleanup map; the observed complete gate reached25 infrastructure/645 API/34 frontend with lint/type/build. See [completion audit](completion-audit.md) for RED→GREEN cases, independent reviews, the later phone-popup correction and its final verification.
+
+A later image-build window OOM-killed ephemeral Firestore and the persistent BigQuery container. BigQuery retained its data; lost private owner/ADK/report state was not claimed restored. New six-shop virtual data and distinct-generation outcome fixtures were seeded, and captured model output was replayed into a fresh isolated recovery namespace. Current screenshots must reference that reconstructed state; the prior accepted-action/browser screenshots and old bearer links are historical. Exact loss/replay/runtime boundaries are recorded in the completion audit and updated single-shop drill runbook.

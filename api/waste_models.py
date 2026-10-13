@@ -91,10 +91,16 @@ class ReportWaste(WasteDTO):
         if confirmed!=(self.street_assignment_source=='owner_confirmed_current_shop') or confirmed!=(self.street_confirmed_at is not None):raise ValueError('Street requires confirmation provenance')
         return self
 
+class WasteMapLink(WasteDTO):
+    shop_id:str=Field(min_length=1,max_length=160)
+    street:str=Field(min_length=1,max_length=100,pattern=r'^[^\n\r{}<>]+$')
+
 class WasteResponse(WasteDTO):
     status:Literal['available','empty','unavailable']
     generated_at:AwareDatetime
     is_demo:Literal[True]=True
+    scenario_generation:int|None=Field(default=None,ge=0)
+    map_links:tuple[WasteMapLink,...]=Field(default=(),max_length=50)
     registered_synthetic_shops:int|None=Field(ge=0,le=50)
     assessed_shops:int|None=Field(ge=0,le=50)
     missing_or_unavailable_shops:int|None=Field(ge=0,le=50)
@@ -103,6 +109,9 @@ class WasteResponse(WasteDTO):
 
     @model_validator(mode='after')
     def denominator(self):
+        if self.map_links:
+            streets={s.street for s in self.aggregate.streets} if self.aggregate else set()
+            if self.status!='available' or self.scenario_generation is None or len({link.shop_id for link in self.map_links})!=len(self.map_links) or any(link.street=='Unassigned' or link.street not in streets for link in self.map_links):raise ValueError('Map links require distinct current contributors and confirmed street totals')
         if self.status=='unavailable':
             if self.aggregate is not None or self.assessed_shops is not None or self.missing_or_unavailable_shops is not None:raise ValueError('Unavailable aggregate cannot claim known counts')
         else:
