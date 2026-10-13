@@ -446,3 +446,13 @@ Scope: Should — full local Must acceptance required; hosting deferred. Deliver
 - [x] Root's390px cleanup popup screenshot exposed zoom overlap. Astra applied the two-file external native-control toolbar correction and normal-flow loading/error notices; source frozen for independent supplements and final full entrypoint.
 - [x] Final frozen phone correction gate v4 passed25infra/645API/34web plus lint/types/build; both reviewer supplements0. Actual 390px popup unobscured/no overflow, native keyboard zoom changes tiles,1512px desktop no overflow.
 - [x] Final bounded web-image retry passed at1536MiB/2048MiB swap; nonroot/no.env/root/report/proxy smoke passed and builder/container stopped. API image112/112 parity/smoke passed. Both owned services restarted and100 saved Firestore documents restored with exact original-value equality; this is manual restoration of reconstructed fixtures, not old owner history or automatic durability.
+
+### New winning-chance blind-spot pass (baseline 6c71dc4)
+
+- [x] Astra ranked first-visit evidence access against private timestamp navigation and external gates; root selected public read-only worked example. Primary official FAQ/video docs checked; scope/provenance/privacy contract recorded in winning-walkthrough-brief.md.
+- [x] Sol implements public `/example` from curated captured synthetic output and existing public media, with clear AI/calculation/illustration boundaries and no background API calls.
+- [x] Astra inspected actual implementation/local checks, returned early copy/count/provenance defects to Sol and rechecked corrections.
+- [x] Independent Matt Standards and Spec reviews each returned0 against recorded baseline. Three isolated mutation guards observed expected failures and restored3/3pass; shared source hashes unchanged. See example-verification.md.
+- [x] Root final full local gate passed25infra/645API/37web, no skips, lint/types/productionbuild. First full attempt had4BigQuerytimeouts; exact4passed after retained-volume restart, then finalgate passed with ownedAPIpolling isolated and process resumed. No precise timeoutcause/applicationfix claimed. See example-verification.md.
+- [x] Root final-copy browser recheck passed on production3001/3006 with exact Gemini labels, both images and1512/390/320px no overflow; backend-unavailable entry/navigation and keyboard checks passed. Resumed runtime recovered available analytics after retained-volume restart; slow/unavailable observations and no permanent stability claim are recorded in example-verification.md. Publication is tracked in issue31 and draft PR30.
+- [ ] Hosting, human validation and submission artifacts remain separately pending.
