@@ -78,6 +78,17 @@ class LifecycleTests(unittest.TestCase):
             with self.assertRaises(ValueError):emulators.operate('start',(spec,),initialize=True)
             self.assertFalse(any(call.args[0:2]==('volume','create') for call in command.call_args_list))
 
+    def test_fresh_initialization_refuses_orphaned_recovered_volume(self):
+        spec=emulators.SPECS[-1]
+        def boundary(*args):
+            if args==('volume','ls','--filter','name=^highground-bigquery-recovered-data$','--format','{{.Name}}'):
+                return 'highground-bigquery-recovered-data\n'
+            return ''
+        with patch.object(emulators,'inspect',return_value=None),patch.object(emulators,'docker',side_effect=boundary) as command:
+            with self.assertRaisesRegex(ValueError,'Retained BigQuery data'):
+                emulators.operate('start',(spec,),initialize=True)
+            self.assertFalse(any(call.args[:2]==('volume','create') or call.args[0]=='run' for call in command.call_args_list))
+
     def test_environment_defaults_never_accept_cloud_and_unit_blocks_dotenv_reload(self):
         self.assertEqual(gate.environment('full',{},gate.ENDPOINTS),gate.ENDPOINTS)
         bad={**gate.ENDPOINTS,'STORAGE_EMULATOR_HOST':'https://storage.googleapis.com'}

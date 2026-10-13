@@ -14,6 +14,8 @@ flowchart LR
   Web[Next.js dashboard / private report] -->|fixed backend origin| API
 ```
 
+Local Tasks1–22 have completed their authorized implementation and verification; hosted acceptance remains deferred. Latest milestone:25 infrastructure,629 API and33 frontend tests, lint/typecheck/build, independent reviews and actual runtime/browser checks passed. See [Tasks20–22 verification](docs/planning/tasks-20-22-verification.md) for failures corrected, evidence provenance and remaining limits.
+
 ## Install and configure
 
 Use Python 3.12, Node.js 24 and npm 11. Tested host versions are Python 3.12.13, Node 24.14.0 and npm 11.9.0. Run from the repository root:
@@ -63,7 +65,7 @@ Inspect emulator ownership/configuration without changing anything:
 python3 infra/emulators.py status
 ```
 
-The runner pins four images and publishes only loopback ports. Firestore/Pub/Sub use the Google CLI 588.0.0 emulator image with bounded Java heaps. GCS uses fake-gcs-server 1.56.1. BigQuery uses goccy 0.8.1 with bounded Go/container memory and the retained `highground-bigquery-recovered-data` volume. `start` creates missing services or starts stopped matching containers; it refuses existing unbounded/mismatched configuration instead of silently replacing it:
+The runner pins four images and publishes only loopback ports. Firestore/Pub/Sub use the Google CLI 588.0.0 emulator image with bounded Java heaps. GCS uses fake-gcs-server 1.56.1. BigQuery uses goccy 0.8.1 with bounded Go/container memory and the retained `highground-bigquery-live-data` volume. `start` creates missing services or starts stopped matching containers; it refuses existing unbounded/mismatched configuration instead of silently replacing it:
 
 ```sh
 python3 infra/emulators.py start
@@ -181,3 +183,9 @@ The reviewed local scenario has passed real emulator seeding, protected manual r
 [Task 14 packaging evidence](docs/planning/task-14-verification.md) records digest-pinned non-root images and root's actual local image checks. `infra/deploy.sh` defaults to dry-run and requires explicit hosting authorization plus explicit project/region/images/service accounts/config/Secret Manager versions to execute. It does not provision resources, replace webhooks or change Scheduler jobs. Hosted acceptance remains pending. No GitHub Actions, Dependabot or repository-connected Cloud Build triggers are included.
 
 Built with FastAPI, Google ADK, Gemini on Vertex AI, Firestore, Cloud Storage, Pub/Sub, BigQuery, Next.js, Tailwind, Leaflet and OpenStreetMap. Development Storage/BigQuery emulators are third-party tools and do not prove cloud IAM, signed-link expiry or production compatibility. Local Source Sans 3 is bundled under the SIL Open Font License; see [font license](web/public/licenses/source-sans-3.txt). Repository code is MIT: [LICENSE](LICENSE).
+
+Owner water outcomes can be collected through the manually invoked, authenticated `POST /jobs/ask-outcomes` endpoint, using the same private scheduler/operator authorization as `/jobs/resume-pending`. `OUTCOME_ASK_AFTER_H=6` is the default delay from the first accepted Warning/Danger alert; explicit episode closure makes the prompt due immediately. Active Danger defers this question. Send a bounded JSON body such as `{"limit":10}` (maximum20). The25-second response deadline can return `deadline_limited`/`inflight_unknown`; one already-started bounded request may continue, and durable leases govern retry. This is a **manual job**, with no automatic scheduler installed.
+
+A current owner can choose one of four buttons on the accepted private prompt. The first response for the shop and confirmed episode is immutable. Prompted answers carry an explicitly labelled episode-reference time, separate from when the answer arrived; this is not a claimed capture or physical observation time. To declare inside water with an optional depth before a first response exists, use `/outcome inside 2026-10-13T10:00:00+08:00 42`. The timestamp must fall within exactly one confirmed episode; depth is optional, whole centimetres from0 to1000, and is never inferred. Workers and public report links cannot authorize a response. Missing reports remain unknown, and owner reports are not independent water verification or forecasting accuracy.
+
+After the six local demo shops exist and the nullable outcomes schema additions have been applied locally, `python infra/seed_outcomes.py --apply` adds explicitly labelled synthetic history: **six historical episodes of one synthetic shop**, including five simulated responses and one synthetic owner-declared inside case. Repeating it preserves the original facts. Its0.9→0.99 radius trend demonstrates the rule; it is not measured accuracy or six independent shops. The command requires all four loopback emulator endpoints before constructing clients and sends no Telegram messages. Public `/api/outcomes` contains synthetic coverage and bounded calibration history only. [Task22 implementation and verification](docs/planning/task-22-integration-verification.md) separates local tests from root’s operational acceptance.

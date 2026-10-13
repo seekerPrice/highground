@@ -109,4 +109,4 @@ def create_poll_service(settings):
     from api.tools.firestore import create_firestore_client
     from api.active_risk import ActiveRiskStore
     client=create_firestore_client(settings)
-    return PollService(PollStore(client,max_age=settings.official_max_age),create_dispatch_service(settings),ActiveRiskStore(client,max_age=settings.official_max_age))
+    return PollService(PollStore(client,max_age=settings.official_max_age),create_dispatch_service(settings),ActiveRiskStore(client,max_age=settings.official_max_age,episode_history="risk_episode_history"))

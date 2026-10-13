@@ -1,0 +1,32 @@
+{
+  "status": "available",
+  "generated_at": "2026-10-13T00:00:00Z",
+  "is_demo": true,
+  "registered_synthetic_shops": 6,
+  "assessed_shops": 1,
+  "missing_or_unavailable_shops": 5,
+  "aggregate": {
+    "is_demo": true,
+    "lorry_capacity_m3": 10.0,
+    "streets": [
+      {
+        "street": "Owner-confirmed street",
+        "assessment_count": 1,
+        "shop_count": 1,
+        "baseline_items": 1,
+        "assessed_items": 1,
+        "affected_items": 1,
+        "unknown_items": 0,
+        "quantified_volume_items": 1,
+        "unknown_volume_items": 0,
+        "quantified_weight_items": 1,
+        "unknown_weight_items": 0,
+        "est_volume_m3": 1.0,
+        "est_weight_kg": 2.0,
+        "estimated_load_equivalents": 0.1
+      }
+    ],
+    "definition": "Synthetic estimates from the latest completed assessment per shop, episode and inventory. Missing/unassessed items and unknown quantities remain unknown. Estimated load-equivalents are not required trucks or a collection promise."
+  },
+  "note": "Synthetic fixture only. Five shops have no completed waste assessment; estimated load-equivalents do not promise collection."
+}

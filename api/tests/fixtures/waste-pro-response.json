@@ -1,0 +1,105 @@
+{
+  "response": {
+    "items": [
+      {
+        "item_id": "pro-fixture:0",
+        "condition": "destroyed",
+        "estimated_loss_rm": 140.0,
+        "evidence_timestamp_s": 15.0,
+        "uncertainty": "All 4 rice boxes sit in floodwater and mud, entirely unrecoverable."
+      },
+      {
+        "item_id": "pro-fixture:1",
+        "condition": "damaged",
+        "estimated_loss_rm": 48.0,
+        "evidence_timestamp_s": 15.0,
+        "uncertainty": "Bottom 4 cases (out of 8) submerged in flood mud. Bottled water may be salvageable but exterior contamination requires thorough cleaning; assuming 50% loss."
+      },
+      {
+        "item_id": "pro-fixture:2",
+        "condition": "destroyed",
+        "estimated_loss_rm": 80.0,
+        "evidence_timestamp_s": 15.0,
+        "uncertainty": "One rice cooker is in the mud, ruined; others not seen destroyed."
+      }
+    ],
+    "total_loss_rm": 268.0,
+    "summary_text": "Assessment confirms extensive flood damage. Ground-level inventory severely impacted. Rice boxes are total loss due to mud and water absorption. Half of the bottled water cases are contaminated externally by floodwater. One rice cooker fell into the mud and is destroyed.",
+    "confidence": 0.9,
+    "confidence_note": "Clear visibility of the main items in the floodwater; loss estimates are reasonable extrapolations.",
+    "waste": {
+      "items": [
+        {
+          "item_id": "pro-fixture:0",
+          "disposition": "discard_contaminated",
+          "est_volume_m3": 0.1,
+          "est_weight_kg": 40.0,
+          "material": "absorbent",
+          "floodwater_contact": "yes",
+          "contamination": "present",
+          "uncertainty": "Cardboard boxes of rice in direct mud/water contact."
+        },
+        {
+          "item_id": "pro-fixture:1",
+          "disposition": "salvage_clean",
+          "est_volume_m3": 0.05,
+          "est_weight_kg": 48.0,
+          "material": "sealed_plastic",
+          "floodwater_contact": "yes",
+          "contamination": "present",
+          "uncertainty": "Exterior plastic wraps and bottles contaminated, but seal integrity likely intact."
+        },
+        {
+          "item_id": "pro-fixture:2",
+          "disposition": "recycle",
+          "est_volume_m3": 0.02,
+          "est_weight_kg": 3.0,
+          "material": "e_waste",
+          "floodwater_contact": "yes",
+          "contamination": "present",
+          "uncertainty": "Rice cooker in mud; electronic components destroyed."
+        }
+      ],
+      "confidence": 0.9
+    }
+  },
+  "baseline": {
+    "confidence": 0.9,
+    "items": [
+      {
+        "name": "10KG Rice Box",
+        "est_unit_value_rm": 35.0,
+        "qty": 4.0,
+        "location_in_shop": "Front left floor",
+        "timestamp_s": 15.0,
+        "category": "Food Staples",
+        "height": "floor",
+        "lift_effort": 2
+      },
+      {
+        "name": "Bottled Water (24-pack)",
+        "est_unit_value_rm": 12.0,
+        "qty": 8.0,
+        "location_in_shop": "Center floor",
+        "timestamp_s": 15.0,
+        "category": "Beverages",
+        "height": "floor",
+        "lift_effort": 2
+      },
+      {
+        "name": "Rice Cooker",
+        "est_unit_value_rm": 80.0,
+        "qty": 3.0,
+        "location_in_shop": "Right shelves, lower-middle",
+        "timestamp_s": 15.0,
+        "category": "Appliances",
+        "height": "low",
+        "lift_effort": 1
+      }
+    ],
+    "confidence_note": "Clear visibility of the items and their locations.",
+    "media_id": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "total_est_value_rm": 476.0,
+    "inventory_id": "pro-fixture"
+  }
+}

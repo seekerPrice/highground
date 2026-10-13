@@ -62,16 +62,66 @@ class ReportStore(InventoryStore):
             prior=current.get(transaction=tx).to_dict() or {}
             prior_job=self.collection('recovery_jobs').document(prior['report_id']).get(transaction=tx).to_dict() if prior.get('report_id') else None
             baseline=baseline_ref.get(transaction=tx).to_dict()
+            risk=self.client.collection(self.risk_store.risks).document(shop['shop_id']).get(transaction=tx).to_dict() or {}
+            scenario=self.collection('demo_scenario').document('current').get(transaction=tx).to_dict() or {} if shop.get('is_demo') else {}
             if prior_job and prior_job.get('status') in ('awaiting_declaration','awaiting_video'): return prior_job
             if not baseline or baseline.get('shop_id')!=shop['shop_id']:raise ValueError('Baseline unavailable')
             frozen=freeze_baseline(dict(baseline,inventory_id=baseline_ref.id))
+            if scenario.get('state')=='resetting':raise ValueError('Scenario reset is in progress')
+            episode=self.risk_store._view(risk,shop).episode_id
             record=dict(report_id=report_id,inventory_id=report_id,shop_id=shop['shop_id'],shop_name=shop.get('shop_name','Shop'),
                 language=shop['language'],is_demo=bool(shop.get('is_demo')),sender_hash=session_user_id(sender,self.hash_salt),
                 created_at=datetime.now(UTC),status='awaiting_declaration',baseline=frozen,lat=shop['lat'],lng=shop['lng'],
-                capability_hash=sha256(token.encode()).hexdigest(),evidence_media_ids=[frozen['media_id']])
+                capability_hash=sha256(token.encode()).hexdigest(),evidence_media_ids=[frozen['media_id']],
+                waste_episode_id=episode or sha256(f"unattributed:{shop['shop_id']}:{frozen['inventory_id']}".encode()).hexdigest(),
+                waste_episode_attribution='persisted_flood_episode' if episode else 'unattributed_shop_inventory_scope',
+                scenario_generation=scenario.get('generation'))
             tx.create(ref,record);tx.create(private,{'capability':token});tx.create(intent,{'report_id':report_id});tx.set(current,{'report_id':report_id})
             return record
         return create(self.client.transaction())
+
+    def complete_assessment(self,report_id,owner,assessment):
+        """Commit the original loss and independent waste projection atomically."""
+        from api.report_models import LossAssessment
+        from api.waste_models import WasteRecord
+        from api.waste import validate_waste,donation_eligible
+        ref=self.collection('recovery_jobs').document(report_id)
+        tokens={item.item_id:secrets.token_hex(16) for item in assessment.waste.items} if assessment.waste else {}
+        @firestore.transactional
+        def complete(tx):
+            job=ref.get(transaction=tx).to_dict()
+            if job.get('owner')!=owner:raise MediaIngestError('inventory_claim_changed')
+            if job.get('status')=='complete':return job
+            assessment.validate_baseline(job['baseline'],job['upload']['duration'])
+            if job.get('assessment') and LossAssessment.model_validate(job['assessment'])!=assessment:raise MediaIngestError('metadata_conflict')
+            validated=assessment.model_copy(update={'waste':validate_waste(assessment.waste,job['baseline'],assessment,job['media_id'],job['upload']['duration'])}) if assessment.waste else assessment
+            now=datetime.now(UTC);shop=self.collection('shops').document(job['shop_id']).get(transaction=tx).to_dict() or {}
+            scenario=self.collection('demo_scenario').document('current').get(transaction=tx).to_dict() or {} if job['is_demo'] else {}
+            current_ref=self.collection('waste_current').document(job['shop_id']);current=current_ref.get(transaction=tx).to_dict() or {}
+            generation_current=not job['is_demo'] or (scenario.get('generation')==job.get('scenario_generation') and scenario.get('state','ready')=='ready')
+            actions={item.item_id:tokens[item.item_id] for item in validated.waste.items if donation_eligible(item,owner_opt_in=True)} if validated.waste and generation_current and shop.get('baseline_inventory_id')==job['baseline']['inventory_id'] else {}
+            values=dict(status='complete',assessment=validated.model_dump(),completed_at=now,donation_actions=actions)
+            episode_id=job.get('waste_episode_id') or sha256(f"unattributed:{job['shop_id']}:{job['baseline']['inventory_id']}".encode()).hexdigest()
+            scope_id=sha256(f"{job['shop_id']}:{episode_id}:{job['baseline']['inventory_id']}".encode()).hexdigest()
+            scope_ref=self.collection('waste_scopes').document(scope_id)
+            scope=scope_ref.get(transaction=tx).to_dict() or {}
+            if generation_current:
+                if not current.get('completed_at') or now>=current['completed_at']:tx.set(current_ref,{'report_id':report_id,'completed_at':now})
+                if not scope.get('completed_at') or now>=scope['completed_at']:tx.set(scope_ref,{'report_id':report_id,'shop_id':job['shop_id'],'inventory_id':job['baseline']['inventory_id'],'episode_id':episode_id,'waste_status':validated.waste_status,'completed_at':now,'is_demo':job['is_demo'],'scenario_generation':job.get('scenario_generation')})
+            if validated.waste is not None:
+                street=shop.get('owner_confirmed_street') if shop.get('street_assignment_source')=='owner_confirmed_current_shop' and shop.get('street_confirmed_at') else None
+                fact=WasteRecord(assessment_id=report_id,shop_id=job['shop_id'],episode_id=job.get('waste_episode_id') or sha256(f"unattributed:{job['shop_id']}:{job['baseline']['inventory_id']}".encode()).hexdigest(),completed_at=now,status='complete',is_demo=job['is_demo'],owner_confirmed_street=street,baseline_items=len(job['baseline']['items']),assessment=validated.waste,scenario_generation=job.get('scenario_generation'))
+                tx.create(self.collection('waste_assessments').document(report_id),fact.model_dump())
+                for item_id,identity in actions.items():
+                    index=int(item_id.rsplit(':',1)[1])
+                    tx.create(self.collection('waste_actions').document(identity),dict(action_id=identity,kind='donation',shop_id=job['shop_id'],sender_hash=job['sender_hash'],report_id=report_id,item_id=item_id,item_name=job['baseline']['items'][index]['name'],inventory_id=job['baseline']['inventory_id'],scenario_generation=job.get('scenario_generation'),available=False,created_at=now))
+            tx.update(ref,values)
+            return dict(job,**values)
+        return complete(self.client.transaction())
+
+    def waste_context(self,job):
+        from api.waste_store import WasteStore
+        return WasteStore(self.client,self.hash_salt,self.prefix,risks=self.risk_store).report_context(job,getattr(self,'bot_username',''))
 
     def declare(self, report_id: str, sender: int) -> dict:
         ref=self.collection('recovery_jobs').document(report_id)

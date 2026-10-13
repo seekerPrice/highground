@@ -54,7 +54,11 @@ class LossModel(BaseLlm):
         prompt=str(request.config.system_instruction)
         assert 'Choose exactly one condition: ok, damaged, destroyed, missing, or unassessed.' in prompt
         assert 'For missing OR unassessed, estimated_loss_rm and evidence_timestamp_s must both be null.' in prompt
-        assert 'missing/unassessed' not in prompt
+        # Reject the prior slash-combined condition at the actual model wire boundary.
+        from pydantic import ValidationError
+        invalid=loss().model_dump(mode='json')
+        invalid['items'][0]['condition']='missing/unassessed'
+        with pytest.raises(ValidationError):request.config.response_schema.model_validate(invalid)
         yield LlmResponse(content=types.Content(role='model',parts=[types.Part.from_text(text=loss().model_dump_json())]))
 
 @pytest.mark.skipif(not os.environ.get('FIRESTORE_EMULATOR_HOST'),reason='Firestore emulator required')

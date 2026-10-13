@@ -13,7 +13,7 @@ from api.telegram_webhook import TelegramHandler, Update
 from api.recovery_jobs import ResumeRequest,ResumeResult
 
 
-def create_app(settings: Settings | None = None, handler: TelegramHandler | None = None, dispatch_service=None, recovery_jobs_service=None) -> FastAPI:
+def create_app(settings: Settings | None = None, handler: TelegramHandler | None = None, dispatch_service=None, recovery_jobs_service=None, outcome_service=None, outcome_analytics=None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app):
         try:
@@ -29,6 +29,9 @@ def create_app(settings: Settings | None = None, handler: TelegramHandler | None
                 if active.inventory is not None:await active.inventory.close()
                 if active.cards is not None:await active.cards.close()
                 if active.policy is not None:await active.policy.close()
+                if active.waste is not None:await active.waste.close()
+                if active.public_check is not None:await active.public_check.close()
+                if active.outcomes is not None:await active.outcomes.close()
                 if active.photos is not None:await active.photos.close()
                 for service in (active.confirmations,active.stock_confirmations):
                     if service is not None and service.sinks.active is not None:
@@ -47,6 +50,10 @@ def create_app(settings: Settings | None = None, handler: TelegramHandler | None
     from api.dashboard import create_dashboard_router
     application.include_router(create_report_router(settings or load_settings))
     application.include_router(create_dashboard_router(settings or load_settings))
+    from api.waste_api import create_waste_router
+    application.include_router(create_waste_router(settings or load_settings))
+    from api.outcome_api import create_outcome_router
+    application.include_router(create_outcome_router(settings or load_settings,outcome_service,outcome_analytics))
 
     application.state.poll_service = None
     application.state.recovery_jobs=recovery_jobs_service
@@ -114,7 +121,7 @@ def create_app(settings: Settings | None = None, handler: TelegramHandler | None
         except (ValueError, ValidationError, RecursionError):
             raise HTTPException(400, "Invalid Telegram update") from None
         active = application.state.telegram_handler
-        if update.message is not None and update.message.date is None and (active is None or active.onboarding is not None or active.photos is not None or active.inventory is not None or active.recovery is not None or active.cards is not None or active.policy is not None):
+        if update.message is not None and update.message.date is None and (active is None or active.onboarding is not None or active.photos is not None or active.inventory is not None or active.recovery is not None or active.cards is not None or active.policy is not None or active.waste is not None or active.public_check is not None or active.outcomes is not None):
             raise HTTPException(400, "Telegram message timestamp is required")
         try:
             active = application.state.telegram_handler
@@ -153,7 +160,10 @@ def create_app(settings: Settings | None = None, handler: TelegramHandler | None
                 from api.recovery import LazyRecoveryService
                 from api.offline_card_service import LazyOfflineCardService
                 from api.policy import LazyPolicyService
-                active = TelegramHandler(FirestoreInbox(client), TelegramAPI(configuration.telegram_bot_token), onboarding, confirmations, photos, inventory, stock_confirmations, LazyRecoveryService(configuration), cards=LazyOfflineCardService(configuration),policy=LazyPolicyService(configuration))
+                from api.waste_service import LazyWasteService
+                from api.public_check_service import LazyPublicCheckService
+                from api.outcome_service import LazyOutcomeService
+                active = TelegramHandler(FirestoreInbox(client), TelegramAPI(configuration.telegram_bot_token), onboarding, confirmations, photos, inventory, stock_confirmations, LazyRecoveryService(configuration), cards=LazyOfflineCardService(configuration),policy=LazyPolicyService(configuration),waste=LazyWasteService(configuration),public_check=LazyPublicCheckService(configuration),outcomes=LazyOutcomeService(configuration))
                 application.state.telegram_handler = active
                 application.state.owns_telegram=True
             await active.handle(update)

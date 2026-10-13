@@ -63,6 +63,7 @@ class FirestoreDispatchStore:
             if not plan:
                 raise RuntimeError('Private dispatch plan missing')
             data['targets'] = plan['targets']
+            data['radius_plans']=plan.get('radius_plans',{})
         return data
 
     def claim(self, event_id: str, now: datetime) -> str | None:
@@ -86,7 +87,10 @@ class FirestoreDispatchStore:
                 raise RuntimeError('Event claim changed')
             values = dict(fields)
             if 'targets' in values:
-                tx.set(self.client.collection(self.plans).document(event_id), {'targets': values.pop('targets')})
+                plan_ref=self.client.collection(self.plans).document(event_id)
+                # Merge only private plan fields; subsequent episode enrichment
+                # retains the originally frozen calibration selection.
+                tx.set(plan_ref, {'targets': values.pop('targets'),**({'radius_plans':values.pop('radius_plans')} if 'radius_plans' in values else {})},merge=True)
                 values['target_plan_ready'] = True
             tx.update(ref, dict(values, lease_until=datetime.now(UTC)+timedelta(seconds=120)))
         update(self.client.transaction())

@@ -11,7 +11,7 @@ from api.media import MediaService
 from api.media_models import MediaRequest,MediaIngestError
 from api.agents.inventory_loss import InventoryAssessor
 from api.i18n import text,catalog
-from api.alert_composer import render_danger
+from api.reply_guard import ReplyGuard
 
 class InventoryService:
     def __init__(self,store:InventoryStore,media:MediaService,assessor:InventoryAssessor,*,destinations=None,total_budget_seconds:float=35):
@@ -20,9 +20,7 @@ class InventoryService:
         self.total_budget_seconds=total_budget_seconds
 
     async def danger_reply(self,shop:dict)->InventoryReply:
-        destination=await asyncio.to_thread(self.destinations.nearest,shop['lat'],shop['lng'],('pps','high_ground')) if self.destinations else None
-        rendered,markup=render_danger(shop.get('language','en'),bool(shop.get('is_demo')),destination)
-        return InventoryReply(text=rendered,reply_markup=markup,shop_id=shop['shop_id'],language=shop.get('language','en'),is_demo=bool(shop.get('is_demo')),kind='danger')
+        return await ReplyGuard(self.store,destinations=self.destinations).danger_reply(shop)
 
     async def reply(self,shop:dict|None,key:str,*,inventory:dict|None=None,integrity:bool=False)->InventoryReply:
         shop=shop or {};language=shop.get('language','en')
@@ -48,9 +46,7 @@ class InventoryService:
         return await self.reply(shop,'inventory_request' if shop else 'photo_registration_required')
 
     async def recheck_reply(self,sender_chat_id:int,reply:InventoryReply)->InventoryReply:
-        shop=await asyncio.to_thread(self.store.shop_for_sender,sender_chat_id)
-        if shop and await asyncio.to_thread(self.store.danger_active,shop['shop_id']):return await self.danger_reply(shop)
-        return reply
+        return await ReplyGuard(self.store,destinations=self.destinations).recheck_reply(sender_chat_id,reply)
 
     async def handle_video(self,sender_chat_id:int,update_id:int,message_id:int,telegram_date:int,video:VideoMedia,
                            processing_started_at:datetime|None=None)->InventoryReply:

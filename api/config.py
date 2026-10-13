@@ -2,6 +2,7 @@
 from dataclasses import dataclass, field
 from datetime import timedelta
 import os
+import math
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -36,12 +37,16 @@ class Settings:
     default_alert_radius_m: int = 1000
     destination_search_radius_m: int = 20000
     official_max_age_minutes: int = 90
+    lorry_capacity_m3: float = 10.
+    outcome_ask_after_h: float = 6.
 
     @property
     def official_max_age(self) -> timedelta:
         return timedelta(minutes=self.official_max_age_minutes)
 
     def __post_init__(self) -> None:
+        if type(self.outcome_ask_after_h) not in (int,float) or not math.isfinite(self.outcome_ask_after_h) or not 0<self.outcome_ask_after_h<=720:raise ValueError('Outcome delay must be finite, positive and at most720 hours')
+        if type(self.lorry_capacity_m3) not in (int,float) or not math.isfinite(self.lorry_capacity_m3) or self.lorry_capacity_m3<=0:raise ValueError('Lorry capacity must be finite and positive')
         if type(self.official_max_age_minutes) is not int or not 1 <= self.official_max_age_minutes <= 90:
             raise ValueError("Official maximum age must be an integer from 1 to 90 minutes")
         if type(self.destination_search_radius_m) is not int or not 1 <= self.destination_search_radius_m <= 100000:
@@ -57,6 +62,10 @@ def load_settings() -> Settings:
     env_names = {"operator_token": "DEMO_OPERATOR_TOKEN", "bigquery_dataset": "BQ_DATASET"}
     defaults = Settings()
     values = {name: os.environ.get(env_names.get(name, name.upper()), getattr(defaults, name)) for name in Settings.__dataclass_fields__ if name not in ("local_development", "scheduler_local_auth", "demo_mode", "demo_virtual_delivery", "vehicle_action_target_minutes", "stock_action_target_minutes", "default_alert_radius_m", "destination_search_radius_m", "official_max_age_minutes")}
+    try:
+        values['lorry_capacity_m3']=float(values['lorry_capacity_m3'])
+        values['outcome_ask_after_h']=float(values['outcome_ask_after_h'])
+    except (TypeError,ValueError):raise ValueError('Lorry capacity must be a number') from None
     flags = {}
     for name in ("local_development", "scheduler_local_auth", "demo_virtual_delivery"):
         value = os.environ.get(name.upper(), "false").lower()

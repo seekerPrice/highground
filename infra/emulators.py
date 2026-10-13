@@ -6,7 +6,7 @@ import subprocess
 from dataclasses import dataclass
 
 CLOUD = 'gcr.io/google.com/cloudsdktool/google-cloud-cli:588.0.0-emulators@sha256:be2f0e582a94c9e06e7a384fe2b3b39d590eeb8da65a110eda991598c100fe80'
-VOLUME = 'highground-bigquery-recovered-data'
+VOLUME = 'highground-bigquery-live-data'
 
 @dataclass(frozen=True)
 class Emulator:
@@ -26,7 +26,7 @@ SPECS = (
     Emulator('firestore',8787,CLOUD,('gcloud','emulators','firestore','start','--host-port=0.0.0.0:8787','--project=highground-local','--quiet'),('JAVA_TOOL_OPTIONS=-Xms64m -Xmx384m',)),
     Emulator('pubsub',8797,CLOUD,('gcloud','beta','emulators','pubsub','start','--host-port=0.0.0.0:8797','--project=highground-local','--quiet'),('JAVA_TOOL_OPTIONS=-Xms64m -Xmx384m',)),
     Emulator('gcs',4443,'fsouza/fake-gcs-server:1.56.1@sha256:797ce226d62f947c009dc40246b30cfb456b8473d8241407f9d6f2c04e4d69ef',('-scheme','http','-external-url','http://127.0.0.1:4443'),memory=256*1024**2,swap=384*1024**2),
-    Emulator('bigquery',9050,'ghcr.io/goccy/bigquery-emulator:0.8.1@sha256:f4e428d265a93dc5ce36c294e1c584c7c9b384117d47ab8ddbb63d8d50b7f393',('--project=highground-2026-lucas','--dataset=highground','--database=/data/bigquery.db'),('GOMEMLIMIT=256MiB','GOGC=50'),volume=VOLUME),
+    Emulator('bigquery',9050,'ghcr.io/goccy/bigquery-emulator:0.8.1@sha256:f4e428d265a93dc5ce36c294e1c584c7c9b384117d47ab8ddbb63d8d50b7f393',('--project=highground-2026-lucas','--dataset=highground','--database=/data/bigquery.db'),('GOMEMLIMIT=512MiB','GOGC=100'),volume=VOLUME),
 )
 
 def docker(*arguments):
@@ -79,7 +79,7 @@ def operate(action, specs=SPECS, ack=False, initialize=False):
     if initialize:
         if records[0][1] is not None:raise ValueError('Existing BigQuery container forbids fresh initialization')
         if docker('container','ls','--all','--filter','name=^/highground-bigquery','--format','{{.ID}}').strip():raise ValueError('Historical BigQuery containers require explicit recovery, not fresh initialization')
-        for name in (VOLUME,'highground-bigquery-data'):
+        for name in (VOLUME,'highground-bigquery-data','highground-bigquery-recovered-data'):
             if docker('volume','ls','--filter','name=^'+name+'$','--format','{{.Name}}').strip():raise ValueError('Retained BigQuery data forbids fresh initialization')
         docker('volume','create','--label','highground.project=highground','--label','highground.role=bigquery-data',VOLUME)
     for spec,record in records:

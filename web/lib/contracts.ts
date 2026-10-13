@@ -9,7 +9,13 @@ export interface PolicyAggregate {is_demo:true;registered_synthetic_shops:number
 export interface Dashboard {generated_at:string;status:"available"|"empty"|"unavailable";is_demo:true;scenario_started_at:string|null;scenario_generation:number;scenario_state:"ready"|"resetting";shops:Shop[];events:Event[];destinations:Destination[];sources:Source[];stats:Stats;policy_coverage:PolicyAggregate|null;policy_note:string}
 export interface ReportItem {item_id:string;name:string;qty:number;baseline_estimate_rm:number;condition:"ok"|"damaged"|"destroyed"|"missing"|"unassessed";estimated_loss_rm:number|null;evidence_timestamp_s:number|null;uncertainty:string}
 export interface Evidence {media_id:string;kind:"baseline_video"|"update_video"|"after_video"|"waterline_photo";sha256:string;bytes:number;mime_type:string;uploaded_at:string;origin:"telegram"|"local_fixture";telegram_date:string|null;lat:number;lng:number;location_attribution:"confirmed_shop"|"confirmed_shared"|"unconfirmed_shop";is_demo:boolean;integrity_status:"not_checked"}
-export interface Report {report_id:string;assessment_media_id:string;created_at:string;shop_name:string;is_demo:boolean;baseline_estimate_rm:number;estimated_loss_rm:number|null;estimate_status:"available"|"unavailable";coverage:"complete"|"partial"|"none";assessed_items:number;baseline_items:number;confidence:number;confidence_note:string;summary_text:string;recovery_attribution:string;items:ReportItem[];evidence:Evidence[];disclaimer:string}
+export type Disposition="discard_contaminated"|"salvage_clean"|"recycle"|"bulky_pickup";
+export interface WasteItem {item_id:string;condition:ReportItem["condition"];disposition:Disposition|null;est_volume_m3:number|null;est_weight_kg:number|null;material:"food"|"drink"|"medicine"|"cosmetics"|"absorbent"|"sealed_metal"|"sealed_plastic"|"sealed_glass"|"metal"|"e_waste"|"bulky"|"unknown";floodwater_contact:"yes"|"no"|"unknown";contamination:"present"|"not_observed"|"unknown";uncertainty:string|null;donation_eligible:boolean;donation_available:boolean;donation_action_url:string|null;self_report_note:string}
+export interface ReportWaste {status:"available"|"not_assessed"|"unavailable";items:WasteItem[];confidence:number|null;owner_confirmed_street:string|null;street_assignment_source:"owner_confirmed_current_shop"|"unassigned";street_confirmed_at:string|null;food_safety_line:string;safety_note:string}
+export interface StreetWaste {street:string;assessment_count:number;shop_count:number;baseline_items:number;assessed_items:number;affected_items:number;unknown_items:number;quantified_volume_items:number;unknown_volume_items:number;quantified_weight_items:number;unknown_weight_items:number;est_volume_m3:number|null;est_weight_kg:number|null;estimated_load_equivalents:number|null}
+export interface WasteAggregate {is_demo:true;lorry_capacity_m3:number;streets:StreetWaste[];definition:string}
+export interface WasteResponse {status:"available"|"empty"|"unavailable";generated_at:string;is_demo:true;registered_synthetic_shops:number|null;assessed_shops:number|null;missing_or_unavailable_shops:number|null;aggregate:WasteAggregate|null;note:string}
+export interface Report {report_id:string;assessment_media_id:string;created_at:string;shop_name:string;is_demo:boolean;baseline_estimate_rm:number;estimated_loss_rm:number|null;estimate_status:"available"|"unavailable";coverage:"complete"|"partial"|"none";assessed_items:number;baseline_items:number;confidence:number;confidence_note:string;summary_text:string;recovery_attribution:string;items:ReportItem[];evidence:Evidence[];disclaimer:string;waste:ReportWaste}
 export interface Integrity {media_id:string;status:"verified"|"mismatch"|"unavailable";sha256:string;note:string}
 
 function object(value:unknown,keys:string[]):Record<string,unknown> {
@@ -54,7 +60,8 @@ export function parseDashboard(input:unknown):Dashboard {
 }
 
 export function parseReport(input:unknown,id:string):Report {
- const r=object(input,["report_id","assessment_media_id","created_at","shop_name","is_demo","baseline_estimate_rm","estimated_loss_rm","estimate_status","coverage","assessed_items","baseline_items","confidence","confidence_note","summary_text","recovery_attribution","items","evidence","disclaimer"]);
+ const optional=input&&typeof input==="object"&&!Array.isArray(input)&&"waste" in input?["waste"]:[];
+ const r=object(input,["report_id","assessment_media_id","created_at","shop_name","is_demo","baseline_estimate_rm","estimated_loss_rm","estimate_status","coverage","assessed_items","baseline_items","confidence","confidence_note","summary_text","recovery_attribution","items","evidence","disclaimer",...optional]);
  if(hex(r.report_id,32)!==id)throw new Error("Report identity mismatch");
  const items=list(r.items,80,value=>{const i=object(value,["item_id","condition","estimated_loss_rm","evidence_timestamp_s","uncertainty","name","qty","baseline_estimate_rm"]);const condition=choice(i.condition,["ok","damaged","destroyed","missing","unassessed"]),loss=nullable(i.estimated_loss_rm,number),baseline=number(i.baseline_estimate_rm);if((condition==="missing"||condition==="unassessed")&&loss!==null)throw new Error("Unknown item has invented loss");if(loss!==null&&loss>baseline)throw new Error("Loss exceeds baseline");return {item_id:string(i.item_id,160),condition,estimated_loss_rm:loss,evidence_timestamp_s:nullable(i.evidence_timestamp_s,v=>number(v,0,300)),uncertainty:string(i.uncertainty,300),name:string(i.name,200),qty:number(i.qty,0,1_000_000),baseline_estimate_rm:baseline};});
  const evidence=list(r.evidence,10,value=>{const e=object(value,["media_id","kind","sha256","bytes","mime_type","uploaded_at","origin","telegram_date","lat","lng","location_attribution","is_demo","integrity_status"]);const origin=choice(e.origin,["telegram","local_fixture"]),telegramDate=nullable(e.telegram_date,date);if(origin==="telegram"?telegramDate===null:telegramDate!==null||e.is_demo!==true)throw new Error("Invalid upload origin attribution");return {media_id:hex(e.media_id,64),kind:choice(e.kind,["baseline_video","update_video","after_video","waterline_photo"]),sha256:hex(e.sha256,64),bytes:integer(e.bytes,1,20_000_000),mime_type:choice(e.mime_type,["video/mp4","image/jpeg","image/png","image/webp"]),uploaded_at:date(e.uploaded_at),origin,telegram_date:telegramDate,...position(e),location_attribution:choice(e.location_attribution,["confirmed_shop","confirmed_shared","unconfirmed_shop"]),is_demo:boolean(e.is_demo),integrity_status:choice(e.integrity_status,["not_checked"])};});
@@ -64,7 +71,7 @@ export function parseReport(input:unknown,id:string):Report {
  if(coverage!==(assessed===0?"none":assessed===items.length?"complete":"partial")||(assessed===0?total!==null:total===null||Math.abs(total-items.reduce((sum,i)=>sum+(i.estimated_loss_rm??0),0))>.005))throw new Error("Invalid assessed total");
  const isDemo=boolean(r.is_demo);if(evidence.some(e=>e.is_demo!==isDemo))throw new Error("Invalid evidence attribution");
  const status=choice(r.estimate_status,["available","unavailable"]);if((total===null)!==(status==="unavailable"))throw new Error("Invalid estimate status");
- return {report_id:id,assessment_media_id:assessmentMediaId,created_at:date(r.created_at),shop_name:string(r.shop_name,200),is_demo:isDemo,baseline_estimate_rm:number(r.baseline_estimate_rm),estimated_loss_rm:total,estimate_status:status,coverage,assessed_items:assessed,baseline_items:items.length,confidence:number(r.confidence,0,1),confidence_note:string(r.confidence_note,300),summary_text:string(r.summary_text),recovery_attribution:string(r.recovery_attribution,300),items,evidence,disclaimer:string(r.disclaimer,600)};
+ return {report_id:id,assessment_media_id:assessmentMediaId,created_at:date(r.created_at),shop_name:string(r.shop_name,200),is_demo:isDemo,baseline_estimate_rm:number(r.baseline_estimate_rm),estimated_loss_rm:total,estimate_status:status,coverage,assessed_items:assessed,baseline_items:items.length,confidence:number(r.confidence,0,1),confidence_note:string(r.confidence_note,300),summary_text:string(r.summary_text),recovery_attribution:string(r.recovery_attribution,300),items,evidence,disclaimer:string(r.disclaimer,600),waste:parseReportWaste(r.waste,items)};
 }
 
 export function parseIntegrity(input:unknown,receipt:Evidence):Integrity {
@@ -80,3 +87,52 @@ export function evidenceTitle(receipt:Evidence,assessmentMediaId:string):string 
 export function assessmentTimestamp(seconds:number):string {return `Video used for assessment: ${seconds.toFixed(1)} s`;}
 
 export function evidenceOriginCaption(receipt:Evidence):string {return receipt.origin==="local_fixture"?"Synthetic local fixture — no Telegram upload receipt":"Telegram upload receipt";}
+
+export const FOOD_SAFETY_LINE="Throw away food, drinks and medicine that touched floodwater.";
+export const WASTE_SAFETY_NOTE="Visual classifications and quantities are uncertain estimates. They do not establish that an item is safe to use, clean or donate.";
+export function donationAction(value:unknown):string {
+ const link=string(value,200),url=new URL(link);
+ if(url.protocol!=="https:"||url.hostname!=="t.me"||url.username||url.password||url.port||url.hash||!/^\/[A-Za-z0-9_]{5,32}$/.test(url.pathname)||!/^\?start=donate_[a-f0-9]{32}$/.test(url.search)||url.href!==link)throw new Error("Invalid owner action link");
+ return link;
+}
+function parseReportWaste(value:unknown,items:ReportItem[]):ReportWaste {
+ if(value===undefined)return {status:"not_assessed",items:[],confidence:null,owner_confirmed_street:null,street_assignment_source:"unassigned",street_confirmed_at:null,food_safety_line:FOOD_SAFETY_LINE,safety_note:WASTE_SAFETY_NOTE};
+ const w=object(value,["status","items","confidence","owner_confirmed_street","street_assignment_source","street_confirmed_at","food_safety_line","safety_note"]);
+ const status=choice(w.status,["available","not_assessed","unavailable"]),confidence=nullable(w.confidence,v=>number(v,0,1));
+ const street=nullable(w.owner_confirmed_street,v=>{const s=string(v,100);if(!s.trim()||/[\r\n{}<>]/.test(s))throw new Error("Invalid street label");return s;}),at=nullable(w.street_confirmed_at,date),assignment=choice(w.street_assignment_source,["owner_confirmed_current_shop","unassigned"]);
+ if((street!==null)!==(at!==null)||(street!==null)!==(assignment==="owner_confirmed_current_shop"))throw new Error("Invalid street provenance");
+ if(w.food_safety_line!==FOOD_SAFETY_LINE)throw new Error("Invalid fixed food warning");
+ const rows=list(w.items,80,value=>{
+  const i=object(value,["item_id","condition","disposition","est_volume_m3","est_weight_kg","material","floodwater_contact","contamination","uncertainty","donation_eligible","donation_available","donation_action_url","self_report_note"]);
+  const identity=string(i.item_id,160),condition=choice(i.condition,["ok","damaged","destroyed","missing","unassessed"]),canonical=items.find(item=>item.item_id===identity);
+  if(!canonical||canonical.condition!==condition)throw new Error("Waste loss identity mismatch");
+  const disposition=nullable(i.disposition,v=>choice<Disposition>(v,["discard_contaminated","salvage_clean","recycle","bulky_pickup"])),volume=nullable(i.est_volume_m3,v=>number(v,0,10000)),weight=nullable(i.est_weight_kg,v=>number(v,0,1_000_000)),material=choice(i.material,["food","drink","medicine","cosmetics","absorbent","sealed_metal","sealed_plastic","sealed_glass","metal","e_waste","bulky","unknown"]),contact=choice(i.floodwater_contact,["yes","no","unknown"]),contamination=choice(i.contamination,["present","not_observed","unknown"]),uncertainty=nullable(i.uncertainty,v=>string(v,300));
+  const eligible=boolean(i.donation_eligible),available=boolean(i.donation_available),action=nullable(i.donation_action_url,donationAction);
+  if((["ok","missing","unassessed"].includes(condition)&&(disposition!==null||volume!==null||weight!==null))||(["food","drink","medicine","cosmetics","absorbent"].includes(material)&&contact==="yes"&&disposition!=="discard_contaminated"))throw new Error("Contradictory waste classification");
+  const eligibleFacts=condition==="damaged"&&disposition==="salvage_clean"&&["sealed_metal","sealed_plastic","sealed_glass"].includes(material)&&contact!=="unknown"&&contamination==="not_observed"&&uncertainty===null;
+  if((eligible&&!eligibleFacts)||(available&&!eligible)||(action!==null&&!eligible))throw new Error("Invalid donation eligibility");
+  return {item_id:identity,condition,disposition,est_volume_m3:volume,est_weight_kg:weight,material,floodwater_contact:contact,contamination,uncertainty,donation_eligible:eligible,donation_available:available,donation_action_url:action,self_report_note:string(i.self_report_note,300)};
+ });
+ if(new Set(rows.map(item=>item.item_id)).size!==rows.length||(status==="available"?(confidence===null||rows.length!==items.length):(rows.length!==0||confidence!==null)))throw new Error("Invalid waste coverage");
+ return {status,items:rows,confidence,owner_confirmed_street:street,street_assignment_source:assignment,street_confirmed_at:at,food_safety_line:FOOD_SAFETY_LINE,safety_note:string(w.safety_note,300)};
+}
+
+export function parseWaste(input:unknown):WasteResponse {
+ const w=object(input,["status","generated_at","is_demo","registered_synthetic_shops","assessed_shops","missing_or_unavailable_shops","aggregate","note"]),status=choice(w.status,["available","empty","unavailable"]);
+ const registered=nullable(w.registered_synthetic_shops,v=>integer(v,0,50)),assessed=nullable(w.assessed_shops,v=>integer(v,0,50)),missing=nullable(w.missing_or_unavailable_shops,v=>integer(v,0,50));
+ const aggregate=nullable(w.aggregate,value=>{
+  const a=object(value,["is_demo","lorry_capacity_m3","streets","definition"]),capacity=number(a.lorry_capacity_m3,Number.MIN_VALUE,Number.MAX_VALUE);
+  const streets=list(a.streets,50,value=>{
+   const s=object(value,["street","assessment_count","shop_count","baseline_items","assessed_items","affected_items","unknown_items","quantified_volume_items","unknown_volume_items","quantified_weight_items","unknown_weight_items","est_volume_m3","est_weight_kg","estimated_load_equivalents"]);
+   const street=string(s.street,100);if(!street.trim()||/[\r\n{}<>]/.test(street))throw new Error("Invalid street label");
+   const assessments=integer(s.assessment_count,1,1000),shops=integer(s.shop_count,1,50),baseline=integer(s.baseline_items,0,80000),known=integer(s.assessed_items,0,80000),affected=integer(s.affected_items,0,80000),unknown=integer(s.unknown_items,0,80000),qVolume=integer(s.quantified_volume_items,0,80000),uVolume=integer(s.unknown_volume_items,0,80000),qWeight=integer(s.quantified_weight_items,0,80000),uWeight=integer(s.unknown_weight_items,0,80000);
+   const volume=nullable(s.est_volume_m3,v=>number(v,0,800_000_000)),weight=nullable(s.est_weight_kg,v=>number(v,0,80_000_000_000)),loads=nullable(s.estimated_load_equivalents,v=>number(v,0,Number.MAX_VALUE));
+   if(shops>assessments||baseline!==known+unknown||affected>known||qVolume>affected||qWeight>affected||uVolume!==unknown+affected-qVolume||uWeight!==unknown+affected-qWeight||(qVolume===0)!==(volume===null)||(qWeight===0)!==(weight===null)||(volume===null?loads!==null:loads===null||Math.abs(loads-volume/capacity)>.0005001))throw new Error("Invalid waste quantities or coverage");
+   return {street,assessment_count:assessments,shop_count:shops,baseline_items:baseline,assessed_items:known,affected_items:affected,unknown_items:unknown,quantified_volume_items:qVolume,unknown_volume_items:uVolume,quantified_weight_items:qWeight,unknown_weight_items:uWeight,est_volume_m3:volume,est_weight_kg:weight,estimated_load_equivalents:loads};
+  });
+  if(new Set(streets.map(s=>s.street)).size!==streets.length||streets.reduce((sum,s)=>sum+s.assessment_count,0)>1000||streets.reduce((sum,s)=>sum+s.baseline_items,0)>80000)throw new Error("Invalid waste aggregate scope");
+  return {is_demo:demo(a.is_demo),lorry_capacity_m3:capacity,streets,definition:string(a.definition,600)};
+ });
+ if(status==="unavailable"?(aggregate!==null||assessed!==null||missing!==null):(registered===null||assessed===null||missing===null||aggregate===null||registered!==assessed+missing||(status==="empty")!==(assessed===0)||(assessed===0)!==(aggregate.streets.length===0)))throw new Error("Invalid waste denominator");
+ return {status,generated_at:date(w.generated_at),is_demo:demo(w.is_demo),registered_synthetic_shops:registered,assessed_shops:assessed,missing_or_unavailable_shops:missing,aggregate,note:string(w.note,600)};
+}

@@ -113,3 +113,15 @@ The user explicitly selected the presented recommendations for Tasks20/21 and co
 ## Synthetic Telegram card and policy verification
 
 The user explicitly authorized the prepared synthetic offline-card bot photo and fictional policy PDF uploads from the existing consenting HighGround chat to verify default deletion and Keep flows. This is specific media-test consent, not a five-minute fallback or permission to use real policy documents. The coordinating root executes these tests only after integrated local checks; no additional consent is needed for this same scope.
+
+## Dashboard design refinement during Tasks20–22
+
+The user explicitly requested a responsive, well-designed and creative dashboard. Apply the frontend-design skill to the current dashboard, including Task22, with a distinctive map-led Taman Sri Muda response board and compact mobile hierarchy. Preserve all approved functionality, safety/privacy/unknown labels, existing stack and report/print behavior. Record the palette/type/layout plan and critique before coding; verify desktop/tablet/390px/320px, keyboard/focus/reduced motion and overflow through local checks and root-owned browser review. See dashboard-polish-plan.md. No new data feature, hosting or CI is authorized by this visual amendment.
+
+## Outcome timing implementation clarification
+
+Source R3 makes a prompt due six hours after an accepted Warning/Danger alert, or immediately upon explicit confirmed episode closure; closure does not start another six-hour delay. Prompted answers refer to that confirmed episode interval. Preserve actual answered_at separately and label any stored interval endpoint as an episode reference, not an owner-observed timestamp. An unprompted missed-inside report must obtain an owner-declared observation time inside the confirmed episode before comparing earlier accepted/uncertain alerts. Reply time never proves a missed alert. Astra and root confirmed this conservative source interpretation; it is not a new claim of independent water verification.
+
+## Confirmed challenge and Astra-led overall UI audit
+
+The user confirmed portal-selected GGSI Sustainability & Social Impact, requested Astra for subsequent UI research/design/improvements and winning-chance critique, and asked to think creatively. Astra personally owns this new UI pass; existing Sol20–22 source remains frozen for review. Suggested Earth Engine/predictive models stay roadmap. User-confirmed notes retain19October2026 02:29MYT close, fresh code, Gemini and/or ADK, Cloud Run/Firebase deployment, public GitHub/deployed link, English materials, PDF deck, under-three-minute video and40/25/25/10 scoring. See ui-and-winning-audit.md for evidence distinctions and ranked gaps. Hosting remains deferred; this confirmation does not authorize deployment. Shadcn is permitted if useful, not required; retain existing dependencies for the current scoped improvements.

@@ -283,8 +283,8 @@ Scope: Should — full local Must acceptance required; hosting deferred. Deliver
 - [x] Astra inspected files/results, returned defects, and rechecked corrections. Exact RED/GREEN evidence is recorded in tasks-18-19-verification.md.
 - [x] Matt Standards review completed; final recheck0 remaining at manifest83b211c12eb41fe7c7f62ea7f25ad8d832a966c702fff39e3aecebd2f9b68af4.
 - [x] Matt Spec review completed; final recheck0 remaining at the same frozen snapshot.
-- [x] Local acceptance met and evidence recorded; hosting remains explicitly deferred. Root commit/publication follows this frozen checkpoint.
-- [x] Technical prerequisites for dependent local work met; native wording/offline-phone/hosting limits remain recorded. Dispatch waits for root checkpoint release.
+- [x] Local acceptance met and evidence recorded at1646ebc/PR29; hosting remains explicitly deferred.
+- [x] Technical prerequisites for dependent local work met; native wording/offline-phone/hosting limits remain recorded. Root released Tasks20–22 execution from1646ebc.
 
 ### Task 19 — Insurance check
 
@@ -299,49 +299,136 @@ Scope: Should — full local Must acceptance required; hosting deferred. Deliver
 - [x] Astra inspected files/results, returned defects, and rechecked corrections. Exact RED/GREEN evidence is recorded in tasks-18-19-verification.md.
 - [x] Matt Standards review completed; final recheck0 remaining at manifest83b211c12eb41fe7c7f62ea7f25ad8d832a966c702fff39e3aecebd2f9b68af4.
 - [x] Matt Spec review completed; final recheck0 remaining at the same frozen snapshot.
-- [x] Local acceptance met and evidence recorded; hosting remains explicitly deferred. Root commit/publication follows this frozen checkpoint.
-- [x] Technical prerequisites for dependent local work met; native wording/offline-phone/hosting limits remain recorded. Dispatch waits for root checkpoint release.
+- [x] Local acceptance met and evidence recorded at1646ebc/PR29; hosting remains explicitly deferred.
+- [x] Technical prerequisites for dependent local work met; native wording/offline-phone/hosting limits remain recorded. Root released Tasks20–22 execution from1646ebc.
 
 ### Task 20 — Waste sorting
 
+**Current status: locally accepted.** Final25infra/629API/33frontend gate, independent Standards0/Spec0 and primary runtime/browser proof passed. See tasks-20-22-verification.md. Detailed checkpoint bullets below are historical; their then-pending review/gate statements are superseded by this acceptance.
+
+- [x] Frontend candidate frozen:28 tests, TypeScript and lint passed; Astra inspected the typed public/report boundaries. Root subsequently completed integrated browser/PDF checks, recorded below. The earlier actual Firestore batch produced6 passes and1 meaningful failure: a newer unavailable assessment left the old donation/current waste actionable. Correction then passed all7 actual Firestore cases in2.42s: old donation denied, newest unknown scope excluded from known totals, historical facts retained. The final owner/prompt guard then showed isolated prior-behavior RED4 failures/1 pass and current GREEN32 pure cases; Astra independently ran13 public-webhook/contract cases successfully. All eight catalogs now have exactly eight new waste keys with existing values unchanged; seven bounded configured-Flash translation calls passed. Final pure34 cases passed. Root frozen-UI desktop/mobile/available-empty-unavailable checks passed; actual integrated service/PDF subsequently passed as recorded below; full gate and independent final reviews were pending at this historical checkpoint; no acceptance claim.
+
+- [x] Astra dispatched original Sol recovery for model/report/persistence integration from1646ebc after reading issue21 body/comments. Shared backend ownership is exclusive to this lane initially. Initial eligibility/street consistency checks observed3 failures, then11 passing pure cases. Wire/DTO checks now24passing; four actual Firestore integration cases passed1.80s with exact cleanup. Initial malformed-test-baseline failures are not counted as behavioral RED. Root actualPro exposed contradictory contaminated salvage; conservative fallback retained valid loss. Corrected actualPro rerun passed with discard/discard/recycle, unchanged baseline/original hash and no inline bytes in persisted trace; model valuation changed268→316, not an accuracy or determinism claim. Subsequent integrated evidence is recorded below; final combined acceptance was pending at this historical checkpoint.
+
 Scope: Should — full local Must acceptance required; hosting deferred. Deliverable: Loss report provides item disposal categories and aggregate estimated cleanup volumes.
 
-- [x] Astra prepared concrete disjoint pure-domain execution and later integration ownership in tasks-20-22-execution.md. Four new pure-domain files are frozen with eight focused tests; integration and independent review remain pending, with no Task20 acceptance claimed.
+- [x] Astra prepared concrete disjoint pure-domain execution and later integration ownership in tasks-20-22-execution.md. Three restored pure-domain source/test files and their separate note have eight prior focused tests; integration and independent review were pending at this historical checkpoint, with no Task20 acceptance claimed.
 
 - [x] Preparatory file/interface/test brief written in tasks-18-22-brief.md; source and current modules inspected. Planning only.
-- [ ] Astra task brief and acceptance agreed; blockers satisfied. The user explicitly approved this task’s proposed product choices; local Must correction gate/reviews passed; implementation and integration probes remain in progress; no completion claimed.
-- [ ] Sol implements only this task.
-- [ ] Relevant local checks run; results captured.
-- [ ] Astra inspects files and results, returns defects to Sol, and rechecks corrections.
-- [ ] Matt Standards review completed; relevant findings corrected and rechecked.
-- [ ] Matt Spec review completed; relevant findings corrected and rechecked.
-- [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
-- [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
+- [x] Astra task brief, explicit product choices and local prerequisites satisfied; implementation and final local acceptance passed.
+- [x] Implementation and Astra corrections frozen; focused, operational and final combined gate/review results passed.
+- [x] Relevant focused, operational and final local checks run; exact results recorded.
+- [x] Astra inspected source/results and corrected/rechecked all actionable findings.
+- [x] Matt Standards independent final review and supplements returned0 outstanding findings.
+- [x] Matt Spec independent final review and supplements returned0 outstanding findings.
+- [x] Local acceptance met with recorded evidence. Hosting/cloud acceptance remains explicitly deferred; no deployment claim.
+- [x] Local technical prerequisites met; remaining real-world/submission limits recorded separately.
+
+- [x] Integrated actual-Pro capture exposed omitted unaffected waste rows: six valid loss items but only four affected waste entries. Exact captured-wire regression failed before canonical ok/null-quantity normalization and then passed; Astra independently replayed the unchanged captured loss and ran five comparison cases. The original unavailable report is retained. Root fresh captured-output replay through actual local service clients passed in12.911s: six baseline/loss/waste rows, unchanged baseline, worker denial, upload dedupe, protected report denial, three original hashes/ledger rows and synthetic Unassigned aggregate. This was captured actual-Vertex output replay, not a new model call. A media-ID-versus-SHA harness failure was corrected without app changes. Actual handler→Firestore street flow also passed with virtual Telegram: owner confirmation, worker denial, duplicate stability and old-intent replay could not revert a newer label. Root actual native four-page PDF then passed: all three full hashes exactly once, bytes/limits/synthetic label/waste/fixed food rule present, capability absent from text/links; all pages visually inspected. Native UI stall resolved after user unlock, without an application change. Full gate/final review were pending at this historical checkpoint.
 
 ### Task 21 — /check
+
+**Current status: locally accepted.** Final25infra/629API/33frontend gate, independent Standards0/Spec0 and primary runtime/browser proof passed. See tasks-20-22-verification.md. Detailed checkpoint bullets below are historical; their then-pending review/gate statements are superseded by this acceptance.
+
+- [x] Astra dispatched original Sol task1 for disjoint public-check domain/projection/intent modules from1646ebc after reading issue22 body/comments. Initial pure/reader tests15passed and actual Firestore intent test1passed; duplicate-age reader correction reviewed. Shared routing/catalog integration received its explicit handoff. The initial Task21 domain files are frozen; root actual official-HTTP/local-Firestore reader probe passed with degraded JPS/MET, no nearby reports and two public destinations, without private identities. Shared handler integration is frozen and its actual local probe passed below. New constrained ADK selector passed two independent in-memory runner tests; root actual configured-Flash probe then returned check_summary_partial/source=model with six persisted ADK documents and recursive privacy checks passed. Inputs were captured actual official-source/local-store facts for a synthetic query location. That earlier checkpoint did not claim full Task21 acceptance; final acceptance is recorded above.
 
 Scope: Should — full local Must acceptance required; hosting deferred. Deliverable: Any user shares a location to view current nearby warnings and listed destinations.
 
 - [x] Preparatory file/interface/test brief written in tasks-18-22-brief.md; source and current modules inspected. Planning only.
-- [ ] Astra task brief and acceptance agreed; blockers satisfied. The user explicitly approved this task’s proposed product choices; local Must correction gate/reviews passed; implementation and integration probes remain in progress; no completion claimed.
-- [ ] Sol implements only this task.
-- [ ] Relevant local checks run; results captured.
-- [ ] Astra inspects files and results, returns defects to Sol, and rechecks corrections.
-- [ ] Matt Standards review completed; relevant findings corrected and rechecked.
-- [ ] Matt Spec review completed; relevant findings corrected and rechecked.
-- [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
-- [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
+- [x] Astra task brief, explicit product choices and local prerequisites satisfied; implementation and final local acceptance passed.
+- [x] Implementation and Astra corrections frozen; focused, operational and final combined gate/review results passed.
+- [x] Relevant focused, operational and final local checks run; exact results recorded.
+- [x] Astra inspected source/results and corrected/rechecked all actionable findings.
+- [x] Matt Standards independent final review and supplements returned0 outstanding findings.
+- [x] Matt Spec independent final review and supplements returned0 outstanding findings.
+- [x] Local acceptance met with recorded evidence. Hosting/cloud acceptance remains explicitly deferred; no deployment claim.
+- [x] Local technical prerequisites met; remaining real-world/submission limits recorded separately.
+
+- [x] Shared Task21 integration tests passed19 pure cases with two actual-Firestore cases skipped in that pure run. The separate granted SDK window then passed both real-store intent/HTTP cases in4.91s: sender/locale/original-message binding, concurrent claim, sanitized cache replay, late pre-send failure, new intent preservation and no unregistered shop creation; exact isolated collections were removed. Non-English fallback/overflow corrections, translations and the complete-handler operational check subsequently passed, as recorded below.
+
+- [x] Final Task21 source recheck: Astra independently passed41 projection/reader/service/webhook/ADK/i18n tests in4.71s (two dependency warnings). Baseline1646 comparison found zero changes to existing catalog values in all eight languages, with29 new check keys each and all non-English review flags stillfalse. Actual complete-handler operational evidence subsequently passed below; final combined review/gate were pending at this historical checkpoint.
+
+- [x] Root frozen whole-handler Task21 probe exited0 using actual isolated Firestore and virtual Telegram: no signup/shop creation, submitted precise point absent from stored intent/cache, duplicate update caused no resend,30-second gate/five-minute expiry held, and two captured-source reads were labelled as replay rather than fresh external/model calls. Exact collections were removed. The first harness privacy assertion used the same coordinate as a lawful public destination; moving the synthetic query resolved that harness-only failure without app changes. Translation batch completed seven bounded configured-Flash calls for29 keys each; prior176 non-English values remained unchanged. Final combined gate and independent reviews subsequently passed, as recorded above.
 
 ### Task 22 — Learning loop
+
+**Current status: locally accepted.** Final25infra/629API/33frontend gate, independent Standards0/Spec0 and primary runtime/browser proof passed. See tasks-20-22-verification.md. Detailed checkpoint bullets below are historical; their then-pending review/gate statements are superseded by this acceptance.
+
+- [x] Astra dispatched original Sol task1 for disjoint pure outcome/calibration models and tests using task-22-integration-brief.md after the Task20 frontend handoff. No shared hooks, SDK, runtime or feature acceptance is implied.
+
+- [x] Task22 persisted RadiusPlan guard observed malformed applied official-Danger input accepted before correction, then rejected; arithmetic, realm, policy and version bindings are now enforced. Astra independently ran18 pure/domain/fake-transaction cases successfully in0.63s. The bounded prompt/token store and public trend DTO then froze with22 pure/fake cases passing; Astra independently ran29 combined service/domain/store cases in1.29s. Root actual store concurrency subsequently passed below; shared integration/operational acceptance were pending at this historical checkpoint. Source R3 was checked: due time is accepted alert plus six hours OR immediate explicit closure, not six more hours after closure.
 
 Scope: Should — full local Must acceptance required; hosting deferred. Deliverable: Owner feedback produces transparent outcome metrics and constrained area calibration.
 
 - [x] Preparatory file/interface/test brief written in tasks-18-22-brief.md; source and current modules inspected. Planning only.
-- [ ] Astra task brief and acceptance agreed; blockers satisfied. The user explicitly approved this task’s proposed product choices; local Must correction gate/reviews passed; implementation and integration probes remain in progress; no completion claimed.
-- [ ] Sol implements only this task.
-- [ ] Relevant local checks run; results captured.
-- [ ] Astra inspects files and results, returns defects to Sol, and rechecks corrections.
-- [ ] Matt Standards review completed; relevant findings corrected and rechecked.
-- [ ] Matt Spec review completed; relevant findings corrected and rechecked.
-- [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
-- [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
+- [x] Astra task brief, explicit product choices and local prerequisites satisfied; implementation and final local acceptance passed.
+- [x] Implementation complete; Astra personally completed the later authorized corrections and UI work.
+- [x] Relevant focused, operational and final local checks run; exact results recorded.
+- [x] Astra inspected source/results and corrected/rechecked all actionable findings.
+- [x] Matt Standards independent final review and supplements returned0 outstanding findings.
+- [x] Matt Spec independent final review and supplements returned0 outstanding findings.
+- [x] Local acceptance met with recorded evidence. Hosting/cloud acceptance remains explicitly deferred; no deployment claim.
+- [x] Local technical prerequisites met; remaining real-world/submission limits recorded separately.
+
+- [x] Root frozen Task22 store probe used actual Firestore and exited0: concurrent owner replies converged on one immutable response/fact; worker denied; final Danger deferred; expired sending became uncertain without resend; virtual prompt did not authorize an accepted-message callback; five persisted synthetic-fixture responses shrank the multiplier to0.9 once, a confirmed inside/no-earlier-alert report grew it to0.99 once, and old generation was denied. Exact isolated collections were cleaned. This verifies store behavior; shared jobs/dispatch/analytics/public endpoint/UI were pending at this historical checkpoint.
+
+### User-requested dashboard design refinement (Tasks20–22)
+
+- [x] Explicit user visual amendment recorded; Astra read frontend-design skill and web/AGENTS.md and wrote dashboard-polish-plan.md with palette/type/layout and brief-specific critique.
+- [x] Exclusive frontend handoff released after Task22 backend contract freeze; Sol recorded the map/activity/compact strip/feedback trend plan, preserving locally bundled Source Sans 3 and dashboard-scoped CSS.
+- [x] Frontend implementation and Task22 panel frozen for root verification: map/activity hierarchy, compact action strip, responsive recovery/feedback, exact public proxy and strict DTO. TypeScript/lint passed;31 prior complete frontend tests plus five final focused cases passed (not a claimed combined final total). Seeded-history accepted-alert wording observed RED and corrected with a formatter regression. Root build/browser checks were pending at this historical checkpoint.
+- [x] Root frozen frontend gate exited0:33 frontend tests, zero skips, lint/type checks and production build. Test delta22→33 is six Task20 cases plus five Task22 feedback cases.
+- [x] Root actual desktop review prompted a compact-first-screen correction; map now begins at454px with about317px visible at1512×771, composition accepted.390px and320px have no page overflow; empty/unavailable states preserve unknown values. Actual cleanup-table keyboard and marker labelling gaps were returned to Sol. A subsequent real Space-key test exposed marker focus/popup loss on selection redraw; correction and final keyboard/refresh verification were open at this historical checkpoint.
+- [x] Root actual desktop/tablet/390px/320px keyboard/focus/overflow/state verification passed on final dashboard build. Marker and event-circle popups retain close-control focus across data polling; removed focused objects fall back to the map, while outside input focus stays untouched. All map controls are44px, labelled tables scroll from the keyboard, no dashboard animation/transition was present, and report/print styles remain unchanged.
+- [x] Astra corrections and independent final reviews resolved; actual responsive/keyboard/browser verification passed, with controlled tile-failure injection separately unperformed.
+
+- [x] Task22 shared integration checkpoint: reference-basis and Watch-history guards passed24 pure/domain/fake-store cases; observed Watch RED was corrected so earlier Watch acceptance blocks false missed-alert growth but cannot trigger six-hour prompts or shrink calibration. Atomic episode-history helper and risk transaction boundary passed three RED→GREEN cases for first reporter episode/explicit closure, legacy start refusal and rollback. Recovery Sol owns history/service/shared hooks; the other Sol owns only outcome analytics/tests and additive nullable schema fields. Actual integrated SDK/job acceptance was pending at this historical checkpoint.
+- [x] Root responsive checks additionally passed a320px189-character unbroken shop name without page overflow, explicit available/empty/unavailable coverage, and keyboard ArrowRight scrolling of the cleanup table with visible3px focus outline. Semantic text contrast measured4.55–12.27. The one-file marker/popup focus correction was source-reviewed and passed TypeScript/lint; actual post-correction keyboard/refresh checks were pending at this historical checkpoint.
+
+- [x] Astra independently inspected the current atomic-history and outcome/calibration chain and ran27 pure/fake-transaction cases:27 passed in0.80s, exit0. Root actual marker keyboard checks then passed Space selection, changed-data polling, close-control focus, removed-shop map fallback and preservation of outside-input focus. The adjacent event-circle popup branch was still being corrected at this historical checkpoint before final all-popup verification.
+
+- [x] Disjoint Task22 analytics source/schema reviewed: Astra independently passed11 fake-client cases in0.76s. Unrelated same-generation area leakage was observed RED and corrected; history truncation, unavailable analytics and immutable reference attribution are covered. Eight nullable outcomes fields are proposed, with no new calibration table. Root actual analytics SDK probe is pending. Shared service/domain/history pure suite reached33 cases; final integration remains open.
+
+- [x] Task22 local synthetic-history helper is written and source-reviewed; Astra seed/analytics16 cases passed in0.55s. It plans six distinct historical episodes of one owned synthetic shop, with explicit fixture provenance and replay-stable facts, not six independent shops or real Telegram acceptance. Actual seed/job verification was pending at this historical checkpoint; adapter reset isolation and bounded in-flight history corrections are in progress.
+
+- [x] Root actual isolated Firestore/BigQuery analytics probe passed: five responses over six episodes, one unknown, five fixture responses/zero real acceptances,0.9 calibration/history, unavailable missing analytics, physical duplicate dedupe, generation/privacy and exact query cleanup. The persistent9050 emulator stalled without OOM; identical module passed against a fresh same-version9052 instance, so no product analytics correction is claimed. Persistent runtime recovery remains root-owned.
+- [x] Task22 translations completed seven bounded configured-Flash calls for eight keys per language. Astra independently compared all eight catalogs with1646ebc: zero existing values changed,45 new keys each (8 waste+29 check+8 outcome); actual i18n suite10 passed in1.49s. Non-English translations remain unreviewed.
+
+## Latest Astra-led UI and submission audit
+
+- [x] Read actual dashboard/report sources, retained desktop screens, teammate context, installed Next client guidance and primary research; record plan/critique and challenge evidence in ui-and-winning-audit.md and ui-primary-research.md.
+- [x] User confirmed portal GGSI challenge and Astra ownership; preserved local-only/no-CI/hosting-deferred scope.
+- [x] Task22 root integrated actual FS/BQ/app-route/seed probe passed24.314s: replay/calibration, protected job, owner/worker, first-response/outage recovery, synthetic-only projection and generation reset. Telegram edge remained in-process fake.
+- [x] Narrow local outcomes migration has seven fake-client checks; actual emulator schema patch failed new-column query as expected, root instead verified a separate highground_v3 copy of all five table row multisets/hashes, new-column queryability and unchanged original dataset, then switched only ignored local BQ_DATASET. No false metadata-only migration success.
+- [x] Astra implemented scoped selected-shop drill handoff, direct demo navigation, explanatory existing simulation controls, tile loading/error/retry feedback and labelled keyboard report-table regions. No new dependencies, flood features or data claims.
+- [x] Root browser review of the new UI passed selected-shop → drill → location handoff, desktop/tablet/320/390px navigation without overflow,46px action buttons and both report-table keyboard scrolling regions with visible focus. Actual basemap loaded15 tiles; report print styles stayed unchanged. Evidence: task20-22-acceptance/ui/drill-ui-proof.json.
+- [ ] Controlled tile-network failure/retry injection remains a separate unperformed robustness check; the retained grey screenshot was not evidence of a live tile failure.
+- [x] Final local gate/reviews against1646ebc include intended untracked20–22 files and the UI amendment:25infra,629API,33frontend,lint/type/build passed; both independent axes0. Earlier621-case checkpoint and subsequent runtime corrections are retained below as historical evidence, not confused with final acceptance.
+
+### Final Tasks20–22 correction checkpoint
+
+- [x] Astra corrected the visible outcome episode reference with two observed RED→GREEN prompt cases, extracted a typed shared reply guard while preserving existing Danger/policy/recovery behavior, and moved outcome fact/calibration reads and exact acknowledgments behind typed store operations. The stale ADK assertion now checks rejection of the unsupported slash-combined condition through the actual response schema. Focused pure checks passed107 cases;21 emulator cases were explicitly skipped in the second pure batch, not claimed as integration acceptance.
+- [x] Seven bounded configured-Flash calls translated only two new episode-reference keys; all prior catalog values and fixed Danger text remained unchanged. Current catalogs have47 new keys versus1646ebc; non-English review flags remain false.
+- [x] Independent Matt Standards and Spec rechecks against coherent frozen v2 each returned0 outstanding findings. Both separately reviewed the subsequent single-line BigQuery emulator tuning and again returned0. Their reviews were read-only; full local verification is a separate gate.
+- [x] Root A/B evidence: unchanged hard768MiB/image/persistent-data settings with soft512MiB/GOGC100 passed25 focused actual integration tests in76.11s, where soft256MiB/GOGC50 had stalled. Only the runner environment pair changed; no Docker VM increase, production setting, data replacement or timeout increase. Root then passed the reviewed-source actual Task22 journey in32.07s on primary9050. This supports the local tuning, not a claim of permanent emulator reliability.
+- [x] Final combined gate on the reviewed correction exited0:24infra9.495s;621API/no skips/six dependency warnings200.79s;33frontend/no skips, lint/typecheck/production build passed. See tasks-20-22-verification.md.
+- [x] Historical runtime blocker resolved: sequential retained-catalog slowness and fresh concurrent-query OOM were separated, then exact SQL-copy preservation plus bounded emulator-only query serialization passed actual primary requests and browser polling. Original data/history remain retained.
+- [x] Executed isolated model-unavailable drill: actual dispatch/composer with in-process fake store/sinks/Telegram, Warning selector failure falls back; Danger invokes no selector, emits exact fixed simulation message and has no property actions/buttons. Coherent offline card rendered from the retained six-item synthetic recovery baseline, four ranked displayed items/RM850; no new model call, Telegram send or phone-airplane-mode claim. See single-shop-drill-runbook.md for artifact boundaries.
+
+- [x] Historical incomplete-copy diagnostic resolved: list_rows proof was invalidated (alerts2vs28,outcomes0vs6); subsequent SQL enumeration preserved exact8/28/3/13/6 counts/schema/row hashes in the adopted live volume. No incomplete copy was adopted.
+
+- [x] Root exact SQL-copy diagnostic preserved8/28/3/13/6 business rows/schema and unchanged source. Fresh-clone sequential requests were subsecond, but parallel round2 caused an observed768MiB OOM. Astra personally added an endpoint-validated emulator-only bounded in-process query/result/cleanup lock; four meaningful RED cases became GREEN. Helper19 passed; helper+outcome30 passed/one real-SDK deselected. Eight new cases make next full API total629.
+- [x] Actual locked parallel-runtime replay, final629-case API gate and both independent correction rechecks passed. Cloud requests and existing SDK/proxy deadlines are unchanged; other local processes still require coordination.
+
+- [x] Root locked-clone real endpoints passed two sequential requests and three concurrent pairs, all available0.46–1.19s. Exact SQL-copy business counts/schema/hashes and original preservation passed. Both independent query-lock reviews returned0; cloud behavior/deadlines unchanged.
+- [x] Final runner volume adoption retained historical-data protection: reviewers found the recovered-volume guard omission, Astra observed the orphaned-volume fake-Docker regression RED→GREEN, and all9 lifecycle cases/4subtests passed. One added case makes25infra; finalAPI629/frontend33 unchanged. Root reruns affectedinfra separately because its full gate had already passed the older24 before this narrowfix.
+- [x] Final629API/33frontend gate,25infra rerun and both lifecycle rechecks recorded; local milestone accepted.
+
+### Final local Tasks20–22 acceptance
+
+- [x] Full-gate-v3 exited0:629API/no skips80.09s;33frontend/no skips;lint/typecheck/production build passed. The final infra-only retained-volume correction was verified separately:25passed10.318s. API629=467+42+36+69+7+8;infra25=24+1.
+- [x] Both original independent Matt reviewers returned0 after query-lock and retained-volume supplements. Source is frozen for root commit-byte verification; no Git writes by Astra.
+- [x] Final actual primary8000 returned eight available reads1.01–5.57s with six responses preserved. Chrome3001 displayed six synthetic shops,RM472 reported lifted,one vehicle,one real API acceptance,five virtual alerts,six seeded responses and0.99/version2; official unavailable status remained explicit.
+- [x] Local Tasks20–22 accepted. Prior diagnostic/then-pending bullets above are historical and superseded by this final checkpoint. Hosting/cloud acceptance,native-language human review,real-shop validation,second physical tester,phone airplane-mode test,controlled tile-failure injection and final recorded video/deck/submission remain outside this local completion claim.
+
+- [ ] Hosted deployment/cloud acceptance remains deferred; local completion does not tick this external gate.

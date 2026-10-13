@@ -1,0 +1,88 @@
+{
+  "report_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "assessment_media_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "created_at": "2026-10-13T00:00:00Z",
+  "shop_name": "Synthetic waste fixture",
+  "is_demo": true,
+  "baseline_estimate_rm": 40.0,
+  "estimated_loss_rm": 20.0,
+  "estimate_status": "available",
+  "coverage": "complete",
+  "assessed_items": 1,
+  "baseline_items": 1,
+  "confidence": 0.8,
+  "confidence_note": "Visual model assessment only; replacement prices, camera coverage and damage estimates remain uncertain.",
+  "summary_text": "1 of 1 baseline items were assessed. Assessed estimated loss is RM20.00. Replacement-price estimates remain uncertain.",
+  "recovery_attribution": "Synthetic owner-declared recovery, not proof of clearance.",
+  "items": [
+    {
+      "item_id": "inv:0",
+      "condition": "damaged",
+      "estimated_loss_rm": 20.0,
+      "evidence_timestamp_s": 1.0,
+      "uncertainty": "Visible evidence supports an estimate; valuation remains uncertain.",
+      "name": "Rice",
+      "qty": 2.0,
+      "baseline_estimate_rm": 40.0
+    }
+  ],
+  "evidence": [
+    {
+      "media_id": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "kind": "baseline_video",
+      "sha256": "b3cc0475bb78a5026098858e9889acf666d31062d513d303314eca31d36e72f2",
+      "bytes": 9,
+      "mime_type": "video/mp4",
+      "uploaded_at": "2026-10-13T00:00:00Z",
+      "origin": "telegram",
+      "telegram_date": "2026-10-13T00:00:00Z",
+      "lat": 3.0,
+      "lng": 101.0,
+      "location_attribution": "confirmed_shop",
+      "is_demo": true,
+      "integrity_status": "not_checked"
+    },
+    {
+      "media_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "kind": "after_video",
+      "sha256": "b3cc0475bb78a5026098858e9889acf666d31062d513d303314eca31d36e72f2",
+      "bytes": 9,
+      "mime_type": "video/mp4",
+      "uploaded_at": "2026-10-13T00:00:00Z",
+      "origin": "telegram",
+      "telegram_date": "2026-10-13T00:00:00Z",
+      "lat": 3.0,
+      "lng": 101.0,
+      "location_attribution": "confirmed_shop",
+      "is_demo": true,
+      "integrity_status": "not_checked"
+    }
+  ],
+  "waste": {
+    "status": "available",
+    "items": [
+      {
+        "item_id": "inv:0",
+        "condition": "damaged",
+        "disposition": "discard_contaminated",
+        "est_volume_m3": 1.0,
+        "est_weight_kg": 2.0,
+        "material": "food",
+        "floodwater_contact": "yes",
+        "contamination": "present",
+        "uncertainty": null,
+        "donation_eligible": false,
+        "donation_available": false,
+        "donation_action_url": null,
+        "self_report_note": "Donation availability is an owner self-report; eligibility is not a safety certification or collection promise."
+      }
+    ],
+    "confidence": 0.8,
+    "owner_confirmed_street": null,
+    "street_assignment_source": "unassigned",
+    "street_confirmed_at": null,
+    "food_safety_line": "Throw away food, drinks and medicine that touched floodwater.",
+    "safety_note": "Visual classifications and quantities are uncertain estimates. They do not establish that an item is safe to use, clean or donate."
+  },
+  "disclaimer": "Replacement-price and loss estimates only. Unknown items are excluded from the assessed total. File integrity does not authenticate the scene, time, location or valuation."
+}

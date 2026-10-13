@@ -91,6 +91,11 @@ class Onboarding:
         finally:
             await run_in_threadpool(self.store.release, identity, owner)
 
+    async def waiting_location(self,chat_id:int)->bool:
+        """Routing read only: never create a registration for a public lookup."""
+        session=await self.sessions.get_session(app_name='highground_onboarding',user_id=session_user_id(chat_id,self.hash_salt),session_id='registration')
+        return bool(session and session.state.get('onboarding',{}).get('stage') in ('location','confirm_location'))
+
     async def transition(self, state: dict[str, Any], chat_id: int, identity: str, update_id: int, value: str, location: dict[str, float] | None) -> tuple[Reply, str | None, dict[str, object]]:
         stage, language = state["stage"], state.get("language", "en")
         key = None
