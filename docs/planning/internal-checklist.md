@@ -36,7 +36,7 @@ These apply to the affected task; they do not globally block Task 1 scaffolding.
 
 ## Execution contract
 
-Astra coordinates Sol, inspects actual changes and local checks, sends defects back and rechecks corrections before completion is reported. Matt review runs independent Standards and Spec axes; findings return to Sol and are rechecked. A checkbox is marked only with observed evidence. Skill-required review agents run only for actual implementation review, not to create premature implementation. Task 1 implementation, local acceptance and both review axes are complete. Foundation Tasks 2/3/4/6 passed local checks and both independent Matt axes after the privacy correction (final 69 API tests). Tasks 3/4/6 local acceptance is complete; Task 2 cloud provisioning remains deferred. Tasks 5/7 local acceptance and both Matt axes passed against final candidate 8818a93. Tasks 8/9 implementation and both Matt axes passed through 1a4d7b1; the complete local gate passed 6 infrastructure and 175 API tests with frontend checks. Task 8 live own-chat acceptance passed; Task 9 integrated local acceptance passed with actual service emulators/configured Flash and explicitly virtual Telegram edges. Actual Telegram photo upload remains pending consent. Tasks 10/11 local acceptance is complete at 8d28cc8: 243 API tests, final Standards 0 and Spec 0, plus actual local polling and configured-Pro service integration with synthetic Telegram edges. Tasks 12/13/15 implementation from ca6cd6f is frozen after correcting the concurrent polling and optional confirmation-outbox failures found by the combined gate. Recovery/report backend and report/dashboard UI have focused checks plus actual Pro/production-browser evidence; the final local gate passed 6 infrastructure, 283 API and 14 frontend tests plus lint/type/build; independent final reviews passed Standards0/Spec0 at f914f9a; report print and Task 16 reset-generation boundary remain outstanding. Task14 packaging, Task16 scenario backend/frontend and Task17 local lifecycle, initializer, exact query cleanup and protected manual recovery are implemented from6ccc9b. Focused component checks and Astra correction review passed; the initial combined full gate at8be5884 passed 24 infrastructure, 332 API and 19 frontend tests with no skips, plus lint/type/build. Independent Standards1/Spec2 findings exposed fixture ownership/Danger routing and reset history recovery defects; the corrected focused gate passed37 cases and Astra rechecked nine targeted cases. The corrected full gate atf6efd315 passed24 infrastructure,339 API (five dependency warnings),19 frontend tests with no skips, plus lint/type/build; both independent correction reviews finished with Standards0/Spec0 outstanding. Root restored all four bounded local services with verified original-media preservation; the actual protected factory/manual recovery, shared virtual reset/retry journey and one consenting owner’s immutable vehicle/stock confirmations passed; see task-17-operational-verification.md. Actual PDF/print remains the open local Must gate. Hosting and real second-phone/media-upload acceptance remain deferred.
+Astra coordinates Sol, inspects actual changes and local checks, sends defects back and rechecks corrections before completion is reported. Matt review runs independent Standards and Spec axes; findings return to Sol and are rechecked. A checkbox is marked only with observed evidence. Skill-required review agents run only for actual implementation review, not to create premature implementation. Task 1 implementation, local acceptance and both review axes are complete. Foundation Tasks 2/3/4/6 passed local checks and both independent Matt axes after the privacy correction (final 69 API tests). Tasks 3/4/6 local acceptance is complete; Task 2 cloud provisioning remains deferred. Tasks 5/7 local acceptance and both Matt axes passed against final candidate 8818a93. Tasks 8/9 implementation and both Matt axes passed through 1a4d7b1; the complete local gate passed 6 infrastructure and 175 API tests with frontend checks. Task 8 live own-chat acceptance passed; Task 9 integrated local acceptance passed with actual service emulators/configured Flash and explicitly virtual Telegram edges. Actual Telegram photo upload remains pending consent. Tasks 10/11 local acceptance is complete at 8d28cc8: 243 API tests, final Standards 0 and Spec 0, plus actual local polling and configured-Pro service integration with synthetic Telegram edges. Tasks 12/13/15 implementation from ca6cd6f is frozen after correcting the concurrent polling and optional confirmation-outbox failures found by the combined gate. Recovery/report backend and report/dashboard UI have focused checks plus actual Pro/production-browser evidence; the final local gate passed 6 infrastructure, 283 API and 14 frontend tests plus lint/type/build; independent final reviews passed Standards0/Spec0 at f914f9a; report print and Task 16 reset-generation boundary remain outstanding. Task14 packaging, Task16 scenario backend/frontend and Task17 local lifecycle, initializer, exact query cleanup and protected manual recovery are implemented from6ccc9b. Focused component checks and Astra correction review passed; the initial combined full gate at8be5884 passed 24 infrastructure, 332 API and 19 frontend tests with no skips, plus lint/type/build. Independent Standards1/Spec2 findings exposed fixture ownership/Danger routing and reset history recovery defects; the corrected focused gate passed37 cases and Astra rechecked nine targeted cases. The corrected full gate atf6efd315 passed24 infrastructure,339 API (five dependency warnings),19 frontend tests with no skips, plus lint/type/build; both independent correction reviews finished with Standards0/Spec0 outstanding. Root restored all four bounded local services with verified original-media preservation; the actual protected factory/manual recovery, shared virtual reset/retry journey and one consenting owner’s immutable vehicle/stock confirmations passed; see task-17-operational-verification.md. The native PDF correction at5be7f18 subsequently passed actual export, full24/339/19 local gate and independent Standards0/Spec0; local Must acceptance is now complete. Hosting and real second-phone/media-upload acceptance remain deferred.
 
 The active technical graph is in dependency-plan.md; Task numbers remain traceability labels. Independent work may proceed in parallel without new Task N approval. Dates are targets and work may finish earlier; Shoulds may start earlier than Friday only after all Must behaviour is locally verified; hosting is deferred. Stretch is pitch-only. Review uses each task-start committed baseline; Task 1 baseline is bb1b098. User authorization includes the review/correction loop.
 
@@ -214,8 +214,8 @@ Scope: Must/foundation. Deliverable: An unguessable report link shows before/aft
 - [x] Matt Standards completed for the current component; final f914f9a recheck has zero outstanding findings.
 - [x] Matt Spec completed for the current component; final f914f9a recheck has zero outstanding findings.
 - [x] Additional production browser checks passed: mobile width, keyboard use, actual file integrity and isolated adapter failure/unknown/partial states; see [UI verification](tasks-13-15-ui-verification.md). Adapters establish UI behavior, not actual backend outages.
-- [ ] Local acceptance: PDF/print output still requires desktop unlock; latest contract amendments passed the f6efd315 combined gate and independent reviews. Hosting remains deferred.
-- [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
+- [x] Local acceptance: native PDF export succeeded after desktop unlock, but all three receipt hashes/byte counts were absent (actual-PDF regression exit1). Sol supplied a two-file print-only receipt correction; actual native export now passes: two A4 pages, all three full hashes exactly once, byte counts and disclaimers present, capability absent; Root and Astra visually inspected both pages. Independent correction reviews now pass Standards0/Spec0 at5be7f18. The first subsequent full gate stopped at334 API passes/five failures: four exact BigQuery cleanup failures with correct rows, plus one Firestore concurrent-claim lock timeout; bounded copy-only BQ recovery preserved business/job data, and the final full gate passed24infra/339API/19web plus lint/type/build with no skips. Three actual factory dashboard reads kept dataset count4→4. No backend changes were needed. Hosting remains deferred.
+- [x] Technical prerequisites for dependent local work met; hosting and separately deferred external acceptance remain explicit.
 
 ### Task 14 — First deploy
 
@@ -254,7 +254,7 @@ Scope: Must/foundation. Deliverable: Six demo shops make the deployed story repr
 - [x] Matt Standards completed: original finding corrected; independent f6efd315 recheck has zero outstanding findings.
 - [x] Matt Spec completed: both original findings corrected; independent f6efd315 recheck has zero outstanding findings.
 - [x] Local scenario acceptance passed with actual service seeding, six virtual recipients, explicit consenting-owner binding, retained ordinary ownership, current-generation reset/retry and exact duplicate-safe action facts. Redeployment remains deferred.
-- [x] Technical prerequisites for dependent local work met; second-phone/media-upload/hosting limitations remain explicit. This does not close the PDF-dependent full Must gate.
+- [x] Technical prerequisites for dependent local work met; second-phone/media-upload/hosting limitations remain explicit. The PDF-dependent full local Must gate subsequently passed at5be7f18.
 
 ### Task 17 — Hardening
 
@@ -263,18 +263,18 @@ Scope: Must/foundation. Deliverable: Deployed Must journey survives expected fai
 - [x] Astra dispatched the bounded local-first brief from6ccc9b, with disjoint ownership and root-controlled runtime operations.
 - [x] Sol implemented lifecycle/strict-gate controls, non-destructive resource initialization, exact current-query cleanup, integration setup hygiene and authenticated bounded manual outbox recovery; no automatic schedule was created.
 - [x] Focused checks passed: Astra independently ran the 18-test infrastructure slice and six initializer cases; root actual initializer dry-run/apply/repeat and isolated four-service scenario probes passed. Sol final recovery/Scheduler/dashboard/query gate passed 29 tests with no skips; Astra independently passed 13 protected-route/dashboard cases in 1.92s. The corrected combined full gate passed24 infrastructure/339 API/19 frontend tests with no skips; see task-17-recovery-verification.md and task-16-sdk-verification.md.
-- [x] Astra inspected actual lifecycle, initializer, query, cleanup, resumer and dashboard code; returned the missing fresh-BigQuery path and empty optional endpoint defect, then rechecked focused corrections. Root migration preservation is recorded in local-runtime-migration.md. Both independent Matt correction reviews passed atf6efd315; actual factory/manual recovery and shared operator acceptance subsequently passed; the complete local Must gate still awaits PDF/print (task-17-operational-verification.md).
+- [x] Astra inspected actual lifecycle, initializer, query, cleanup, resumer and dashboard code; returned the missing fresh-BigQuery path and empty optional endpoint defect, then rechecked focused corrections. Root migration preservation is recorded in local-runtime-migration.md. Both independent Matt correction reviews passed atf6efd315; actual factory/manual recovery and shared operator acceptance subsequently passed; the complete local Must gate subsequently passed native PDF/full verification and Standards0/Spec0 at5be7f18 (task-17-operational-verification.md).
 - [x] Matt Standards completed: original finding corrected; independent f6efd315 recheck has zero outstanding findings.
 - [x] Matt Spec completed: both original findings corrected; independent f6efd315 recheck has zero outstanding findings.
-- [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
-- [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
+- [x] Local acceptance met at5be7f18 after actual native PDF and recovered-runtime checks; cloud deployment remains explicitly deferred.
+- [x] Full local Must gate accepted; Should work may start. Separately deferred external acceptance remains recorded.
 
 ### Task 18 — Offline card
 
 Scope: Should — full local Must acceptance required; hosting deferred. Deliverable: At Watch or on request, owner receives a multilingual image that can be saved offline.
 
 - [x] Preparatory file/interface/test brief written in tasks-18-22-brief.md; source and current modules inspected. Planning only.
-- [ ] Astra task brief and acceptance agreed; blockers satisfied. Full local Must/PDF gate and task-specific decisions remain open; no Sol dispatch or implementation.
+- [ ] Astra task brief and acceptance agreed; blockers satisfied. The user approved constrained card wording and the local Must gate passed; implementation probes remain task work. No implementation claimed.
 - [ ] Sol implements only this task.
 - [ ] Relevant local checks run; results captured.
 - [ ] Astra inspects files and results, returns defects to Sol, and rechecks corrections.
@@ -288,7 +288,7 @@ Scope: Should — full local Must acceptance required; hosting deferred. Deliver
 Scope: Should — full local Must acceptance required; hosting deferred. Deliverable: Owner uploads a policy and receives cautious extracted coverage and estimated shortfall information.
 
 - [x] Preparatory file/interface/test brief written in tasks-18-22-brief.md; source and current modules inspected. Planning only.
-- [ ] Astra task brief and acceptance agreed; blockers satisfied. Full local Must/PDF gate and task-specific decisions remain open; no Sol dispatch or implementation.
+- [ ] Astra task brief and acceptance agreed; blockers satisfied. The user approved pre-upload default-delete/Keep retention semantics and the local Must gate passed; implementation probes remain task work. No implementation claimed.
 - [ ] Sol implements only this task.
 - [ ] Relevant local checks run; results captured.
 - [ ] Astra inspects files and results, returns defects to Sol, and rechecks corrections.
@@ -302,7 +302,7 @@ Scope: Should — full local Must acceptance required; hosting deferred. Deliver
 Scope: Should — full local Must acceptance required; hosting deferred. Deliverable: Loss report provides item disposal categories and aggregate estimated cleanup volumes.
 
 - [x] Preparatory file/interface/test brief written in tasks-18-22-brief.md; source and current modules inspected. Planning only.
-- [ ] Astra task brief and acceptance agreed; blockers satisfied. Full local Must/PDF gate and task-specific decisions remain open; no Sol dispatch or implementation.
+- [ ] Astra task brief and acceptance agreed; blockers satisfied. The user explicitly approved this task’s proposed product choices; local Must correction gate/reviews passed; implementation probes remain task work. No implementation claimed.
 - [ ] Sol implements only this task.
 - [ ] Relevant local checks run; results captured.
 - [ ] Astra inspects files and results, returns defects to Sol, and rechecks corrections.
@@ -316,7 +316,7 @@ Scope: Should — full local Must acceptance required; hosting deferred. Deliver
 Scope: Should — full local Must acceptance required; hosting deferred. Deliverable: Any user shares a location to view current nearby warnings and listed destinations.
 
 - [x] Preparatory file/interface/test brief written in tasks-18-22-brief.md; source and current modules inspected. Planning only.
-- [ ] Astra task brief and acceptance agreed; blockers satisfied. Full local Must/PDF gate and task-specific decisions remain open; no Sol dispatch or implementation.
+- [ ] Astra task brief and acceptance agreed; blockers satisfied. The user explicitly approved this task’s proposed product choices; local Must correction gate/reviews passed; implementation probes remain task work. No implementation claimed.
 - [ ] Sol implements only this task.
 - [ ] Relevant local checks run; results captured.
 - [ ] Astra inspects files and results, returns defects to Sol, and rechecks corrections.
@@ -330,7 +330,7 @@ Scope: Should — full local Must acceptance required; hosting deferred. Deliver
 Scope: Should — full local Must acceptance required; hosting deferred. Deliverable: Owner feedback produces transparent outcome metrics and constrained area calibration.
 
 - [x] Preparatory file/interface/test brief written in tasks-18-22-brief.md; source and current modules inspected. Planning only.
-- [ ] Astra task brief and acceptance agreed; blockers satisfied. Full local Must/PDF gate and task-specific decisions remain open; no Sol dispatch or implementation.
+- [ ] Astra task brief and acceptance agreed; blockers satisfied. The user explicitly approved this task’s proposed product choices; local Must correction gate/reviews passed; implementation probes remain task work. No implementation claimed.
 - [ ] Sol implements only this task.
 - [ ] Relevant local checks run; results captured.
 - [ ] Astra inspects files and results, returns defects to Sol, and rechecks corrections.
