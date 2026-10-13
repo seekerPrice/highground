@@ -25,8 +25,9 @@ class RiskDecision:
 
 
 class ActiveRiskStore:
-    def __init__(self, client, *, risks='active_risks', shops='shops', deliveries='shop_delivery_claims', current_actions='current_vehicle_actions', source_states='official_source_states', source_recoveries='official_poll_intents-recoveries', max_age=DEFAULT_MAX_AGE):
+    def __init__(self, client, *, risks='active_risks', shops='shops', deliveries='shop_delivery_claims', current_actions='current_vehicle_actions', source_states='official_source_states', source_recoveries='official_poll_intents-recoveries', max_age=DEFAULT_MAX_AGE, episode_history=None):
         self.client,self.risks,self.shops,self.deliveries,self.current_actions=client,risks,shops,deliveries,current_actions
+        self.episode_history=episode_history
         self.source_states=source_states
         self.source_recoveries=source_recoveries
         if not timedelta(0)<max_age<=DEFAULT_MAX_AGE:raise ValueError("Official cutoff must be positive and at most90 minutes")
@@ -119,6 +120,7 @@ class ActiveRiskStore:
             if not shop:return RiskDecision(None,'missing_shop')
             if shop.get('is_demo',False)!=event['is_demo']:return RiskDecision(None,'simulation_mismatch')
             if old.get('closed_at') and observed<=old['closed_at']:return RiskDecision(None,'closed_episode')
+            original=old
             old=self._reconcile_recoveries(old,shop,event,observed,tx)
             danger_before=self._view(old,shop).active_danger
             sources=dict(old.get('sources',{}))
@@ -134,6 +136,11 @@ class ActiveRiskStore:
             record={**old,'episode_id':episode,'sources':sources,'legacy_unknown':self._view(old,shop).legacy_unknown}
             danger=self._view(record,shop).active_danger
             record['danger_generation']=old.get('danger_generation',0)+int(danger and not danger_before)
+            if event['is_demo']:record['scenario_generation']=event.get('scenario_generation',0)
+            from api.outcome_history import risk_history_writes
+            history=list(risk_history_writes(self.client,self.episode_history,tx,shop_id,shop,original,old)) if original.get('episode_id')!=old.get('episode_id') else []
+            history.extend(risk_history_writes(self.client,self.episode_history,tx,shop_id,shop,old,record,event=event,observed=observed))
+            for history_ref,history_row in history:tx.set(history_ref,history_row)
             # Fresh receipt reconciliation is a recovery path too. Release only
             # the pointer; the old vehicle action remains irreversibly superseded.
             if danger and (not current_action.exists or not current_action.to_dict().get('blocked')):
@@ -185,6 +192,9 @@ class ActiveRiskStore:
                      'recovery_provenance':provenance,'recovered_at':at}
             if not sources and not updated['legacy_unknown']:updated.update(episode_id=None,closed_at=at)
             danger=self._view(updated,shop).active_danger
+            from api.outcome_history import risk_history_writes
+            history=risk_history_writes(self.client,self.episode_history,tx,shop_id,shop,record,updated)
+            for history_ref,history_row in history:tx.set(history_ref,history_row)
             if scenario is not None:tx.update(scenario_ref,{'done':sorted(set(scenario['done'])|{shop_id})})
             tx.set(ref,updated);tx.update(shop_ref,{'active_danger':danger,'active_episode_id':updated.get('episode_id')})
             if action.exists and not danger and (action.to_dict().get('blocked') or prior_danger or updated.get('episode_id') is None):
@@ -218,3 +228,25 @@ class ActiveRiskStore:
         def release(tx):
             if (ref.get(transaction=tx).to_dict() or {}).get('owner')==owner:tx.update(ref,{'until':datetime.now(UTC),'released_at':datetime.now(UTC)})
         release(self.client.transaction())
+
+    def claim_outcome_delivery(self,episode,recipient,*,owner=None):
+        """Share the alert send lease while allowing an explicitly closed episode."""
+        ref=self.client.collection(self.deliveries).document(episode.shop_id)
+        now=datetime.now(UTC);requested_owner=owner;owner=owner or uuid4().hex
+        @firestore.transactional
+        def claim(tx):
+            lease=ref.get(transaction=tx).to_dict() or {}
+            risk=self.client.collection(self.risks).document(episode.shop_id).get(transaction=tx).to_dict() or {}
+            shop=self.client.collection(self.shops).document(episode.shop_id).get(transaction=tx).to_dict() or {}
+            scenario=current_scenario(self.client,scenario_collection(self.shops),tx) if episode.is_demo else {}
+            owners=[r for r in shop.get('recipients',[]) if r.get('role')=='owner']
+            if len(owners)!=1 or owners[0].get('telegram_chat_id')!=recipient or shop.get('is_demo',False)!=episode.is_demo:return 'superseded',None
+            if episode.is_demo and (scenario.get('state','ready')!='ready' or scenario.get('generation',0)!=episode.scenario_generation):return 'superseded',None
+            if self._view(risk,shop).active_danger:return 'active_danger',None
+            if episode.closed_at is None and risk.get('episode_id')!=episode.episode_id:return 'superseded',None
+            if requested_owner is not None:
+                return ('claimed',owner) if lease.get('owner')==owner and lease.get('until',now)>now else ('busy',None)
+            if lease.get('until',now)>now:return 'busy',None
+            tx.set(ref,{'owner':owner,'event_id':'outcome:'+episode.episode_id,'until':now+timedelta(seconds=30)})
+            return 'claimed',owner
+        return claim(self.client.transaction())

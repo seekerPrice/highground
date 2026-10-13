@@ -19,6 +19,8 @@ export function backendOrigin(value: string | undefined): string {
 
 export function allowedTarget(path: string[], method: string): {path: string; private: boolean; media: boolean} | null {
   if (path.length === 1 && path[0] === "dashboard" && method === "GET") return {path:"/api/dashboard", private:false, media:false};
+  if (path.length === 1 && path[0] === "outcomes" && method === "GET") return {path:"/api/outcomes", private:false, media:false};
+  if (path.length === 1 && path[0] === "waste" && method === "GET") return {path:"/api/waste", private:false, media:false};
   if (path[0] === "report" && REPORT.test(path[1] ?? "")) {
     if (path.length === 2 && method === "GET") return {path:`/api/report/${path[1]}`, private:true, media:false};
     if (path[2] === "media" && MEDIA.test(path[3] ?? "")) {

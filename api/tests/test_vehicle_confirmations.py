@@ -13,6 +13,7 @@ import pytest
 from api.agents.sessions import session_user_id
 from api.alert_composer import AlertComposer, snapshot_actions
 from api.config import Settings
+from api.i18n import text
 from api.destinations import DestinationLookup, SafePoint
 from api.dispatch_models import Shop, ActionSnapshot
 from api.main import create_app
@@ -246,7 +247,8 @@ def test_warning_separate_routes_and_bound_action_button(domain):
         body,actual,markup=await composer.compose({**event,'event_id':'destinations','lat':located.lat,'lng':located.lng},located,'en',snapshot_override=frozen)
         assert actual==frozen
         controls=[button for row in markup['inline_keyboard'] for button in row]
-        assert len(controls)==3 and controls[0]['callback_data']=='vehicle:'+action['action_id']
+        assert len(controls)==4 and controls[0]['callback_data']=='vehicle:'+action['action_id']
+        assert controls[3]=={'text':text('en','video_update_optional'),'callback_data':'inventory:refresh'}
         assert controls[1]['url']==frozen.parking_destination.route_link
         assert controls[2]['url']==frozen.shelter_destination.route_link
         assert '2022' in body and 'Current opening and route conditions are unconfirmed.' in body and 'Minimum parking level is unconfirmed' in body
@@ -292,7 +294,8 @@ def test_real_firestore_keyboard_dispatch_and_same_id_preparation_retry(domain):
             recovered=store.get_alert(identity)['reply_markup']
             assert recovered==json.loads(stored['reply_markup'])
             controls=[button for row in recovered['inline_keyboard'] for button in row]
-            assert len(controls)==3 and controls[0]['callback_data'].startswith('vehicle:')
+            assert len(controls)==4 and controls[0]['callback_data'].startswith('vehicle:')
+            assert controls[3]=={'text':text(store.get_alert(identity)['language'],'video_update_optional'),'callback_data':'inventory:refresh'}
             assert controls[1]['url']==records_to_route(records[0]) and controls[2]['url']==records_to_route(records[1])
             assert recovered in [wire[2] for wire in sender.sent]
         await fixed.process(request)

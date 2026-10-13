@@ -16,7 +16,7 @@ class DashboardStore:
     def __init__(self,client,settings,*,prefix='',analytics=None):
         self.client,self.settings,self.prefix=client,settings,prefix
         self.analytics=analytics
-        self.risks=ActiveRiskStore(client,risks=prefix+'active_risks',shops=prefix+'shops',current_actions=prefix+'current_vehicle_actions',deliveries=prefix+'shop_delivery_claims',max_age=settings.official_max_age)
+        self.risks=ActiveRiskStore(client,risks=prefix+'active_risks',shops=prefix+'shops',current_actions=prefix+'current_vehicle_actions',deliveries=prefix+'shop_delivery_claims',max_age=settings.official_max_age,episode_history=prefix+"risk_episode_history")
     def collection(self,name):return self.client.collection(self.prefix+name)
     def synthetic(self,name: str,limit: int,since: datetime|None=None,generation: int|None=None) -> tuple[list[dict],bool]:
         query=self.collection(name).where(filter=FieldFilter('is_demo','==',True))

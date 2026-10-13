@@ -77,7 +77,7 @@ class WebhookRetry(Exception):
 
 
 class TelegramHandler:
-    def __init__(self, inbox: FirestoreInbox, api: TelegramAPI, onboarding: "Onboarding | None" = None, confirmations=None, photos=None, inventory=None, stock_confirmations=None, recovery=None, cards=None, policy=None) -> None:
+    def __init__(self, inbox: FirestoreInbox, api: TelegramAPI, onboarding: "Onboarding | None" = None, confirmations=None, photos=None, inventory=None, stock_confirmations=None, recovery=None, cards=None, policy=None, waste=None, public_check=None, outcomes=None) -> None:
         self.inbox = inbox
         self.api = api
         self.onboarding = onboarding
@@ -88,6 +88,14 @@ class TelegramHandler:
         self.recovery = recovery
         self.cards = cards
         self.policy = policy
+        self.waste = waste
+        self.public_check = public_check
+        self.outcomes=outcomes
+
+    async def check_location_flow_waiting(self,sender):
+        pending=await self.photos.pending_location_report_id(sender) if self.photos else None
+        onboarding=await self.onboarding.waiting_location(sender) if self.onboarding and hasattr(self.onboarding,'waiting_location') else False
+        return bool(pending or onboarding)
 
     async def handle(self, update: Update) -> Literal["done", "uncertain"]:
         received_at = datetime.now(UTC)
@@ -104,15 +112,18 @@ class TelegramHandler:
             return await self.handle_callback(update, owner, operation_id)
         message = update.message
         words = message.text.split() if message and message.text else []
-        if message is None or message.chat.type != "private" or (not words and message.location is None and message.photo is None and message.video is None and message.document is None) or (self.onboarding is None and self.photos is None and self.inventory is None and self.recovery is None and self.cards is None and self.policy is None and (not words or words[0] != "/start")):
+        if message is None or message.chat.type != "private" or (not words and message.location is None and message.photo is None and message.video is None and message.document is None) or (self.onboarding is None and self.photos is None and self.inventory is None and self.recovery is None and self.cards is None and self.policy is None and self.waste is None and self.public_check is None and self.outcomes is None and (not words or words[0] != "/start")):
             await run_in_threadpool(self.inbox.transition, update.update_id, owner, "done", operation_id=operation_id, outcome="unsupported")
             return "done"
         media_reply = False
         policy_reply = False
+        waste_reply = False
+        check_reply = False
+        outcome_reply=False
         reply_markup = None
         venue = None
         response_text = "Welcome to HighGround. Shop onboarding is not connected yet."
-        if self.onboarding is not None or self.photos is not None or self.inventory is not None or self.recovery is not None or self.cards is not None or self.policy is not None:
+        if self.onboarding is not None or self.photos is not None or self.inventory is not None or self.recovery is not None or self.cards is not None or self.policy is not None or self.waste is not None or self.public_check is not None or self.outcomes is not None:
             location = {"lat": message.location.latitude, "lng": message.location.longitude} if message.location else None
             try:
                 pending = await self.photos.pending_location_report_id(message.chat.id) if self.photos is not None and location else None
@@ -120,7 +131,26 @@ class TelegramHandler:
                 largest=max(message.photo,key=lambda item:(item.width*item.height,item.file_size or 0)) if message.photo else None
                 flood_bound=await self.photos.bound_photo_report(message.chat.id,message.message_id,largest.file_unique_id) if largest and self.photos and hasattr(self.photos,'bound_photo_report') else None
                 policy_context=await self.policy.active_context(message.chat.id,message.message_id,message.document.file_unique_id if message.document else largest.file_unique_id if largest else None) if self.policy and (message.photo or message.document or (words and words[0] in ('/policy','/cancel'))) else None
-                if self.policy and words and words[0]=='/policy':
+                check_operation=f'message:{message.message_id}:{message.date}'
+                check_context,check_bound=await self.public_check.context(message.chat.id,check_operation) if self.public_check and location else (None,False)
+                check_waiting=await self.check_location_flow_waiting(message.chat.id) if self.public_check and (location or (words and words[0]=='/check')) else False
+                if self.outcomes and words and words[0]=='/outcome':
+                    outcome_reply=True
+                    valid=len(words) in (3,4) and words[1]=='inside'
+                    depth=int(words[3]) if valid and len(words)==4 and re.fullmatch(r'[0-9]{1,4}',words[3]) else None
+                    if len(words)==4 and depth is None:valid=False
+                    reply=await self.outcomes.owner_report(message.chat.id,words[2] if valid else '',depth)
+                elif self.public_check and words and words[0]=='/check':
+                    check_reply=True
+                    reply=await self.public_check.start(message.chat.id,check_operation,registered_flow_waiting=check_waiting,language_hint=words[1] if len(words)==2 else None)
+                elif self.public_check and location and check_context and (check_bound or not check_waiting):
+                    from api.public_check_models import CheckLocation
+                    check_reply=True;reply=await self.public_check.lookup(message.chat.id,check_operation,CheckLocation(**location),check_context)
+                elif self.waste and words and words[0]=='/street':
+                    waste_reply=True;reply=await self.waste.street(message.chat.id,message.text.partition(' ')[2].strip(),operation_id)
+                elif self.waste and len(words)==2 and words[0]=='/start' and re.fullmatch(r'donate_[0-9a-f]{32}',words[1]):
+                    waste_reply=True;reply=await self.waste.donation(message.chat.id,words[1][7:])
+                elif self.policy and words and words[0]=='/policy':
                     policy_reply=True
                     if len(words)==2 and words[1]=='done':reply=await self.policy.done(message.chat.id)
                     elif len(words)==2 and words[1]=='cancel':reply=await self.policy.cancel(message.chat.id)
@@ -167,6 +197,9 @@ class TelegramHandler:
                     media_reply = True
                     reply = await self.photos.confirm_report_location(message.chat.id, pending, lat=location['lat'], lng=location['lng'])
                 else:
+                    if self.onboarding is None:
+                        await run_in_threadpool(self.inbox.transition,update.update_id,owner,'done',operation_id=operation_id,outcome='unsupported')
+                        return 'done'
                     reply = await self.onboarding.process(message.chat.id, update.update_id, message.text, location, message.date)
             except Exception:
                 # No external send has begun; committed session/domain writes
@@ -203,6 +236,28 @@ class TelegramHandler:
             except Exception:
                 await run_in_threadpool(self.inbox.transition,update.update_id,owner,'retryable',operation_id=operation_id)
                 raise WebhookRetry() from None
+        if waste_reply:
+            try:
+                reply=await self.waste.recheck_reply(message.chat.id,reply)
+                response_text,reply_markup,venue=reply.text,reply.reply_markup,reply.venue
+            except Exception:
+                await run_in_threadpool(self.inbox.transition,update.update_id,owner,'retryable',operation_id=operation_id)
+                raise WebhookRetry() from None
+        if outcome_reply:
+            try:
+                reply=await self.outcomes.recheck_reply(message.chat.id,reply)
+                response_text,reply_markup,venue=reply.text,reply.reply_markup,reply.venue
+            except Exception:
+                await run_in_threadpool(self.inbox.transition,update.update_id,owner,'retryable',operation_id=operation_id)
+                raise WebhookRetry() from None
+        if check_reply:
+            try:
+                waiting=await self.check_location_flow_waiting(message.chat.id) if getattr(reply,'location_request',False) else False
+                reply=await self.public_check.recheck_reply(message.chat.id,reply,registered_flow_waiting=waiting)
+                response_text,reply_markup,venue=reply.text,reply.reply_markup,reply.venue
+            except Exception:
+                await run_in_threadpool(self.inbox.transition,update.update_id,owner,'retryable',operation_id=operation_id)
+                raise WebhookRetry() from None
         try:
             if venue is not None:
                 message_id = await run_in_threadpool(self.api.send_venue, message.chat.id, **venue, reply_markup=reply_markup)
@@ -229,6 +284,73 @@ class TelegramHandler:
         query = update.callback_query
         status, language, confirmation_id = 'unavailable', 'en', None
         message = query.message
+        if self.inventory and query.data=='inventory:refresh' and message and message.chat.type=='private' and query.sender.id==message.chat.id:
+            try:await run_in_threadpool(self.api.answer_callback_query,query.id,'')
+            except TelegramSendError:pass
+            try:
+                reply=await self.inventory.warning_update(query.sender.id)
+                if reply.kind=='prompt' and self.recovery:await self.recovery.exit(query.sender.id)
+                await run_in_threadpool(self.inbox.transition,update.update_id,owner,'sending',operation_id=operation_id)
+                reply=await self.inventory.warning_update(query.sender.id,reply)
+            except Exception:
+                await run_in_threadpool(self.inbox.transition,update.update_id,owner,'retryable',operation_id=operation_id)
+                raise WebhookRetry() from None
+            try:sent_id=await run_in_threadpool(self.api.send_message,query.sender.id,reply.text,reply_markup=reply.reply_markup)
+            except TelegramSendError as error:
+                await run_in_threadpool(self.inbox.transition,update.update_id,owner,'uncertain' if error.uncertain else 'retryable',operation_id=operation_id)
+                if error.uncertain:return 'uncertain'
+                raise WebhookRetry() from None
+            except Exception:
+                await run_in_threadpool(self.inbox.transition,update.update_id,owner,'uncertain',operation_id=operation_id)
+                return 'uncertain'
+            await run_in_threadpool(self.inbox.transition,update.update_id,owner,'done',operation_id=operation_id,message_id=sent_id)
+            return 'done'
+        outcome_match=re.fullmatch(r'outcome:([0-9a-f]{32}):(no|street|entrance|inside)',query.data or '')
+        if self.outcomes and outcome_match and message and message.chat.type=='private' and query.sender.id==message.chat.id:
+            try:await run_in_threadpool(self.api.answer_callback_query,query.id,'')
+            except TelegramSendError:pass
+            try:reply=await self.outcomes.answer(query.sender.id,outcome_match[1],message.message_id,'street_only' if outcome_match[2]=='street' else outcome_match[2])
+            except Exception:
+                await run_in_threadpool(self.inbox.transition,update.update_id,owner,'retryable',operation_id=operation_id)
+                raise WebhookRetry() from None
+            await run_in_threadpool(self.inbox.transition,update.update_id,owner,'sending',operation_id=operation_id)
+            try:reply=await self.outcomes.recheck_reply(query.sender.id,reply)
+            except Exception:
+                await run_in_threadpool(self.inbox.transition,update.update_id,owner,'retryable',operation_id=operation_id)
+                raise WebhookRetry() from None
+            try:sent_id=await run_in_threadpool(self.api.send_message,query.sender.id,reply.text,reply_markup=reply.reply_markup)
+            except TelegramSendError as error:
+                await run_in_threadpool(self.inbox.transition,update.update_id,owner,'uncertain' if error.uncertain else 'retryable',operation_id=operation_id)
+                if error.uncertain:return 'uncertain'
+                raise WebhookRetry() from None
+            except Exception:
+                await run_in_threadpool(self.inbox.transition,update.update_id,owner,'uncertain',operation_id=operation_id)
+                return 'uncertain'
+            await run_in_threadpool(self.inbox.transition,update.update_id,owner,'done',operation_id=operation_id,message_id=sent_id)
+            return 'done'
+        waste_match=re.fullmatch(r'waste:(street|donate|revoke):([0-9a-f]{32})',query.data or '')
+        if self.waste and waste_match and message and message.chat.type=='private' and query.sender.id==message.chat.id:
+            try:await run_in_threadpool(self.api.answer_callback_query,query.id,'')
+            except TelegramSendError:pass
+            try:reply=await self.waste.confirm(query.sender.id,waste_match[1],waste_match[2],operation_id)
+            except Exception:
+                await run_in_threadpool(self.inbox.transition,update.update_id,owner,'retryable',operation_id=operation_id)
+                raise WebhookRetry() from None
+            await run_in_threadpool(self.inbox.transition,update.update_id,owner,'sending',operation_id=operation_id)
+            try:reply=await self.waste.recheck_reply(query.sender.id,reply)
+            except Exception:
+                await run_in_threadpool(self.inbox.transition,update.update_id,owner,'retryable',operation_id=operation_id)
+                raise WebhookRetry() from None
+            try:sent_id=await run_in_threadpool(self.api.send_message,query.sender.id,reply.text,reply_markup=reply.reply_markup)
+            except TelegramSendError as error:
+                await run_in_threadpool(self.inbox.transition,update.update_id,owner,'uncertain' if error.uncertain else 'retryable',operation_id=operation_id)
+                if error.uncertain:return 'uncertain'
+                raise WebhookRetry() from None
+            except Exception:
+                await run_in_threadpool(self.inbox.transition,update.update_id,owner,'uncertain',operation_id=operation_id)
+                return 'uncertain'
+            await run_in_threadpool(self.inbox.transition,update.update_id,owner,'done',operation_id=operation_id,message_id=sent_id)
+            return 'done'
         policy_match=re.fullmatch(r'policy:(keep|done|cancel|delete|copy):([0-9a-f]{32})(?::([0-4]))?',query.data or '')
         if self.policy and policy_match and message and message.chat.type=='private' and query.sender.id==message.chat.id:
             try:await run_in_threadpool(self.api.answer_callback_query,query.id,'')

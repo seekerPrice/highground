@@ -111,3 +111,89 @@ def test_actual_sdk_own_result_removed_after_materialization():
                         if primary is not None:primary.add_note('Acceptance cleanup failed: '+type(cleanup_error).__name__)
                         else:raise
         finally:client.close()
+
+@pytest.mark.parametrize('held_phase',['query','result','cleanup'])
+def test_distinct_local_clients_serialize_through_result_cleanup(held_phase):
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Event
+    first,job=fixture();second,_=fixture()
+    entered,release,second_started,second_queried=Event(),Event(),Event(),Event()
+    def hold(value):
+        entered.set()
+        assert release.wait(2), 'Test failed to release first query'
+        return value
+    if held_phase=='query':first.query.side_effect=lambda *a,**k:hold(job)
+    elif held_phase=='result':job.result.side_effect=lambda **k:hold([{'value':7}])
+    else:first.delete_dataset.side_effect=lambda *a,**k:hold(None)
+    second.query.side_effect=lambda *a,**k:(second_queried.set(),second.query.return_value)[1]
+    def run_second():
+        second_started.set()
+        return query_rows(second,'SELECT 7',project=PROJECT,emulator_endpoint=ENDPOINT,timeout=1)
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        one=pool.submit(query_rows,first,'SELECT 7',project=PROJECT,emulator_endpoint=ENDPOINT,timeout=1)
+        assert entered.wait(1)
+        two=pool.submit(run_second)
+        try:
+            assert second_started.wait(1)
+            assert not second_queried.wait(.1), 'Concurrent SDK query overlapped a local query/result/cleanup'
+        finally:release.set()
+        assert one.result(2).cleanup=='cleaned'
+        assert two.result(2).cleanup=='cleaned'
+        assert second_queried.is_set()
+
+
+def test_local_query_wait_is_bounded_and_never_starts_sdk_when_busy():
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Event
+    from time import monotonic
+    first,job=fixture();second,_=fixture();entered,release=Event(),Event()
+    def hold(**kwargs):
+        entered.set();assert release.wait(2)
+        return [{'value':7}]
+    job.result.side_effect=hold
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        one=pool.submit(query_rows,first,'SELECT 7',project=PROJECT,emulator_endpoint=ENDPOINT,timeout=1)
+        assert entered.wait(1)
+        try:
+            start=monotonic()
+            with pytest.raises(TimeoutError,match='Local analytics query busy'):
+                query_rows(second,'SELECT 7',project=PROJECT,emulator_endpoint=ENDPOINT,timeout=.05)
+            assert monotonic()-start<.5
+            second.query.assert_not_called()
+        finally:release.set()
+        assert one.result(2).cleanup=='cleaned'
+    assert query_rows(second,'SELECT 7',project=PROJECT,emulator_endpoint=ENDPOINT).cleanup=='cleaned'
+
+
+@pytest.mark.parametrize('failed_phase',['query','result','cleanup'])
+def test_local_slot_released_after_each_failure_phase(failed_phase):
+    first,job=fixture();second,_=fixture();error=RuntimeError('injected')
+    if failed_phase=='query':first.query.side_effect=error
+    elif failed_phase=='result':job.result.side_effect=error
+    else:first.delete_dataset.side_effect=error
+    if failed_phase=='cleanup':
+        assert query_rows(first,'SELECT 7',project=PROJECT,emulator_endpoint=ENDPOINT).cleanup=='failed'
+    else:
+        with pytest.raises(RuntimeError) as caught:
+            query_rows(first,'SELECT 7',project=PROJECT,emulator_endpoint=ENDPOINT)
+        assert caught.value is error
+    assert query_rows(second,'SELECT 7',project=PROJECT,emulator_endpoint=ENDPOINT,timeout=.05).cleanup=='cleaned'
+
+
+def test_cloud_query_does_not_wait_for_local_emulator_slot():
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Event
+    first,job=fixture();cloud,_=fixture();entered,release=Event(),Event()
+    cloud._connection.API_BASE_URL='https://bigquery.googleapis.com'
+    def hold(**kwargs):
+        entered.set();assert release.wait(2)
+        return [{'value':7}]
+    job.result.side_effect=hold
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        one=pool.submit(query_rows,first,'SELECT 7',project=PROJECT,emulator_endpoint=ENDPOINT,timeout=1)
+        assert entered.wait(1)
+        try:
+            assert query_rows(cloud,'SELECT 7',project=PROJECT,timeout=.05).cleanup=='not_required'
+            cloud.query.assert_called_once();cloud.delete_dataset.assert_not_called()
+        finally:release.set()
+        assert one.result(2).cleanup=='cleaned'

@@ -2,6 +2,7 @@
 from typing import Literal
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, model_validator
 from api.inventory_models import InventoryAssessment
+from api.waste_models import WasteAssessment,ReportWaste
 
 class DTO(BaseModel):
     model_config = ConfigDict(extra='forbid', allow_inf_nan=False)
@@ -19,6 +20,13 @@ class LossAssessment(DTO):
     summary_text: str = Field(min_length=1, max_length=1200)
     confidence: float = Field(ge=0, le=1)
     confidence_note: str = Field(min_length=1, max_length=300)
+    waste_status:Literal['not_assessed','available','unavailable']='not_assessed'
+    waste:WasteAssessment|None=None
+
+    @model_validator(mode='after')
+    def waste_status_matches(self):
+        if (self.waste_status=='available')!=(self.waste is not None):raise ValueError('Inconsistent independent waste status')
+        return self
 
     def validate_baseline(self, baseline: dict, duration: int) -> 'LossAssessment':
         expected = {f"{baseline['inventory_id']}:{i}": row for i,row in enumerate(baseline['items'])}
@@ -83,6 +91,7 @@ class Report(DTO):
     recovery_attribution: str
     items: list[ReportItem] = Field(max_length=80)
     evidence: list[EvidenceReceipt] = Field(max_length=10)
+    waste: ReportWaste = Field(default_factory=ReportWaste)
     disclaimer: str = 'Replacement-price and loss estimates only. Unknown items are excluded from the assessed total. File integrity does not authenticate the scene, time, location or valuation.'
 
     @model_validator(mode='after')

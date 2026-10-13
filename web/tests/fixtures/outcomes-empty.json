@@ -1,0 +1,26 @@
+{
+  "status": "empty",
+  "generated_at": "2026-10-14T02:00:00Z",
+  "is_demo": true,
+  "scenario_generation": 2,
+  "registered_synthetic_shops": 6,
+  "coverage": {
+    "is_demo": true,
+    "eligible_shop_episodes": 0,
+    "accepted_prompts": 0,
+    "virtual_prompts": 0,
+    "uncertain_or_sending_prompts": 0,
+    "responses": 0,
+    "fixture_responses": 0,
+    "no": 0,
+    "street_only": 0,
+    "entrance": 0,
+    "inside": 0,
+    "missing_unknown": 0,
+    "fixture_prompts": 0,
+    "definition": "Synthetic owner reports and response coverage, not accuracy or independent water verification. Missing responses remain unknown; virtual delivery is not Telegram acceptance. All five responses in this preview are explicitly seeded fixtures."
+  },
+  "calibration_areas": [],
+  "history_truncated": false,
+  "note": "UI fixture only: no confirmed episodes or owner responses. Water outcomes remain unknown."
+}

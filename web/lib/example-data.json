@@ -1,0 +1,98 @@
+{
+  "title": "Synthetic recovery test shop",
+  "provenance": "Captured Gemini output from an AI-generated before/after scene, retained for a worked example. Viewing this page makes no model call.",
+  "input_kind": "AI-generated illustrations repeated into 30-second still-derived videos; not real shop walkthroughs or temporal-understanding evidence.",
+  "baseline_confidence": 0.9,
+  "assessment_confidence": 0.85,
+  "baseline_uncertainty": "Clear view of store layout and inventory. Quantities for smaller shelved items are estimated.",
+  "assessment_uncertainty": "Clear visibility of water level lines, lower-shelf damage is evident.",
+  "items": [
+    {
+      "name": "10kg Rice Cartons",
+      "qty": 6.0,
+      "est_unit_value_rm": 35.0,
+      "height": "floor",
+      "lift_effort": 2,
+      "condition": "destroyed",
+      "estimated_loss_rm": 210.0,
+      "uncertainty": "Rice cartons on floor are severely waterlogged and destroyed by mud/water."
+    },
+    {
+      "name": "Packaged Water (24-bottle wraps)",
+      "qty": 8.0,
+      "est_unit_value_rm": 15.0,
+      "height": "floor",
+      "lift_effort": 2,
+      "condition": "damaged",
+      "estimated_loss_rm": 120.0,
+      "uncertainty": "Packaged water partially submerged in muddy water; sealing might be compromised, treating as contaminated."
+    },
+    {
+      "name": "Rice Cookers",
+      "qty": 3.0,
+      "est_unit_value_rm": 120.0,
+      "height": "low",
+      "lift_effort": 1,
+      "condition": "damaged",
+      "estimated_loss_rm": 360.0,
+      "uncertainty": "Rice cookers knocked over onto muddy floor; likely water damaged and contaminated."
+    },
+    {
+      "name": "Bulk Dry Goods (Lower Bins)",
+      "qty": 4.0,
+      "est_unit_value_rm": 40.0,
+      "height": "floor",
+      "lift_effort": 2,
+      "condition": "damaged",
+      "estimated_loss_rm": 160.0,
+      "uncertainty": "Lower bins in direct contact with floodwater."
+    },
+    {
+      "name": "Snacks and Dry Goods (Upper Shelves)",
+      "qty": 30.0,
+      "est_unit_value_rm": 15.0,
+      "height": "high",
+      "lift_effort": 1,
+      "condition": "ok",
+      "estimated_loss_rm": 0.0,
+      "uncertainty": "Upper shelves are above flood line."
+    },
+    {
+      "name": "Assorted Goods (Left Shelves)",
+      "qty": 20.0,
+      "est_unit_value_rm": 20.0,
+      "height": "high",
+      "lift_effort": 1,
+      "condition": "ok",
+      "estimated_loss_rm": 0.0,
+      "uncertainty": "Assorted goods on left higher shelves appear untouched."
+    }
+  ],
+  "assets": [
+    {
+      "phase": "before",
+      "path": "/example/synthetic-before.png",
+      "sha256": "f689bfb4954fa00776a3769fc4ed8bc1b90846d495999c7285a4b74970b935f1",
+      "bytes": 2484900
+    },
+    {
+      "phase": "after",
+      "path": "/example/synthetic-after.png",
+      "sha256": "841e93fe8244bc68dbb42d38ee6655e1b90d4b52f8f123064a73ef3280d14217",
+      "bytes": 2837741
+    }
+  ],
+  "review_discrepancies": [
+    {
+      "item": "10kg Rice Cartons",
+      "generation_brief_qty": 4,
+      "model_estimated_qty": 6
+    },
+    {
+      "item": "Packaged Water (24-bottle wraps)",
+      "generation_brief_qty": 6,
+      "model_estimated_qty": 8
+    }
+  ],
+  "review_note": "The image-generation brief and model-estimated counts differ. Neither is a verified physical count; the captured estimates below have not been corrected or confirmed by a shop owner."
+}

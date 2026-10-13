@@ -1,0 +1,13 @@
+# Public worked-example provenance
+
+Issue [#31](https://github.com/seekerPrice/highground/issues/31). Baseline `6c71dc456453e3c20a56247e4daa56a0a79312a1`. This artifact is a read-only educational projection, independent of the current six-shop scenario and private reports.
+
+`web/lib/example-data.json` is a manually reviewed, narrow allowlist projection from the committed captured-wire fixture `api/tests/fixtures/waste-journey-response.json`. Its provenance is recorded in `tasks-20-22-verification.md`: actual Gemini response through the configured Vertex model path, then integrated captured-output replay; viewing this public page does not repeat model inference. No specific current or historical model ID is asserted. Item names, quantities, unit values, height, effort, assessed conditions, loss values and uncertainty are retained from that fixture; confidence is a model-reported score, not calibrated accuracy. Display totals and priorities are calculated from the curated rows.
+
+The six estimated inventory rows total RM1700. The four floor/low rows total RM850 and rank by estimated row value divided by effort: rice cookers (360), rice cartons (105), lower bins (80), water wraps (60). These parenthesized numbers are ranking scores, not loss estimates. Estimated recovery losses sum to RM850 across six assessed rows. No lifted-stock confirmation, moved vehicle, avoided loss or human validation is created by this example. Model statements are attributed assessments of synthetic imagery, not independently verified observations.
+
+The public assets are exact copies of `demo/media/synthetic-before.png` and `synthetic-after.png`; their generated-image provenance is in `demo/media/README.md`. The model processing used 30-second videos repeating these images, with no motion. Public SHA-256 values bind only those copied PNG bytes, not video or private ledger receipts. They authenticate no scene, location, time, valuation or insurance claim.
+
+The generation brief describes four rice cartons and six water cases, whereas the captured model estimates six and eight. The page exposes this mismatch and retains original estimates rather than silently claiming correction or human verification. The generation brief is also not a real-world counted ground truth.
+
+The public fixture excludes raw report/media/inventory/recipient IDs, original origin/location/time metadata, report capabilities, private URLs, GCS paths and donation actions. No full private report is imported or projected at runtime. The only fixture asset paths are same-origin public PNG paths. Checks should enforce the allowlisted shape and equality to permitted captured source fields, and byte/hash equality of the copied images.

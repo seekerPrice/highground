@@ -1,0 +1,15 @@
+"use client";
+import {useEffect,useState} from "react";
+import {parseWaste,type WasteResponse} from "../lib/contracts";
+import {readJson,time} from "../lib/client";
+import {estimatedQuantity,wasteScope} from "../lib/waste-summary";
+
+export default function WasteSummary({onData}:{onData?:(value:WasteResponse|null)=>void}){
+ const [data,setData]=useState<WasteResponse|null>(null),[failed,setFailed]=useState(false),[refresh,setRefresh]=useState(0);
+ useEffect(()=>{
+  let alive=true;let timer:ReturnType<typeof setTimeout>;const controller=new AbortController();
+  async function poll(){try{const value=parseWaste(await readJson("/api/waste",{},controller.signal));if(alive){setData(value);onData?.(value);setFailed(false);}}catch{if(alive&&!controller.signal.aborted){setData(null);onData?.(null);setFailed(true);}}finally{if(alive)timer=setTimeout(poll,10000);}}
+  void poll();return()=>{alive=false;controller.abort();clearTimeout(timer);};
+ },[refresh,onData]);
+ return <section className="waste-summary places-section" aria-labelledby="waste-summary-title"><div className="section-heading"><h2 id="waste-summary-title">Estimated cleanup quantities</h2><span className="badge simulation">Simulation</span></div><p>{data?wasteScope(data):failed?"Waste assessment coverage is unavailable.":"Loading waste assessment coverage…"}</p><p>Street labels are owner-confirmed; Unassigned means no confirmed street. No street boundaries or cleanup routes are inferred.</p>{failed&&<button className="button secondary" onClick={()=>setRefresh(value=>value+1)}>Try waste summary again</button>}{data&&<><p className="snapshot-note">Snapshot {time(data.generated_at)}. {data.note}</p>{data.status==="available"&&data.aggregate&&<><div className="table-scroll" role="region" tabIndex={0} aria-label="Estimated cleanup quantities by street"><table className="comparison-table waste-street-table"><thead><tr><th scope="col">Street and coverage</th><th scope="col">Estimated volume</th><th scope="col">Estimated weight</th><th scope="col">Estimated load-equivalents</th></tr></thead><tbody>{data.aggregate.streets.map(street=><tr key={street.street}><th scope="row">{street.street}<small>{street.shop_count} synthetic shops; {street.assessment_count} completed assessments</small><small>{street.assessed_items} of {street.baseline_items} items assessed; {street.unknown_items} unknown</small></th><td>{estimatedQuantity(street.est_volume_m3,"m³")}<small>{street.quantified_volume_items} items quantified; {street.unknown_volume_items} quantities unknown</small></td><td>{estimatedQuantity(street.est_weight_kg,"kg")}<small>{street.quantified_weight_items} items quantified; {street.unknown_weight_items} quantities unknown</small></td><td>{estimatedQuantity(street.estimated_load_equivalents,"load-equivalents")}<small>Using {data.aggregate!.lorry_capacity_m3} m³ capacity</small></td></tr>)}</tbody></table></div><p className="snapshot-note">{data.aggregate.definition}</p></>}</>}<p className="snapshot-note">Quantified subtotals exclude unknown quantities. Load-equivalents are estimates, not required trucks or a collection promise.</p></section>;
+}

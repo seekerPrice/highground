@@ -101,7 +101,7 @@ class RecoveryService(InventoryService):
                 except Exception:
                     await asyncio.to_thread(self.store.update_job,job['report_id'],owner,status='assessment_unavailable')
                     return await self.reply(shop,'recovery_processing_unavailable')
-            await asyncio.to_thread(self.store.update_job,job['report_id'],owner,status='complete',assessment=assessment.model_dump())
+            await asyncio.to_thread(self.store.complete_assessment,job['report_id'],owner,assessment)
             if await asyncio.to_thread(self.store.danger_active,shop['shop_id']):return await self.danger_reply(shop)
             value=text(shop['language'],'recovery_estimate',value_rm=f'{assessment.total_loss_rm:.2f}') if assessment.total_loss_rm is not None else text(shop['language'],'recovery_estimate_unavailable')
             token=await asyncio.to_thread(self.store.token,job['report_id'])
@@ -134,7 +134,7 @@ def create_recovery_service(settings):
     from api.agents.loss_comparison import LossAssessor
     original=create_inventory_service(settings)
     # Reuse ingestion resources; replace only the owned store and assessment agent.
-    store=ReportStore(original.store.client,settings.hash_salt,risks=ActiveRiskStore(original.store.client,max_age=settings.official_max_age))
+    store=ReportStore(original.store.client,settings.hash_salt,risks=ActiveRiskStore(original.store.client,max_age=settings.official_max_age,episode_history="risk_episode_history"))
     original.media.authorize=store.authorize_media
     active=RecoveryService(store,original.media,LossAssessor(settings),web_base_url=settings.web_base_url,destinations=original.destinations)
     for name in ('_http','_storage','_sinks','_owned'):setattr(active,name,getattr(original,name))
@@ -162,7 +162,7 @@ class LazyRecoveryService:
         from api.destinations import DestinationLookup
         client=create_firestore_client(self.settings)
         try:
-            store=ReportStore(client,self.settings.hash_salt,risks=ActiveRiskStore(client,max_age=self.settings.official_max_age))
+            store=ReportStore(client,self.settings.hash_salt,risks=ActiveRiskStore(client,max_age=self.settings.official_max_age,episode_history="risk_episode_history"))
             helper=RecoveryService(store,None,None,web_base_url=self.settings.web_base_url,destinations=DestinationLookup(client,radius_m=self.settings.destination_search_radius_m))
             return await getattr(helper,method)(*args)
         finally:client.close()

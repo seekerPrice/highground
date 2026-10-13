@@ -38,5 +38,45 @@
     "name": "is_demo",
     "type": "BOOLEAN",
     "mode": "NULLABLE"
+  },
+  {
+    "name": "episode_id",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "area",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "reference_basis",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "reference_at",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "answered_at",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "entrypoint",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "origin",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "scenario_generation",
+    "type": "INTEGER",
+    "mode": "NULLABLE"
   }
 ]

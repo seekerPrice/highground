@@ -36,11 +36,17 @@ class ReportReader:
             if record.storage_status!='done' or record.ledger_status!='done':continue
             receipts.append(EvidenceReceipt(**{k:getattr(record,k) for k in EvidenceReceipt.model_fields if k!='integrity_status'}))
         total=assessment.total_loss_rm
+        from api.waste import report_waste,validate_waste
+        if assessment.waste is not None:
+            try:assessment=assessment.model_copy(update={'waste':validate_waste(assessment.waste,baseline,assessment,job['media_id'],job['upload']['duration'])})
+            except ValueError:assessment=assessment.model_copy(update={'waste_status':'unavailable','waste':None})
+        context=self.store.waste_context(job) if hasattr(self.store,'waste_context') else {}
+        waste=report_waste(assessment,**context)
         summary=(f"{assessed} of {len(rows)} baseline items were assessed. "+(f"Assessed estimated loss is RM{total:.2f}. " if total is not None else 'The loss estimate is unavailable. ')+('Unknown losses are excluded; this estimate is partial.' if coverage!='complete' else 'Replacement-price estimates remain uncertain.'))
         return Report(report_id=report_id,assessment_media_id=job['media_id'],created_at=job['created_at'],shop_name=job['shop_name'],is_demo=job['is_demo'],baseline_estimate_rm=baseline['total_est_value_rm'],estimated_loss_rm=total,
             estimate_status='available' if total is not None else 'unavailable',coverage=coverage,assessed_items=assessed,baseline_items=len(rows),confidence=assessment.confidence,
             confidence_note='Visual model assessment only; replacement prices, camera coverage and damage estimates remain uncertain.',summary_text=summary,
-            recovery_attribution=job['recovery_attribution'],items=rows,evidence=receipts)
+            recovery_attribution=job['recovery_attribution'],items=rows,evidence=receipts,waste=waste)
     def read(self,job: dict,media_id: str) -> tuple:
         record=self.member_media(job,media_id)
         if record.storage_status!='done' or record.ledger_status!='done':raise OSError()
@@ -64,7 +70,8 @@ def create_report_reader(settings):
     from api.report_store import ReportStore
     from api.media_store import MediaStore
     client=create_firestore_client(settings)
-    return ReportReader(ReportStore(client,settings.hash_salt),MediaStore(client,settings.hash_salt),OriginalStorage(create_storage_client(settings),settings.gcs_bucket))
+    store=ReportStore(client,settings.hash_salt);store.bot_username=settings.telegram_bot_username
+    return ReportReader(store,MediaStore(client,settings.hash_salt),OriginalStorage(create_storage_client(settings),settings.gcs_bucket))
 
 HEADERS={'Cache-Control':'no-store','Referrer-Policy':'no-referrer','X-Content-Type-Options':'nosniff'}
 def create_report_router(settings,reader=None):

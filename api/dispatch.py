@@ -16,13 +16,14 @@ from api.tools.telegram import TelegramSendError
 class DispatchService:
     def __init__(self, store: FirestoreDispatchStore, telegram, sinks, *, hash_salt: str,
                  composer: AlertComposer | None = None, vehicle_actions=None, active_risk=None, stock_actions=None,
-                 virtual_delivery=None, cards=None, clock: Callable[[], datetime] = lambda: datetime.now(UTC)) -> None:
+                 virtual_delivery=None, cards=None, radius_planner=None, clock: Callable[[], datetime] = lambda: datetime.now(UTC)) -> None:
         if not hash_salt:
             raise ValueError('HASH_SALT is required for dispatch')
         self.store, self.telegram, self.sinks = store, telegram, sinks
         self.vehicle_actions = vehicle_actions
         self.virtual_delivery = virtual_delivery
         self.cards = cards
+        self.radius_planner=radius_planner
         self.active_risk, self.stock_actions = active_risk, stock_actions
         self.hash_salt, self.composer, self.clock = hash_salt, composer or AlertComposer(), clock
 
@@ -49,7 +50,7 @@ class DispatchService:
             if not event['prepared']:
                 if 'targets' not in event:
                     shops = await asyncio.to_thread(self.store.target_shops)
-                    targets = []
+                    targets = [];radius_plans={}
                     for shop in shops:
                         # Simulations have an absolute recipient boundary; real events do not target demos.
                         if shop.shop_id == event.get('reporter_shop_id'):
@@ -57,9 +58,14 @@ class DispatchService:
                         if shop.is_demo != event['is_demo']:
                             continue
                         distance = distance_m(event['lat'], event['lng'], shop.lat, shop.lng)
-                        if distance <= event['radius_m']:
+                        radius=event['radius_m']
+                        if self.radius_planner is not None:
+                            plan=await asyncio.to_thread(self.radius_planner.radius_plan,shop,event)
+                            radius_plans[shop.shop_id]=plan.model_dump(mode='json')
+                            radius=plan.effective_radius_m
+                        if distance <= radius:
                             targets.append(dict(shop.model_dump(), distance_m=distance))
-                    await asyncio.to_thread(self.store.update_event, event_id, owner, targets=targets)
+                    await asyncio.to_thread(self.store.update_event, event_id, owner, targets=targets, radius_plans=radius_plans)
                     event['targets'] = targets
                 if self.active_risk is not None:
                     eligible=[]
@@ -255,6 +261,10 @@ def create_dispatch_service(settings) -> DispatchService:
     composer = AlertComposer(selector=WarningSelector(settings), destinations=DestinationLookup(client, radius_m=settings.destination_search_radius_m),
                              vehicle_minutes=settings.vehicle_action_target_minutes,
                              stock_minutes=settings.stock_action_target_minutes)
+    from api.outcome_history import OutcomeHistoryAdapter
+    from api.outcome_store import FirestoreOutcomeStore
+    risk=ActiveRiskStore(client,max_age=settings.official_max_age,episode_history='risk_episode_history')
+    radius_planner=OutcomeHistoryAdapter(client,FirestoreOutcomeStore(client,settings.hash_salt),risk)
     return DispatchService(FirestoreDispatchStore(client),
                            TelegramAPI(settings.telegram_bot_token) if settings.telegram_bot_token or virtual is None else None, create_event_sinks(settings),
-                           hash_salt=settings.hash_salt, composer=composer, virtual_delivery=virtual, cards=LazyOfflineCardService(settings), vehicle_actions=VehicleActionStore(client), active_risk=ActiveRiskStore(client,max_age=settings.official_max_age), stock_actions=StockActionStore(client))
+                           hash_salt=settings.hash_salt, composer=composer, virtual_delivery=virtual, cards=LazyOfflineCardService(settings), vehicle_actions=VehicleActionStore(client), active_risk=risk, stock_actions=StockActionStore(client),radius_planner=radius_planner)

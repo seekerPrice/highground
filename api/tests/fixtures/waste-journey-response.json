@@ -1,0 +1,166 @@
+{
+  "response": {
+    "items": [
+      {
+        "item_id": "journey-fixture:0",
+        "condition": "destroyed",
+        "estimated_loss_rm": 210.0,
+        "evidence_timestamp_s": 15.0,
+        "uncertainty": "Rice cartons on floor are severely waterlogged and destroyed by mud/water."
+      },
+      {
+        "item_id": "journey-fixture:1",
+        "condition": "damaged",
+        "estimated_loss_rm": 120.0,
+        "evidence_timestamp_s": 15.0,
+        "uncertainty": "Packaged water partially submerged in muddy water; sealing might be compromised, treating as contaminated."
+      },
+      {
+        "item_id": "journey-fixture:2",
+        "condition": "damaged",
+        "estimated_loss_rm": 360.0,
+        "evidence_timestamp_s": 15.0,
+        "uncertainty": "Rice cookers knocked over onto muddy floor; likely water damaged and contaminated."
+      },
+      {
+        "item_id": "journey-fixture:3",
+        "condition": "damaged",
+        "estimated_loss_rm": 160.0,
+        "evidence_timestamp_s": 15.0,
+        "uncertainty": "Lower bins in direct contact with floodwater."
+      },
+      {
+        "item_id": "journey-fixture:4",
+        "condition": "ok",
+        "estimated_loss_rm": 0.0,
+        "evidence_timestamp_s": 15.0,
+        "uncertainty": "Upper shelves are above flood line."
+      },
+      {
+        "item_id": "journey-fixture:5",
+        "condition": "ok",
+        "estimated_loss_rm": 0.0,
+        "evidence_timestamp_s": 15.0,
+        "uncertainty": "Assorted goods on left higher shelves appear untouched."
+      }
+    ],
+    "total_loss_rm": 850.0,
+    "summary_text": "Floor-level goods, including rice cartons and water wraps, are severely damaged or destroyed by muddy floodwater. Electronic appliances on the lower right are also damaged. High-shelf items survived.",
+    "confidence": 0.85,
+    "confidence_note": "Clear visibility of water level lines, lower-shelf damage is evident.",
+    "waste": {
+      "items": [
+        {
+          "item_id": "journey-fixture:0",
+          "disposition": "discard_contaminated",
+          "est_volume_m3": 0.3,
+          "est_weight_kg": 60.0,
+          "material": "food",
+          "floodwater_contact": "yes",
+          "contamination": "present",
+          "uncertainty": "Cartons soaked in mud."
+        },
+        {
+          "item_id": "journey-fixture:1",
+          "disposition": "discard_contaminated",
+          "est_volume_m3": 0.2,
+          "est_weight_kg": 120.0,
+          "material": "drink",
+          "floodwater_contact": "yes",
+          "contamination": "present",
+          "uncertainty": "Water bottles in mud."
+        },
+        {
+          "item_id": "journey-fixture:2",
+          "disposition": "recycle",
+          "est_volume_m3": 0.1,
+          "est_weight_kg": 10.0,
+          "material": "e_waste",
+          "floodwater_contact": "yes",
+          "contamination": "present",
+          "uncertainty": "Cookers covered in mud."
+        },
+        {
+          "item_id": "journey-fixture:3",
+          "disposition": "discard_contaminated",
+          "est_volume_m3": 0.2,
+          "est_weight_kg": 40.0,
+          "material": "food",
+          "floodwater_contact": "yes",
+          "contamination": "present",
+          "uncertainty": "Dry goods in lower bins."
+        }
+      ],
+      "confidence": 0.9
+    }
+  },
+  "baseline": {
+    "confidence": 0.9,
+    "media_id": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "inventory_id": "journey-fixture",
+    "total_est_value_rm": 1700.0,
+    "confidence_note": "Clear view of store layout and inventory. Quantities for smaller shelved items are estimated.",
+    "items": [
+      {
+        "category": "Food Staples",
+        "qty": 6.0,
+        "lift_effort": 2,
+        "timestamp_s": 15.0,
+        "location_in_shop": "Front left floor",
+        "height": "floor",
+        "name": "10kg Rice Cartons",
+        "est_unit_value_rm": 35.0
+      },
+      {
+        "category": "Beverages",
+        "qty": 8.0,
+        "lift_effort": 2,
+        "timestamp_s": 15.0,
+        "location_in_shop": "Center floor",
+        "height": "floor",
+        "name": "Packaged Water (24-bottle wraps)",
+        "est_unit_value_rm": 15.0
+      },
+      {
+        "category": "Appliances",
+        "qty": 3.0,
+        "lift_effort": 1,
+        "timestamp_s": 15.0,
+        "location_in_shop": "Right shelving",
+        "height": "low",
+        "name": "Rice Cookers",
+        "est_unit_value_rm": 120.0
+      },
+      {
+        "category": "Food Staples",
+        "qty": 4.0,
+        "lift_effort": 2,
+        "timestamp_s": 15.0,
+        "location_in_shop": "Right shelving",
+        "height": "floor",
+        "name": "Bulk Dry Goods (Lower Bins)",
+        "est_unit_value_rm": 40.0
+      },
+      {
+        "category": "Food Staples",
+        "qty": 30.0,
+        "lift_effort": 1,
+        "timestamp_s": 15.0,
+        "location_in_shop": "Right and back shelving",
+        "height": "high",
+        "name": "Snacks and Dry Goods (Upper Shelves)",
+        "est_unit_value_rm": 15.0
+      },
+      {
+        "category": "Misc Grocery",
+        "qty": 20.0,
+        "lift_effort": 1,
+        "timestamp_s": 15.0,
+        "location_in_shop": "Left shelving",
+        "height": "high",
+        "name": "Assorted Goods (Left Shelves)",
+        "est_unit_value_rm": 20.0
+      }
+    ]
+  }
+}

@@ -11,7 +11,7 @@ from api.media import MediaService
 from api.media_models import MediaRequest,MediaIngestError
 from api.agents.inventory_loss import InventoryAssessor
 from api.i18n import text,catalog
-from api.alert_composer import render_danger
+from api.reply_guard import ReplyGuard
 
 class InventoryService:
     def __init__(self,store:InventoryStore,media:MediaService,assessor:InventoryAssessor,*,destinations=None,total_budget_seconds:float=35):
@@ -20,9 +20,7 @@ class InventoryService:
         self.total_budget_seconds=total_budget_seconds
 
     async def danger_reply(self,shop:dict)->InventoryReply:
-        destination=await asyncio.to_thread(self.destinations.nearest,shop['lat'],shop['lng'],('pps','high_ground')) if self.destinations else None
-        rendered,markup=render_danger(shop.get('language','en'),bool(shop.get('is_demo')),destination)
-        return InventoryReply(text=rendered,reply_markup=markup,shop_id=shop['shop_id'],language=shop.get('language','en'),is_demo=bool(shop.get('is_demo')),kind='danger')
+        return await ReplyGuard(self.store,destinations=self.destinations).danger_reply(shop)
 
     async def reply(self,shop:dict|None,key:str,*,inventory:dict|None=None,integrity:bool=False)->InventoryReply:
         shop=shop or {};language=shop.get('language','en')
@@ -47,10 +45,16 @@ class InventoryService:
         shop=await asyncio.to_thread(self.store.shop_for_sender,sender_chat_id)
         return await self.reply(shop,'inventory_request' if shop else 'photo_registration_required')
 
-    async def recheck_reply(self,sender_chat_id:int,reply:InventoryReply)->InventoryReply:
+    async def warning_update(self,sender_chat_id:int,previous:InventoryReply|None=None)->InventoryReply:
+        """Rebuild the optional prompt from current ownership and Danger at each boundary."""
         shop=await asyncio.to_thread(self.store.shop_for_sender,sender_chat_id)
-        if shop and await asyncio.to_thread(self.store.danger_active,shop['shop_id']):return await self.danger_reply(shop)
-        return reply
+        owner=shop and any(r.get('telegram_chat_id')==sender_chat_id and r.get('role')=='owner' for r in shop.get('recipients',[]))
+        same_shop=bool(shop) and (previous is None or previous.kind=='prompt' and previous.shop_id==shop['shop_id'])
+        # reply() always gives active Danger priority, including after ownership changes.
+        return await self.reply(shop,'inventory_request' if owner and same_shop else 'inventory_unavailable')
+
+    async def recheck_reply(self,sender_chat_id:int,reply:InventoryReply)->InventoryReply:
+        return await ReplyGuard(self.store,destinations=self.destinations).recheck_reply(sender_chat_id,reply)
 
     async def handle_video(self,sender_chat_id:int,update_id:int,message_id:int,telegram_date:int,video:VideoMedia,
                            processing_started_at:datetime|None=None)->InventoryReply:
@@ -142,18 +146,21 @@ class LazyInventoryService:
         return self.active
     async def handle_video(self,sender_chat_id:int,update_id:int,message_id:int,telegram_date:int,video:VideoMedia,processing_started_at:datetime|None=None)->InventoryReply:
         return await self._service().handle_video(sender_chat_id,update_id,message_id,telegram_date,video,processing_started_at)
-    async def _cold_reply(self,chat_id:int,reply:InventoryReply|None)->InventoryReply:
+    async def _cold_reply(self,chat_id:int,reply:InventoryReply|None,*,warning_update:bool=False)->InventoryReply:
         from api.tools.firestore import create_firestore_client
         from api.destinations import DestinationLookup
         client=create_firestore_client(self.settings)
         try:
             store=InventoryStore(client,self.settings.hash_salt)
             helper=InventoryService(store,None,None,destinations=DestinationLookup(client,radius_m=self.settings.destination_search_radius_m))
+            if warning_update:return await helper.warning_update(chat_id,reply)
             return await helper.recheck_reply(chat_id,reply) if reply else await helper.request_video(chat_id)
         finally:client.close()
     async def request_video(self,chat_id:int)->InventoryReply:
         return await self.active.request_video(chat_id) if self.active else await self._cold_reply(chat_id,None)
     async def recheck_reply(self,chat_id:int,reply:InventoryReply)->InventoryReply:
         return await self.active.recheck_reply(chat_id,reply) if self.active else await self._cold_reply(chat_id,reply)
+    async def warning_update(self,chat_id:int,previous:InventoryReply|None=None)->InventoryReply:
+        return await self.active.warning_update(chat_id,previous) if self.active else await self._cold_reply(chat_id,previous,warning_update=True)
     async def close(self)->None:
         if self.active:await self.active.close()
