@@ -22,14 +22,14 @@ These apply to the affected task; they do not globally block Task 1 scaffolding.
 - [x] Q1 accepted: Task 15 follows Task 14 for the Must deployment target; dates allow earlier progress.
 - [x] Q2 accepted: stale/unavailable source status and explicitly labelled demo simulations; no claim of validated live official flood warnings. Fresh source discovery remains open for Task 3.
 - [x] Q3 accepted: fixed Danger footer/fallback and two deterministic action targets, vehicle first; no safety/arrival-time guarantees.
-- [ ] Settle exact translations/placeholders, target configuration and confirmation semantics in their respective tasks.
+- [x] Local translation keys/placeholders, target configuration and confirmation semantics are settled: eight committed catalogs validated by api/i18n and test_i18n; configurable vehicle/stock targets with strict earlier-vehicle validation and non-default regression; immutable action snapshots and duplicate/refresh/episode tests. Non-English native-language review remains explicitly pending and machine-translation notices remain visible.
 - [x] User approved synthetic-only public data, operator token, bearer reports/private media, integrity label and exact confirmation snapshots.
 - [x] User approved 90-minute freshness and 15/30-minute action targets.
 - [x] Constrained Warning composition adopted under the user's five-minute default; configured Gemini selects approved localized structures with deterministic facts and fixed fallback. Free-form narrowing is explicit in approved-decisions.md.
 - [x] Root established dedicated project/billing, bot access and local emulators; configured Vertex models passed real calls.
 - [x] Six explicitly synthetic shops, the consenting own-chat and virtual recipients are the approved local acceptance scope; adopted after the five-minute decision window. Actual second-phone and hosted acceptance remain pending.
 - [x] Two historical destination sources and coordinates reviewed; current opening and parking floor remain unknown and are labelled accordingly.
-- [ ] Confirm proposed external-behaviour test seams before affected implementation; preserve the user-mandated Section 12 task granularity.
+- [x] External-behaviour seams were established and exercised per numbered task: actual local service clients, configured Vertex/ADK, protected HTTP handlers, explicit virtual Telegram boundaries, separately authorized real synthetic card/policy transport, native PDF and browser checks. Task1–22 traceability is preserved; hosted/two-phone/native-human gates remain separate. See completion-audit.md and task verification records.
 - [x] Parent published specification issue #1 and Task 1–22 issues #2–23; unresolved decisions remain attached to affected tasks. Publication was followed by explicit user authorization to implement all tasks.
 - [x] Astra checked published Task 1 and Task 18 for parent linkage, Task N gates, no-CI rules and deployed prerequisites (calendar gate later removed by user); no implementation is claimed.
 - [x] Capture Task 1 review baseline bb1b098 (same tree as task-start GitButler workspace HEAD); use its non-empty committed diff for Matt review.
@@ -68,7 +68,7 @@ Scope: Must/foundation. Deliverable: Repeatable setup provisions the fixed Googl
 - [x] Matt Standards review completed; unused raw inbox payload corrected and independently rechecked where relevant.
 - [x] Matt Spec review completed; zero actionable findings.
 - [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
-- [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
+- [x] Technical prerequisites for dependent local work met under the approved local-first scope. External/cloud acceptance remains deferred in the separate task acceptance gate and project-wide limits.
 
 ### Task 3 — data.gov.my clients
 
@@ -228,7 +228,7 @@ Scope: Must/foundation. Deliverable: API and web run on Cloud Run and the phone 
 - [x] Matt Standards completed: original finding corrected; independent f6efd315 recheck has zero outstanding findings.
 - [x] Matt Spec completed: both original findings corrected; independent f6efd315 recheck has zero outstanding findings.
 - [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
-- [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
+- [x] Technical prerequisites for dependent local work met under the approved local-first scope. External/cloud acceptance remains deferred in the separate task acceptance gate and project-wide limits.
 
 ### Task 15 — Dashboard
 
@@ -241,7 +241,7 @@ Scope: Must/foundation. Deliverable: Map, event feed, protection counters and de
 - [x] Matt Standards completed for the current component; final f914f9a recheck has zero outstanding findings.
 - [x] Matt Spec completed for the current component; final f914f9a recheck has zero outstanding findings.
 - [x] Local dashboard acceptance passed: actual shared six-virtual Warning/Danger/reset, lost-response/superseded/new-intent retry and one consenting owner’s duplicate-safe vehicle/stock confirmations; see task-17-operational-verification.md. Hosted acceptance remains deferred.
-- [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
+- [x] Technical prerequisites for dependent local work met under the approved local-first scope. External/cloud acceptance remains deferred in the separate task acceptance gate and project-wide limits.
 
 ### Task 16 — Seed demo data + redeploy
 
