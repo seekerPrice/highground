@@ -27,6 +27,8 @@ def create_app(settings: Settings | None = None, handler: TelegramHandler | None
             if app.state.owns_telegram and active is not None:
                 if active.recovery is not None:await active.recovery.close()
                 if active.inventory is not None:await active.inventory.close()
+                if active.cards is not None:await active.cards.close()
+                if active.policy is not None:await active.policy.close()
                 if active.photos is not None:await active.photos.close()
                 for service in (active.confirmations,active.stock_confirmations):
                     if service is not None and service.sinks.active is not None:
@@ -112,7 +114,7 @@ def create_app(settings: Settings | None = None, handler: TelegramHandler | None
         except (ValueError, ValidationError, RecursionError):
             raise HTTPException(400, "Invalid Telegram update") from None
         active = application.state.telegram_handler
-        if update.message is not None and update.message.date is None and (active is None or active.onboarding is not None or active.photos is not None or active.inventory is not None or active.recovery is not None):
+        if update.message is not None and update.message.date is None and (active is None or active.onboarding is not None or active.photos is not None or active.inventory is not None or active.recovery is not None or active.cards is not None or active.policy is not None):
             raise HTTPException(400, "Telegram message timestamp is required")
         try:
             active = application.state.telegram_handler
@@ -149,7 +151,9 @@ def create_app(settings: Settings | None = None, handler: TelegramHandler | None
                 inventory=LazyInventoryService(configuration)
                 stock_confirmations=StockConfirmationService(StockActionStore(client), ConfirmationSinks(), hash_salt=configuration.hash_salt)
                 from api.recovery import LazyRecoveryService
-                active = TelegramHandler(FirestoreInbox(client), TelegramAPI(configuration.telegram_bot_token), onboarding, confirmations, photos, inventory, stock_confirmations, LazyRecoveryService(configuration))
+                from api.offline_card_service import LazyOfflineCardService
+                from api.policy import LazyPolicyService
+                active = TelegramHandler(FirestoreInbox(client), TelegramAPI(configuration.telegram_bot_token), onboarding, confirmations, photos, inventory, stock_confirmations, LazyRecoveryService(configuration), cards=LazyOfflineCardService(configuration),policy=LazyPolicyService(configuration))
                 application.state.telegram_handler = active
                 application.state.owns_telegram=True
             await active.handle(update)

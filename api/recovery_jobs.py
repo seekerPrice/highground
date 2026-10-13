@@ -24,6 +24,8 @@ class ResumeResult(BaseModel):
     dispatch:StageOutcome
     confirmations:StageOutcome
     media_ledger:StageOutcome
+    offline_cards:StageOutcome=Field(default_factory=StageOutcome)
+    policy_deletions:StageOutcome=Field(default_factory=StageOutcome)
     note:str='Manual recovery only. An elapsed response deadline does not cancel an already-started external request; durable leases and logical identities govern retry.'
 
 class RecoveryJobsService:
@@ -31,6 +33,8 @@ class RecoveryJobsService:
         if not 0<deadline_seconds<=45:raise ValueError('Recovery deadline must be positive and at most45 seconds')
         self.dispatch,self.confirmations,self.media=dispatch,confirmations,media
         self.settings,self.client,self.deadline_seconds=settings,client,deadline_seconds
+        self.cards=None
+        self.policy=None
         self.analytics=None
         self.analytics_lock=Lock()
         self.running:dict[str,asyncio.Task]={}
@@ -116,13 +120,29 @@ class RecoveryJobsService:
             service=await asyncio.to_thread(self._media)
             record=await service.resume_ledger(identity)
             return 'complete' if record.ledger_status=='done' else 'pending'
+        async def card(identity):
+            if self.cards is None:
+                from api.offline_card_service import LazyOfflineCardService
+                self.cards=LazyOfflineCardService(self.settings)
+            status=await self.cards.deliver(identity)
+            return 'complete' if status in ('accepted','superseded','virtual_skipped') else 'needs_review' if status=='uncertain' else 'pending'
+        async def policy(identity):
+            if self.policy is None:
+                from api.policy import LazyPolicyService
+                self.policy=LazyPolicyService(self.settings)
+            service=await asyncio.to_thread(self.policy._service)
+            await service._delete(await asyncio.to_thread(service.store.get,identity))
+            job=await asyncio.to_thread(service.store.get,identity)
+            return 'pending' if job['deletion_pending'] else 'complete'
         # Independent stages prevent a slow model/transport from starving evidence
         # or confirmed immutable facts. Each stage admits at most the bounded batch.
         outcomes=await asyncio.gather(
             self._stage('dispatch',lambda:self._dispatch_ids(limit),dispatch),
             self._stage('confirmations',lambda:self._confirmation_ids(limit),confirmation),
-            self._stage('media_ledger',lambda:self._media_ids(limit),ledger))
-        return ResumeResult(dispatch=outcomes[0],confirmations=outcomes[1],media_ledger=outcomes[2])
+            self._stage('media_ledger',lambda:self._media_ids(limit),ledger),
+            self._stage('offline_cards',lambda:self._card_ids(limit),card),
+            self._stage('policy_deletions',lambda:self._policy_ids(limit),policy))
+        return ResumeResult(dispatch=outcomes[0],confirmations=outcomes[1],media_ledger=outcomes[2],offline_cards=outcomes[3],policy_deletions=outcomes[4])
 
     def _dispatch_ids(self,limit):
         if self.dispatch is not None:return self.dispatch.store.pending_event_ids(limit)
@@ -137,8 +157,20 @@ class RecoveryJobsService:
         from api.media_store import MediaStore
         return MediaStore(self.client,self.settings.hash_salt).pending_ledger_ids(limit)
 
+    def _card_ids(self,limit):
+        if self.settings is None:return [] # Existing injected three-stage tests own no card runtime.
+        from api.offline_card_store import FirestoreCardStore
+        return FirestoreCardStore(self.client).pending_ids(limit)
+
+    def _policy_ids(self,limit):
+        if self.settings is None:return []
+        from api.policy_store import PolicyStore
+        return PolicyStore(self.client,self.settings.hash_salt).pending_deletions(limit)
+
     async def close(self):
         if self.running:await asyncio.gather(*self.running.values(),return_exceptions=True)
+        if self.cards is not None:await self.cards.close()
+        if self.policy is not None:await self.policy.close()
         if self.settings is not None:
             try:
                 if self.dispatch is not None:await self.dispatch.close()

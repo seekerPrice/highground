@@ -18,15 +18,29 @@ flowchart LR
 
 Use Python 3.12, Node.js 24 and npm 11. Tested host versions are Python 3.12.13, Node 24.14.0 and npm 11.9.0. Run from the repository root:
 
+Before the Python install on macOS, run `brew install libraqm`; on Debian Bookworm install `build-essential libjpeg62-turbo-dev zlib1g-dev libfreetype6-dev libraqm-dev`. These supply the required complex-script shaping libraries.
+
 ```sh
 python3.12 -m venv .venv
-.venv/bin/python -m pip install --no-deps -r api/requirements.txt
+.venv/bin/python -m pip install --no-deps -r api/requirements-build.txt
+.venv/bin/python -m pip install --no-cache-dir --no-deps --no-build-isolation --no-binary=Pillow -C raqm=enable -r api/requirements.txt
 .venv/bin/python -m pip check
+.venv/bin/python -c "from PIL import features; import sys; sys.exit(0 if all(features.check(x) for x in ('raqm','fribidi','harfbuzz','freetype2')) else 'Required Pillow shaping unavailable')"
 npm --prefix web ci
 cp .env.example .env
 chmod 600 .env
 cp web/.env.example web/.env.local
 ```
+
+Offline-card rendering requires native complex-script support before installing Pillow. On macOS, install `libraqm` with Homebrew (it uses FreeType, HarfBuzz and FriBiDi). On Debian Bookworm, install `build-essential libjpeg62-turbo-dev zlib1g-dev libfreetype6-dev libraqm-dev` for the source build; retain the corresponding runtime libraries. The pinned build-only requirements and `raqm=enable` prevent a default unshaped wheel from becoming the documented install path. For an existing unshaped environment, explicitly rebuild the same Pillow pin:
+
+```sh
+.venv/bin/python -m pip install --no-deps -r api/requirements-build.txt
+.venv/bin/python -m pip install --force-reinstall --no-cache-dir --no-deps --no-build-isolation --no-binary=Pillow -C raqm=enable Pillow==12.3.0
+.venv/bin/python -c "from PIL import features; import sys; sys.exit(0 if all(features.check(x) for x in ('raqm','fribidi','harfbuzz')) else 'Required Pillow shaping unavailable')"
+```
+
+Card rendering refuses missing shaping or unsupported glyphs instead of silently using a basic layout. Native translated wording review remains pending. The API Dockerfile builds the same Pillow pin from source with RAQM, checks its capabilities, and includes licensed local Noto font assets; actual container parity is recorded separately.
 
 Keep private configuration ignored. Set the explicit HighGround project, Vertex location and `GEMINI_FAST_MODEL` / `GEMINI_PRO_MODEL`; no model ID is hardcoded. Supply the bot token, webhook secret, `HASH_SALT` and `DEMO_OPERATOR_TOKEN` privately. Configure public bot username, an identifiable geocoding user agent, local bucket, topic and dataset. See [.env.example](.env.example) and [local environment notes](docs/planning/local-environment.md). A health-only process can run without these credentials; full Telegram/model/media behavior cannot.
 

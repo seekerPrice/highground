@@ -1,0 +1,86 @@
+[
+  {
+    "file": "notosans.ttf",
+    "sha256": "bfb7bb691513f12e734dc346c03a03f784912432d7e3fa8e56efcf906fe86b3d",
+    "source": "https://raw.githubusercontent.com/google/fonts/66928797f271fed5ee428544e7229685e2d90127/ofl/notosans/NotoSans%5Bwdth%2Cwght%5D.ttf",
+    "repository_commit": "66928797f271fed5ee428544e7229685e2d90127",
+    "license": "SIL Open Font License 1.1"
+  },
+  {
+    "file": "notosans-OFL.txt",
+    "sha256": "cee9892f9f0cc8fe882c9e9537ee6a89621d86ee7ceaf70b02e2b2b1c25c061a",
+    "source": "https://raw.githubusercontent.com/google/fonts/66928797f271fed5ee428544e7229685e2d90127/ofl/notosans/OFL.txt",
+    "repository_commit": "66928797f271fed5ee428544e7229685e2d90127",
+    "license": "SIL Open Font License 1.1"
+  },
+  {
+    "file": "notosanssc.ttf",
+    "sha256": "a3041811a78c361b1de50f953c805e0244951c21c5bd412f7232ef0d899af0da",
+    "source": "https://raw.githubusercontent.com/google/fonts/66928797f271fed5ee428544e7229685e2d90127/ofl/notosanssc/NotoSansSC%5Bwght%5D.ttf",
+    "repository_commit": "66928797f271fed5ee428544e7229685e2d90127",
+    "license": "SIL Open Font License 1.1"
+  },
+  {
+    "file": "notosanssc-OFL.txt",
+    "sha256": "1c05c68c34f9708415aada51f17e1b0092d2cea709bf4a94cd38114f9e73d7d9",
+    "source": "https://raw.githubusercontent.com/google/fonts/66928797f271fed5ee428544e7229685e2d90127/ofl/notosanssc/OFL.txt",
+    "repository_commit": "66928797f271fed5ee428544e7229685e2d90127",
+    "license": "SIL Open Font License 1.1"
+  },
+  {
+    "file": "notosanstamil.ttf",
+    "sha256": "aa3a9b321f4b0bb2c40203ffbde9af89713227866e0e13f76e5b9eeea727cf88",
+    "source": "https://raw.githubusercontent.com/google/fonts/66928797f271fed5ee428544e7229685e2d90127/ofl/notosanstamil/NotoSansTamil%5Bwdth%2Cwght%5D.ttf",
+    "repository_commit": "66928797f271fed5ee428544e7229685e2d90127",
+    "license": "SIL Open Font License 1.1"
+  },
+  {
+    "file": "notosanstamil-OFL.txt",
+    "sha256": "f8ff8ce7d0a81bf8d5e121c635ef027250c531f2fd37d5988b8dd6e45f19d7f1",
+    "source": "https://raw.githubusercontent.com/google/fonts/66928797f271fed5ee428544e7229685e2d90127/ofl/notosanstamil/OFL.txt",
+    "repository_commit": "66928797f271fed5ee428544e7229685e2d90127",
+    "license": "SIL Open Font License 1.1"
+  },
+  {
+    "file": "notosansbengali.ttf",
+    "sha256": "dcd42978094e584a849c84a51450eeac40c8826057d566ea6d4b9627a403a05a",
+    "source": "https://raw.githubusercontent.com/google/fonts/66928797f271fed5ee428544e7229685e2d90127/ofl/notosansbengali/NotoSansBengali%5Bwdth%2Cwght%5D.ttf",
+    "repository_commit": "66928797f271fed5ee428544e7229685e2d90127",
+    "license": "SIL Open Font License 1.1"
+  },
+  {
+    "file": "notosansbengali-OFL.txt",
+    "sha256": "754f0e221aa7d5a915489f3bf1f20fe53ddc35ab2834a4d91656d78f9622de70",
+    "source": "https://raw.githubusercontent.com/google/fonts/66928797f271fed5ee428544e7229685e2d90127/ofl/notosansbengali/OFL.txt",
+    "repository_commit": "66928797f271fed5ee428544e7229685e2d90127",
+    "license": "SIL Open Font License 1.1"
+  },
+  {
+    "file": "notosansdevanagari.ttf",
+    "sha256": "14ec4af41f27482216d1c2229f417ff9b1425e1babb014e57d1d40d03229853e",
+    "source": "https://raw.githubusercontent.com/google/fonts/66928797f271fed5ee428544e7229685e2d90127/ofl/notosansdevanagari/NotoSansDevanagari%5Bwdth%2Cwght%5D.ttf",
+    "repository_commit": "66928797f271fed5ee428544e7229685e2d90127",
+    "license": "SIL Open Font License 1.1"
+  },
+  {
+    "file": "notosansdevanagari-OFL.txt",
+    "sha256": "a216f6f8d85c7228093e0ee5e258d9d377e6671f68acb4db1930b29583d0f331",
+    "source": "https://raw.githubusercontent.com/google/fonts/66928797f271fed5ee428544e7229685e2d90127/ofl/notosansdevanagari/OFL.txt",
+    "repository_commit": "66928797f271fed5ee428544e7229685e2d90127",
+    "license": "SIL Open Font License 1.1"
+  },
+  {
+    "file": "notosansmyanmar.ttf",
+    "sha256": "7abbbfbe2514105d7ce94937aee3feb2ba89b73a256c8b77b5866bd9b83e32ec",
+    "source": "https://raw.githubusercontent.com/google/fonts/66928797f271fed5ee428544e7229685e2d90127/ofl/notosansmyanmar/NotoSansMyanmar%5Bwdth%2Cwght%5D.ttf",
+    "repository_commit": "66928797f271fed5ee428544e7229685e2d90127",
+    "license": "SIL Open Font License 1.1"
+  },
+  {
+    "file": "notosansmyanmar-OFL.txt",
+    "sha256": "246a75859267af7da466823969d2e2b407ed8455ee5f74f4c8d63d8783be9b57",
+    "source": "https://raw.githubusercontent.com/google/fonts/66928797f271fed5ee428544e7229685e2d90127/ofl/notosansmyanmar/OFL.txt",
+    "repository_commit": "66928797f271fed5ee428544e7229685e2d90127",
+    "license": "SIL Open Font License 1.1"
+  }
+]

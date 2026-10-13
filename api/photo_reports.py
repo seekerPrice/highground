@@ -72,6 +72,8 @@ class PhotoReportService:
             return await self._reply('danger',record)
         return reply
 
+    async def bound_photo_report(self,sender:int,message_id:int,file_unique_id:str):
+        return await asyncio.to_thread(self.store.bound_photo_report,sender,message_id,file_unique_id)
     async def handle_photo(self,sender_chat_id:int,update_id:int,message_id:int,telegram_date:int,photo:PhotoMedia,
                            processing_started_at:datetime|None=None)->PhotoReply:
         shop=await asyncio.to_thread(self.store.shop_for_sender,sender_chat_id)
@@ -247,6 +249,14 @@ class LazyPhotoReportService:
         if self.active is None:
             self.active = create_photo_report_service(self.settings, self.dispatch_service)
         return self.active
+
+    async def bound_photo_report(self,sender:int,message_id:int,file_unique_id:str):
+        if self.active:return await self.active.bound_photo_report(sender,message_id,file_unique_id)
+        from api.photo_store import PhotoStore
+        from api.tools.firestore import create_firestore_client
+        client=create_firestore_client(self.settings)
+        try:return await asyncio.to_thread(PhotoStore(client,self.settings.hash_salt).bound_photo_report,sender,message_id,file_unique_id)
+        finally:client.close()
 
     async def handle_photo(self, sender_chat_id: int, update_id: int, message_id: int, telegram_date: int,
                            photo: PhotoMedia, processing_started_at: datetime | None=None) -> PhotoReply:

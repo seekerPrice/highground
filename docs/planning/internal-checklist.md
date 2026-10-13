@@ -274,35 +274,42 @@ Scope: Must/foundation. Deliverable: Deployed Must journey survives expected fai
 Scope: Should — full local Must acceptance required; hosting deferred. Deliverable: At Watch or on request, owner receives a multilingual image that can be saved offline.
 
 - [x] Preparatory file/interface/test brief written in tasks-18-22-brief.md; source and current modules inspected. Planning only.
-- [ ] Astra task brief and acceptance agreed; blockers satisfied. The user approved constrained card wording and the local Must gate passed; implementation probes remain task work. No implementation claimed.
-- [ ] Sol implements only this task.
-- [ ] Relevant local checks run; results captured.
-- [ ] Astra inspects files and results, returns defects to Sol, and rechecks corrections.
-- [ ] Matt Standards review completed; relevant findings corrected and rechecked.
-- [ ] Matt Spec review completed; relevant findings corrected and rechecked.
-- [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
-- [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
+- [x] Astra dispatched Sol Task18 from831c366: card modules/assets/tests and initial shared integration implemented; candidate frozen, focused checks/rendering/received-image evidence recorded, independent reviews cleared; final complete local gate passed24infra/467API/22frontend plus lint/type/build.
+- [x] Host/Linux shaping and all eight rendered card variants checked; native-language wording review remains pending. See tasks-18-19-verification.md.
+- [x] User explicitly authorized the prepared synthetic Telegram card photo; actual send, visible receipt, downloaded JPEG and local visual inspection passed. Derived-image re-encoding and no airplane-mode claim are recorded in tasks-18-19-verification.md.
+- [x] Astra task brief and local acceptance agreed; local blockers satisfied. The user approved constrained card wording and the local Must gate passed; actual implementation/integration evidence and final24infra/467API/22frontend gate passed. Separately deferred external limits remain explicit.
+- [x] Sol implementation for this task is frozen within the shared Task18/19 boundary.
+- [x] Final local checks passed24infra/467API/22frontend, zero skips, plus lint/type/build; results captured in tasks-18-19-verification.md.
+- [x] Astra inspected files/results, returned defects, and rechecked corrections. Exact RED/GREEN evidence is recorded in tasks-18-19-verification.md.
+- [x] Matt Standards review completed; final recheck0 remaining at manifest83b211c12eb41fe7c7f62ea7f25ad8d832a966c702fff39e3aecebd2f9b68af4.
+- [x] Matt Spec review completed; final recheck0 remaining at the same frozen snapshot.
+- [x] Local acceptance met and evidence recorded; hosting remains explicitly deferred. Root commit/publication follows this frozen checkpoint.
+- [x] Technical prerequisites for dependent local work met; native wording/offline-phone/hosting limits remain recorded. Dispatch waits for root checkpoint release.
 
 ### Task 19 — Insurance check
 
 Scope: Should — full local Must acceptance required; hosting deferred. Deliverable: Owner uploads a policy and receives cautious extracted coverage and estimated shortfall information.
 
 - [x] Preparatory file/interface/test brief written in tasks-18-22-brief.md; source and current modules inspected. Planning only.
-- [ ] Astra task brief and acceptance agreed; blockers satisfied. The user approved pre-upload default-delete/Keep retention semantics and the local Must gate passed; implementation probes remain task work. No implementation claimed.
-- [ ] Sol implements only this task.
-- [ ] Relevant local checks run; results captured.
-- [ ] Astra inspects files and results, returns defects to Sol, and rechecks corrections.
-- [ ] Matt Standards review completed; relevant findings corrected and rechecked.
-- [ ] Matt Spec review completed; relevant findings corrected and rechecked.
-- [ ] Acceptance met, deployment verified where required, and completion reported with evidence.
-- [ ] Technical prerequisites for dependent work met; external acceptance evidence recorded where required.
+- [x] Astra dispatched the parallel Sol policy domain lane from831c366; shared integration followed the explicit Task18 handoff. Backend/frontend candidates are frozen, with114 policy cases and bounded multi-photo/PDF intake, disclosure and exact retention semantics recorded; actual live journeys and both independent reviews passed, final complete local gate passed24infra/467API/22frontend plus lint/type/build.
+- [x] User explicitly authorized fictional policy PDF uploads for default-delete/Keep tests in the existing consenting chat; actual default-delete, Keep/copy, owner deletion and revoked-copy factory checks passed; no visible post-delete toast claim is made.
+- [x] Astra task brief and local acceptance agreed; local blockers satisfied. The user approved pre-upload default-delete/Keep retention semantics and the local Must gate passed; actual implementation/integration evidence and final24infra/467API/22frontend gate passed. Separately deferred external limits remain explicit.
+- [x] Sol implementation for this task is frozen within the shared Task18/19 boundary.
+- [x] Final local checks passed24infra/467API/22frontend, zero skips, plus lint/type/build; results captured in tasks-18-19-verification.md.
+- [x] Astra inspected files/results, returned defects, and rechecked corrections. Exact RED/GREEN evidence is recorded in tasks-18-19-verification.md.
+- [x] Matt Standards review completed; final recheck0 remaining at manifest83b211c12eb41fe7c7f62ea7f25ad8d832a966c702fff39e3aecebd2f9b68af4.
+- [x] Matt Spec review completed; final recheck0 remaining at the same frozen snapshot.
+- [x] Local acceptance met and evidence recorded; hosting remains explicitly deferred. Root commit/publication follows this frozen checkpoint.
+- [x] Technical prerequisites for dependent local work met; native wording/offline-phone/hosting limits remain recorded. Dispatch waits for root checkpoint release.
 
 ### Task 20 — Waste sorting
 
 Scope: Should — full local Must acceptance required; hosting deferred. Deliverable: Loss report provides item disposal categories and aggregate estimated cleanup volumes.
 
+- [x] Astra prepared concrete disjoint pure-domain execution and later integration ownership in tasks-20-22-execution.md. Four new pure-domain files are frozen with eight focused tests; integration and independent review remain pending, with no Task20 acceptance claimed.
+
 - [x] Preparatory file/interface/test brief written in tasks-18-22-brief.md; source and current modules inspected. Planning only.
-- [ ] Astra task brief and acceptance agreed; blockers satisfied. The user explicitly approved this task’s proposed product choices; local Must correction gate/reviews passed; implementation probes remain task work. No implementation claimed.
+- [ ] Astra task brief and acceptance agreed; blockers satisfied. The user explicitly approved this task’s proposed product choices; local Must correction gate/reviews passed; implementation and integration probes remain in progress; no completion claimed.
 - [ ] Sol implements only this task.
 - [ ] Relevant local checks run; results captured.
 - [ ] Astra inspects files and results, returns defects to Sol, and rechecks corrections.
@@ -316,7 +323,7 @@ Scope: Should — full local Must acceptance required; hosting deferred. Deliver
 Scope: Should — full local Must acceptance required; hosting deferred. Deliverable: Any user shares a location to view current nearby warnings and listed destinations.
 
 - [x] Preparatory file/interface/test brief written in tasks-18-22-brief.md; source and current modules inspected. Planning only.
-- [ ] Astra task brief and acceptance agreed; blockers satisfied. The user explicitly approved this task’s proposed product choices; local Must correction gate/reviews passed; implementation probes remain task work. No implementation claimed.
+- [ ] Astra task brief and acceptance agreed; blockers satisfied. The user explicitly approved this task’s proposed product choices; local Must correction gate/reviews passed; implementation and integration probes remain in progress; no completion claimed.
 - [ ] Sol implements only this task.
 - [ ] Relevant local checks run; results captured.
 - [ ] Astra inspects files and results, returns defects to Sol, and rechecks corrections.
@@ -330,7 +337,7 @@ Scope: Should — full local Must acceptance required; hosting deferred. Deliver
 Scope: Should — full local Must acceptance required; hosting deferred. Deliverable: Owner feedback produces transparent outcome metrics and constrained area calibration.
 
 - [x] Preparatory file/interface/test brief written in tasks-18-22-brief.md; source and current modules inspected. Planning only.
-- [ ] Astra task brief and acceptance agreed; blockers satisfied. The user explicitly approved this task’s proposed product choices; local Must correction gate/reviews passed; implementation probes remain task work. No implementation claimed.
+- [ ] Astra task brief and acceptance agreed; blockers satisfied. The user explicitly approved this task’s proposed product choices; local Must correction gate/reviews passed; implementation and integration probes remain in progress; no completion claimed.
 - [ ] Sol implements only this task.
 - [ ] Relevant local checks run; results captured.
 - [ ] Astra inspects files and results, returns defects to Sol, and rechecks corrections.

@@ -71,7 +71,9 @@ class DestinationLookup:
         if not types or any(kind not in ('pps', 'parking', 'high_ground') for kind in types):
             raise ValueError('Unsupported destination type')
         candidates = []
-        for record in self.client.collection(self.collection).stream():
+        records=list(self.client.collection(self.collection).limit(1001).stream(timeout=8,retry=None))
+        if len(records)>1000:return None # Do not claim nearest from a truncated registry.
+        for record in records:
             try:
                 point = SafePoint.model_validate(dict(record.to_dict(), safe_point_id=record.id))
             except (ValidationError, TypeError):

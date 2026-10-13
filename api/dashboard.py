@@ -68,7 +68,14 @@ class DashboardStore:
                 elif raw.get('status')=='stale':status='stale'
             elif checked:status='stale'
             sources.append(SourceStatus(source=source,status=status,checked_at=checked,note='Source observation time is unknown in this summary. A recent check does not establish an all-clear.'))
-        return Dashboard(generated_at=now,status='available' if public_shops else 'empty',scenario_started_at=since,scenario_generation=scenario.get('generation',0),scenario_state=scenario.get('state','ready'),shops=public_shops,events=public_events,destinations=destinations,sources=sources,
+        policy_coverage=None;policy_note='Synthetic policy summary is unavailable.'
+        if shop_complete:
+            try:
+                from api.policy_store import PolicyStore
+                policy_coverage=PolicyStore(self.client,self.settings.hash_salt,self.prefix).synthetic_aggregate(shops,now.date())
+                policy_note='Synthetic only. Missing policies, unclear or expired wording, and unknown stock estimates are shown separately. Check with your insurer; no current-cover or payout guarantee.'
+            except Exception:pass
+        return Dashboard(policy_coverage=policy_coverage,policy_note=policy_note,generated_at=now,status='available' if public_shops else 'empty',scenario_started_at=since,scenario_generation=scenario.get('generation',0),scenario_state=scenario.get('state','ready'),shops=public_shops,events=public_events,destinations=destinations,sources=sources,
             stats=self.analytics.stats(shops,events,alerts,facts,complete=scenario.get('state','ready')=='ready' and all((shop_complete,event_complete,alert_complete,fact_complete))) if self.analytics else unavailable(len(shops)))
     def reset(self,request_id: str) -> dict:
         return DemoScenarioStore(self.client,self.risks,prefix=self.prefix).reset(request_id)
