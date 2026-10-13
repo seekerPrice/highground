@@ -32,15 +32,16 @@ class TelegramDownloader:
     def __init__(self,token:str,client:httpx.AsyncClient):
         if not token:raise ValueError('TELEGRAM_BOT_TOKEN is required')
         self._token,self.client=token,client
-    async def download(self,request:MediaRequest)->bytes:
-        if request.declared_size is not None and request.declared_size>MAX_UPLOAD_BYTES:raise MediaIngestError('upload_too_large')
+    async def download(self,request:MediaRequest,*,max_bytes:int=MAX_UPLOAD_BYTES)->bytes:
+        if type(max_bytes) is not int or not 1<=max_bytes<=MAX_UPLOAD_BYTES:raise MediaIngestError('upload_too_large')
+        if request.declared_size is not None and request.declared_size>max_bytes:raise MediaIngestError('upload_too_large')
         try:
             response=await self.client.post(f'https://api.telegram.org/bot{self._token}/getFile',json={'file_id':request.file_id},timeout=3,follow_redirects=False)
             response.raise_for_status();body=response.json()
             if not isinstance(body,dict) or body.get('ok') is not True:raise MediaIngestError('download_unavailable')
             info=TelegramFile.model_validate(body.get('result'))
-            if info.file_unique_id!=request.file_unique_id or (info.file_size is not None and info.file_size>MAX_UPLOAD_BYTES):
-                raise MediaIngestError('upload_too_large' if info.file_size is not None and info.file_size>MAX_UPLOAD_BYTES else 'file_identity_mismatch')
+            if info.file_unique_id!=request.file_unique_id or (info.file_size is not None and info.file_size>max_bytes):
+                raise MediaIngestError('upload_too_large' if info.file_size is not None and info.file_size>max_bytes else 'file_identity_mismatch')
             path=info.file_path
             if (not re.fullmatch(r'[A-Za-z0-9_./-]+',path) or path.startswith('/')
                     or any(part in ('','..','.') for part in path.split('/'))):
@@ -51,10 +52,10 @@ class TelegramDownloader:
                 if download.headers.get('content-encoding','identity')!='identity':
                     raise MediaIngestError('download_unavailable')
                 declared=download.headers.get('content-length')
-                if declared is not None and (not declared.isdigit() or int(declared)>MAX_UPLOAD_BYTES):
+                if declared is not None and (not declared.isdigit() or int(declared)>max_bytes):
                     raise MediaIngestError('upload_too_large')
                 async for chunk in download.aiter_bytes():
-                    if len(chunks)+len(chunk)>MAX_UPLOAD_BYTES:raise MediaIngestError('upload_too_large')
+                    if len(chunks)+len(chunk)>max_bytes:raise MediaIngestError('upload_too_large')
                     chunks.extend(chunk)
             if (info.file_size is not None and len(chunks)!=info.file_size) or (request.declared_size is not None and len(chunks)!=request.declared_size):
                 raise MediaIngestError('file_size_mismatch')
@@ -64,7 +65,12 @@ class TelegramDownloader:
 
 
 def validated_mime(data:bytes,request:MediaRequest)->str:
-    if request.kind.endswith('photo'):
+    if request.kind=='policy_pdf':
+        from api.policy import validate_policy_pdf
+        try:validate_policy_pdf(data)
+        except ValueError:raise MediaIngestError('invalid_media') from None
+        mime='application/pdf'
+    elif request.kind.endswith('photo'):
         try:
             with warnings.catch_warnings():
                 warnings.simplefilter('error',Image.DecompressionBombWarning)
@@ -91,8 +97,9 @@ class MediaService:
     def __init__(self, store: 'MediaStore', downloader: TelegramDownloader, storage: 'OriginalStorage',
                  ledger: 'EvidenceLedger', authorize: Callable[[MediaRequest], bool]):
         self.store,self.downloader,self.storage,self.ledger,self.authorize=store,downloader,storage,ledger,authorize
-    async def ingest_media(self,request:MediaRequest,*,defer_ledger:bool=False)->IngestedMedia:
-        if request.declared_size is not None and request.declared_size>MAX_UPLOAD_BYTES:raise MediaIngestError('upload_too_large')
+    async def ingest_media(self,request:MediaRequest,*,defer_ledger:bool=False,max_bytes:int=MAX_UPLOAD_BYTES)->IngestedMedia:
+        if type(max_bytes) is not int or not 1<=max_bytes<=MAX_UPLOAD_BYTES:raise MediaIngestError('upload_too_large')
+        if request.declared_size is not None and request.declared_size>max_bytes:raise MediaIngestError('upload_too_large')
         if not await asyncio.to_thread(self.authorize,request):raise MediaIngestError('unauthorized_media')
         record=await asyncio.to_thread(self.store.ensure,request)
         owner=await asyncio.to_thread(self.store.claim,record.media_id)
@@ -102,12 +109,14 @@ class MediaService:
                 if len(data)!=record.bytes or sha256(data).hexdigest()!=record.sha256:
                     raise MediaIngestError('file_integrity_mismatch')
             else:
-                async with asyncio.timeout(4):data=await self.downloader.download(request)
-                mime=validated_mime(data,request);digest=sha256(data).hexdigest()
+                async with asyncio.timeout(4):data=await self.downloader.download(request,max_bytes=max_bytes) if request.kind in ('policy_photo','policy_pdf') else await self.downloader.download(request)
+                if len(data)>max_bytes:raise MediaIngestError('upload_too_large')
+                mime=await asyncio.to_thread(validated_mime,data,request);digest=sha256(data).hexdigest()
                 await asyncio.to_thread(self.store.transition,record.media_id,owner,sha256=digest,bytes=len(data),mime_type=mime,
                                         gcs_uri=self.storage.uri(record.media_id))
-                await asyncio.to_thread(self.storage.create_original,record.media_id,data,mime,digest)
-                await asyncio.to_thread(self.store.transition,record.media_id,owner,storage_status='done')
+                generation=await asyncio.to_thread(self.storage.create_original,record.media_id,data,mime,digest)
+                if request.kind in ('policy_photo','policy_pdf') and generation is None:raise MediaIngestError('storage_unavailable')
+                await asyncio.to_thread(self.store.transition,record.media_id,owner,storage_status='done',**({'object_generation':str(generation)} if generation is not None else {}))
             record=await asyncio.to_thread(self.store.get,record.media_id)
             if not defer_ledger and record.ledger_status!='done':
                 await self._ledger(record,owner)

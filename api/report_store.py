@@ -28,7 +28,8 @@ class ReportStore(InventoryStore):
         if message_id is not None and file_unique_id:
             bound=self.upload_reference(sender,message_id,file_unique_id).get().to_dict() or {}
             if bound.get('report_id'):
-                return self.collection('recovery_jobs').document(bound['report_id']).get().to_dict()
+                job=self.collection('recovery_jobs').document(bound['report_id']).get().to_dict()
+                return dict(job,bound_upload=True) if job else None
         job=self.current(sender)
         return job if job and (job['status']!='complete' or job.get('attachment_pending')) else None
 

@@ -18,13 +18,22 @@ class PhotoStore:
     def collection(self,name: str) -> firestore.CollectionReference:return self.client.collection(self.prefix+name)
     def shop_for_sender(self,chat_id:int)->dict|None:
         matches=[]
-        for doc in self.collection('shops').stream():
+        documents=list(self.collection('shops').limit(1001).stream(timeout=8,retry=None))
+        if len(documents)>1000:return None # Incomplete membership cannot establish unique authorization.
+        for doc in documents:
             value=doc.to_dict()
             if alerts_only_fixture(doc.id,value):continue
             member=next((r for r in value.get('recipients',[]) if r.get('telegram_chat_id')==chat_id),None)
             if member:matches.append(dict(value,shop_id=doc.id,language=member['language']))
         # Do not guess which shop when membership is ambiguous.
         return matches[0] if len(matches)==1 else None
+    def bound_photo_report(self,sender:int,message_id:int,file_unique_id:str)->dict|None:
+        shop=self.shop_for_sender(sender)
+        if not shop:return None
+        sender_hash=session_user_id(sender,self.hash_salt)
+        report_id=sha256(f'{shop["shop_id"]}:{sender_hash}:{message_id}:{file_unique_id}'.encode()).hexdigest()[:32]
+        row=self.collection('photo_reports').document(report_id).get(timeout=5,retry=None).to_dict()
+        return row if row and row.get('sender_hash')==sender_hash and row.get('file_unique_id')==file_unique_id else None
     def authorize_media(self,request: MediaRequest)->bool:
         shop=self.collection('shops').document(request.shop_id).get().to_dict()
         return bool(shop and not alerts_only_fixture(request.shop_id,shop) and bool(shop.get('is_demo',False))==request.is_demo

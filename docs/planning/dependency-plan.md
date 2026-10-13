@@ -1,6 +1,6 @@
 # Active implementation dependency plan
 
-Current reviewed application: `5be7f1800becf3671c5ba2ff66e5a380e3b0a277`. The user authorizes all Tasks1–22 by actual dependencies, with parallel disjoint work and no calendar waits. **The complete local Must gate is now accepted: native PDF verification, recovered-runtime full gate and independent print correction reviews passed. Should implementation may begin by dependency.** Hosting remains deferred, as do separately tracked second-phone and real Telegram media-upload acceptance. Should implementation may now proceed by dependency. Stretch is pitch-only; no CI or repository-connected automation.
+Accepted local Must application: `5be7f1800becf3671c5ba2ff66e5a380e3b0a277`; Tasks18/19 are locally accepted and independently reviewed from baseline831c366, with final24infra/467API/22frontend gate passed; root commit/publication is next. The user authorizes all Tasks1–22 by actual dependencies, with parallel disjoint work and no calendar waits. **The complete local Must gate is now accepted: native PDF verification, recovered-runtime full gate and independent print correction reviews passed. Should implementation may begin by dependency.** Hosting and separately tracked second-phone/real-shop media acceptance remain deferred. Explicitly synthetic Task18/19 Telegram media was separately authorized and tested. Stretch is pitch-only; no CI or repository-connected automation.
 
 ## Current dependencies and evidence
 
@@ -23,9 +23,9 @@ Current reviewed application: `5be7f1800becf3671c5ba2ff66e5a380e3b0a277`. The us
 | 15 dashboard | 7,8,9,11;16 reset contract | Local acceptance/review passed including actual operator reset/retry and metrics |
 | 16 reproducible demo | stable14 packaging and15/dispatch interfaces | Actual six-shop/three-vehicle seed, virtual journey, consenting-owner binding and duplicate-safe actions passed; redeploy deferred |
 | 17 hardening | completed component gates across1–16 | Full local test/review and factory/manual recovery passed; complete local Must gate accepted |
-| 18 offline card | full local Must;11 inventory,8 destinations,7 delivery | Brief prepared only; no implementation; font/shaping/photo-transport probes required |
-| 19 policy check | full local Must;9 ingestion,11 inventory | Brief prepared; pre-upload retention/Keep-copy policy approved; PDF/deletion SDK probes required |
-| 20 waste sorting | full local Must;12/13 report,15 map/metrics | Brief prepared; street/deduplication/donation semantics explicitly approved |
+| 18 offline card | full local Must;11 inventory,8 destinations,7 delivery | Locally accepted/reviewed; host/Linux rendering, actual consenting-chat downloaded image and final full gate passed; native wording/offline-phone/hosting limits explicit |
+| 19 policy check | full local Must;9 ingestion,11 inventory | Locally accepted/reviewed; actual configured Pro, default-delete/Keep/copy/delete, trace privacy, private/public UI and final full gate passed; real-policy/provider-retention/hosting limits explicit |
+| 20 waste sorting | full local Must;12/13 report,15 map/metrics | Pure-domain candidate frozen separately; street/deduplication/donation semantics approved; model/storage/UI integration and review pending |
 | 21 public check | full local Must;3 current sources,8 destinations,9 attributed reports | Brief prepared; privacy/TTL/rate explicitly approved; current geographic reader remains implementation work |
 | 22 learning loop | full local Must;7/10 episodes,15 metrics | Brief prepared; outcome/coverage/window/calibration rules explicitly approved |
 
@@ -41,7 +41,7 @@ At5be7f18, the corrected native two-page A4 PDF contains all three hashes exactl
 
 ## Ownership after the gate
 
-Astra owns briefs/checklists and actual review/correction coordination. Root owns Git/GitHub, runtime restarts, real Telegram/browser operations and consent, emulator SDK windows and deployment authority. Astra has dispatched Task18 card and Task19 policy domain lanes; shared entrypoints and dependency changes initially belong only to the Task18 lane, with an explicit handoff before policy integration.
+Astra owns briefs/checklists and actual review/correction coordination. Root owns Git/GitHub, runtime restarts, real Telegram/browser operations and consent, emulator SDK windows and deployment authority. Task18/19 implementation, both review axes and the final full gate are frozen and accepted; root commits/publishes the checkpoint next. Task20 pure-domain files are preserved in root-owned staging for an exact18/19 candidate. After root releases the checkpoint, restore those bytes and dispatch Task20 integration plus Task21 disjoint domain according to tasks-20-21-integration-brief.md. No future work enters the current candidate.
 
 After this accepted checkpoint, two Sol lanes may work disjoint new domain/agent/test modules. A single integration owner at a time controls `api/telegram_webhook.py`, `api/main.py`, media/retention schemas, i18n, config/env/README and dependency pins. One frontend owner controls DTOs/components/fixtures and the frontend lockfile. Freeze typed API contracts before handing them to the UI lane; serialize report/dashboard amendments from19/20/22. Calibrated triage changes cannot race another dispatch/radius integration.
 

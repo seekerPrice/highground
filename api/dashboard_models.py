@@ -3,6 +3,7 @@ from typing import Literal
 from pydantic import AwareDatetime, Field
 from api.report_models import DTO
 from api.destinations import SafePoint
+from api.policy_models import PolicyAggregate
 
 class DashboardShop(DTO):
     shop_id: str
@@ -57,6 +58,8 @@ class Dashboard(DTO):
     destinations: list[SafePoint] = Field(max_length=100)
     sources: list[SourceStatus] = Field(max_length=2)
     stats: DashboardStats
+    policy_coverage:PolicyAggregate|None=None
+    policy_note:str='Synthetic policy summary is unavailable.'
 
 class ResetRequest(DTO):
     request_id: str = Field(min_length=1,max_length=128,pattern=r'^[A-Za-z0-9_.:-]+$')

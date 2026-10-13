@@ -1,0 +1,23 @@
+# Task 18 local candidate
+
+The card is a derived private 1080 × 1920 PNG, not an original upload or evidence receipt. It freezes at most five displayed lift items and computes its subtotal from those items alone. Watch cards use the durable event target's canonical inventory baseline; Watch action snapshots intentionally contain no property actions. Owner `/card` freezes the current canonical baseline once per stable message operation. Destination names, addresses and coordinates come from sourced eligible registry snapshots; current opening and route conditions remain unverified. The drawn map is schematic, with distinct numbered pins even at coincident coordinates.
+
+Actual configured Flash runs through ADK and chooses only committed title/footer keys. Invalid or unavailable selection uses committed fallback text within one 20-second total selection budget, at most two attempts. Danger is checked before selection and again after rendering/persistence immediately before photo delivery; Danger never constructs card asset/model clients. Simulation state and generation remain enforced for owner demand, while the trusted internal `card_request` source is not restricted to the operator fixture membership list. The public simulation DTO retains its demo-only source contract.
+
+Watch enqueue happens after all primary neighbor messages have been attempted. A failed enqueue before card-row creation leaves the event's bounded `card_enqueue_pending` flag set, so protected event recovery retries enqueue without sending an accepted primary message again. The separate card outbox stores its immutable context, chosen keys and derived asset metadata, with leased preparation/send states. Expired sends and ambiguous external outcomes become terminal `uncertain`; they do not authorize another image. Virtual recipients produce no Telegram photo request or image acceptance count. The protected manual recovery endpoint adds an independent bounded `offline_cards` stage, using its existing deadline/in-flight ownership conventions.
+
+`sendPhoto` uses multipart PNG bytes, a generated filename, a bounded caption and the fixed Bot API origin. Private bot credentials are redacted from HTTP logging. Assets use create-only `derived/cards/` objects and hash-checked reads; they do not appear in original-upload evidence records. No generated-image authenticity claim is made.
+
+## Observed checks
+
+- Real Firestore RED: nonempty persisted context failed public delivery because Firestore arrays become lists while the strict context requires a tuple. Explicit trusted-storage tuple normalization corrected it. GREEN includes both sourced destination snapshots, aware timestamp replay and one photo across repeated delivery.
+- Owner scope RED: an ordinary synthetic owner was rejected by operator fixture membership. A narrow internal source exemption now preserves generation/reset guards; ordinary operator events still exclude that owner.
+- Watch facts RED: reading the accepted Watch action snapshot omitted inventory. The card now uses the immutable event target baseline. A fanout test verifies nonempty frozen items and both primary messages preceding either optional enqueue.
+- Queue creation RED: failure before a card row incorrectly completed the event. GREEN leaves it pending, then resumes enqueue without repeating either primary text.
+- Transport RED: missing photo method failed the exact multipart test; GREEN validates PNG bytes, caption/file bounds, fixed method and token redaction.
+- An explicit controlled guard-disable mutation caused the delayed Danger/reset test to fail; unchanged guarded code passed. This is mutation evidence, not a pre-implementation failure claim.
+- Focused pure/local shared regression: 59 passed, 15 emulator-dependent skips in 2.55 seconds. Separately, the actual Firestore card checks ran with the dedicated emulator: 12 passed, no skips, in 2.05 seconds. No model or analytics calls occurred in those tests.
+
+Root independently observed configured Flash selector success (4.482 seconds, five persisted ADK events) after a bounded timeout correction. Root built Linux/arm64 source-Pillow parity and checked RAQM, FriBiDi, HarfBuzz and FreeType. All eight host and eight Linux rendered PNGs passed dimensions/hash/visual checks, including RM110 displayed subtotal and coincident pins. This does not establish native-language wording review, a latency guarantee, or hosted/x86 acceptance. Font/build primary evidence is in `task-18-font-research.md`.
+
+Actual private Telegram delivery, saved-image acceptance, final feature-image rebuild and the consolidated local gate remain root-owned checks after this candidate snapshot. No server, emulator or cloud resource was restarted by this lane.

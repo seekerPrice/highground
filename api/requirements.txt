@@ -11,6 +11,7 @@ click==8.5.0
 cryptography==50.0.2
 distro==1.9.0
 fastapi==0.141.0
+fonttools==4.66.1
 google-adk==2.11.0
 google-api-core==2.34.0
 google-auth==2.61.0
@@ -49,12 +50,14 @@ pycparser==3.11
 pydantic==2.14.1
 pydantic_core==2.50.1
 Pygments==2.21.0
+pypdf==6.20.1
 pytest==9.1.1
 python-dateutil==2.9.0.post0
 python-dotenv==1.2.2
 python-multipart==0.0.32
 PyYAML==6.0.3
 referencing==0.37.0
+regex==2026.9.29
 requests==2.34.2
 rpds-py==2026.9.1
 six==1.17.0

@@ -36,7 +36,7 @@ def current_scenario(client:firestore.Client, collection:str, transaction:firest
 def event_is_current(event:dict, scenario:dict,shop_id:str|None=None) -> bool:
     return not event.get('is_demo') or (scenario.get('state','ready')=='ready'
         and event.get('scenario_generation',0)==scenario.get('generation',0)
-        and (shop_id is None or scenario.get('fixture_shop_ids') is None or shop_id in scenario['fixture_shop_ids']))
+        and (event.get('source')=='card_request' or shop_id is None or scenario.get('fixture_shop_ids') is None or shop_id in scenario['fixture_shop_ids']))
 
 
 class DemoScenarioStore:

@@ -3,7 +3,7 @@ from typing import Literal
 from pydantic import AwareDatetime,BaseModel,ConfigDict,Field,StrictInt,model_validator
 
 MAX_UPLOAD_BYTES=20_000_000
-MediaKind=Literal['baseline_video','update_video','after_video','flood_photo','waterline_photo']
+MediaKind=Literal['baseline_video','update_video','after_video','flood_photo','waterline_photo','policy_photo','policy_pdf']
 
 class MediaRequest(BaseModel):
     model_config=ConfigDict(extra='forbid',strict=True,allow_inf_nan=False)
@@ -32,6 +32,8 @@ class MediaRecord(BaseModel):
     bytes:int|None=None
     mime_type:str|None=None
     gcs_uri:str|None=None
+    object_generation:str|None=Field(default=None,pattern=r'^[1-9][0-9]{0,30}$')
+    retention_status:Literal['retained','deletion_pending','deleted']='retained'
     uploaded_at:AwareDatetime
     origin:Literal['telegram','local_fixture']='telegram'
     telegram_date:AwareDatetime|None

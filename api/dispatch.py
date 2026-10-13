@@ -16,12 +16,13 @@ from api.tools.telegram import TelegramSendError
 class DispatchService:
     def __init__(self, store: FirestoreDispatchStore, telegram, sinks, *, hash_salt: str,
                  composer: AlertComposer | None = None, vehicle_actions=None, active_risk=None, stock_actions=None,
-                 virtual_delivery=None, clock: Callable[[], datetime] = lambda: datetime.now(UTC)) -> None:
+                 virtual_delivery=None, cards=None, clock: Callable[[], datetime] = lambda: datetime.now(UTC)) -> None:
         if not hash_salt:
             raise ValueError('HASH_SALT is required for dispatch')
         self.store, self.telegram, self.sinks = store, telegram, sinks
         self.vehicle_actions = vehicle_actions
         self.virtual_delivery = virtual_delivery
+        self.cards = cards
         self.active_risk, self.stock_actions = active_risk, stock_actions
         self.hash_salt, self.composer, self.clock = hash_salt, composer or AlertComposer(), clock
 
@@ -153,6 +154,20 @@ class DispatchService:
                 finally:
                     if delivery_owner is not None:
                         await asyncio.to_thread(self.active_risk.release_delivery,alert['shop_id'],delivery_owner)
+            # Optional cards start only after every primary neighbour alert was attempted.
+            if self.cards is not None and event['level']=='watch':
+                card_enqueue_pending=False
+                for alert_id in event['alert_ids']:
+                    alert=await asyncio.to_thread(self.store.get_alert,alert_id)
+                    if alert['status']!='accepted' or alert.get('delivery_provenance')=='local_virtual':continue
+                    raw=next((row for row in event.get('targets',[]) if row['shop_id']==alert['shop_id']),None)
+                    if raw is None:continue
+                    shop=Shop.model_validate(raw) # Frozen event target baseline; Watch has no stock-action snapshot.
+                    recipient=next((r for r in shop.recipients if r.telegram_chat_id==alert['telegram_chat_id']),None)
+                    if recipient is None:continue
+                    try:await self.cards.enqueue_watch({**event,'episode_id':alert.get('episode_id')},shop,recipient,alert_id)
+                    except Exception:card_enqueue_pending=True # Accepted primary text is never repeated.
+                await asyncio.to_thread(self.store.update_event,event_id,owner,card_enqueue_pending=card_enqueue_pending)
             return await self._flush_sinks(event_id,owner)
         finally:
             await asyncio.to_thread(self.store.release, event_id, owner)
@@ -200,7 +215,7 @@ class DispatchService:
             if alert['status'] in ('pending', 'sending', 'retryable') or alert['bigquery'] != 'done':
                 pending = True
         latest = await asyncio.to_thread(self.store.get_event, event_id)
-        pending |= latest['pubsub'] != 'done' or latest['bigquery'] != 'done'
+        pending |= latest['pubsub'] != 'done' or latest['bigquery'] != 'done' or (not superseded and latest.get('card_enqueue_pending',False))
         status = 'pending' if pending else 'superseded' if superseded else ('needs_review' if counts.get('uncertain') else 'complete')
         await asyncio.to_thread(self.store.update_event, event_id, owner, status=status)
         # No chat IDs, recipient hashes, private snapshots or message bodies leave this boundary.
@@ -208,6 +223,7 @@ class DispatchService:
         return {'event_id': event_id, 'status': status, 'alerts': dict(counts)}
 
     async def close(self) -> None:
+        if self.cards is not None:await self.cards.close()
         if self.composer.selector is not None and hasattr(self.composer.selector, 'close'):
             await self.composer.selector.close()
         if hasattr(self.sinks, 'close'):
@@ -230,6 +246,7 @@ def create_dispatch_service(settings) -> DispatchService:
     from api.active_risk import ActiveRiskStore
     from api.stock_confirmations import StockActionStore
     from api.demo_transport import LocalVirtualDelivery,require_local_demo
+    from api.offline_card_service import LazyOfflineCardService
     virtual=None
     if settings.demo_virtual_delivery:
         require_local_demo(settings)
@@ -240,4 +257,4 @@ def create_dispatch_service(settings) -> DispatchService:
                              stock_minutes=settings.stock_action_target_minutes)
     return DispatchService(FirestoreDispatchStore(client),
                            TelegramAPI(settings.telegram_bot_token) if settings.telegram_bot_token or virtual is None else None, create_event_sinks(settings),
-                           hash_salt=settings.hash_salt, composer=composer, virtual_delivery=virtual, vehicle_actions=VehicleActionStore(client), active_risk=ActiveRiskStore(client,max_age=settings.official_max_age), stock_actions=StockActionStore(client))
+                           hash_salt=settings.hash_salt, composer=composer, virtual_delivery=virtual, cards=LazyOfflineCardService(settings), vehicle_actions=VehicleActionStore(client), active_risk=ActiveRiskStore(client,max_age=settings.official_max_age), stock_actions=StockActionStore(client))

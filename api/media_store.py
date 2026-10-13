@@ -45,7 +45,7 @@ class MediaStore:
         def change(tx):
             current=ref.get(transaction=tx).to_dict()
             if current.get('owner')!=owner:raise MediaIngestError('ingest_claim_changed')
-            for immutable in ('sha256','bytes','mime_type','gcs_uri'):
+            for immutable in ('sha256','bytes','mime_type','gcs_uri','object_generation'):
                 if immutable in fields and current.get(immutable) is not None and current[immutable]!=fields[immutable]:
                     raise MediaIngestError('original_conflict')
             tx.update(ref,dict(fields,lease_until=datetime.now(UTC)+timedelta(seconds=30)))

@@ -8,3 +8,8 @@
 api/tests/
 api/fixtures/
 api/**/__pycache__/
+!api/requirements-build.txt
+!api/fonts/
+!api/fonts/*.ttf
+!api/fonts/*-OFL.txt
+!api/fonts/manifest.json
