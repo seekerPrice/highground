@@ -1,3 +1,4 @@
+from api.demo_scenario import scenario_collection, current_scenario, event_is_current
 """Accepted-message-bound immutable stock actions and recoverable confirmation outbox."""
 from datetime import datetime
 from hashlib import sha256
@@ -18,17 +19,18 @@ class StockActionStore(VehicleActionStore):
         ref=self.client.collection(self.actions).document(identity)
         frozen=snapshot.model_copy(update={'stock_action_id':identity,'episode_id':event.get('episode_id') or event['event_id']})
         record=dict(action_id=identity,event_id=event['event_id'],shop_id=shop.shop_id,episode_id=frozen.episode_id,
-            kind='stock',snapshot=frozen.model_dump(mode='json'),state='active',is_demo=event['is_demo'],
+            scenario_generation=event.get('scenario_generation',0),kind='stock',snapshot=frozen.model_dump(mode='json'),state='active',is_demo=event['is_demo'],
             recipient_hashes=[session_user_id(r.telegram_chat_id,hash_salt) for r in shop.recipients],created_at=event['created_at'])
         @firestore.transactional
         def save(tx):
             existing=ref.get(transaction=tx)
             shop_data=self.client.collection(self.shops).document(shop.shop_id).get(transaction=tx).to_dict() or {}
             risk=self.client.collection(self.risks).document(shop.shop_id).get(transaction=tx).to_dict() or {}
+            scenario=current_scenario(self.client,scenario_collection(self.shops),tx) if event.get('is_demo') else {}
             state=ActiveRiskStore._view(risk,shop_data)
             record['danger_generation']=risk.get('danger_generation',0)
             if existing.exists:return existing.to_dict()
-            if state.active_danger or (state.episode_id is None or state.episode_id!=frozen.episode_id):record['state']='superseded'
+            if not event_is_current(event,scenario) or state.active_danger or (state.episode_id is None or state.episode_id!=frozen.episode_id):record['state']='superseded'
             tx.create(ref,record);return record
         return save(self.client.transaction())
 
@@ -44,10 +46,11 @@ class StockActionStore(VehicleActionStore):
             alert_id=sha256(f"{action['event_id']}:{action['shop_id']}:{sender_hash}".encode()).hexdigest()
             alert=self.client.collection(self.alerts).document(alert_id).get(transaction=tx).to_dict() or {}
             existing=confirmation_ref.get(transaction=tx)
+            scenario=current_scenario(self.client,scenario_collection(self.shops),tx) if action.get('is_demo') else {}
             member=next((r for r in shop.get('recipients',[]) if r.get('telegram_chat_id')==sender_chat_id and r.get('role') in ('owner','worker')),None)
             if not member or alert.get('message_id')!=message_id or alert.get('status')!='accepted':return 'unavailable','en',None
             language=member['language'];state=ActiveRiskStore._view(risk,shop)
-            if action['state']!='active' or action.get('danger_generation',0)!=risk.get('danger_generation',0) or state.active_danger or (state.episode_id is None or state.episode_id!=action['episode_id']):return 'superseded',language,None
+            if not event_is_current(action,scenario) or action['state']!='active' or action.get('danger_generation',0)!=risk.get('danger_generation',0) or state.active_danger or (state.episode_id is None or state.episode_id!=action['episode_id']):return 'superseded',language,None
             snapshot=ActionSnapshot.model_validate(action['snapshot']);displayed=ActionSnapshot.model_validate(alert['snapshot'])
             if action['kind']!='stock' or alert.get('level')!='warning' or snapshot!=displayed or displayed.stock_action_id!=action_id or not snapshot.items or not snapshot.inventory_id:return 'unavailable',language,None
             expected=round(sum(item.value_rm for item in snapshot.items),2)
@@ -55,7 +58,7 @@ class StockActionStore(VehicleActionStore):
             if existing.exists:return 'already_recorded',language,action_id
             tx.create(confirmation_ref,dict(confirmation_id=action_id,action_id=action_id,episode_id=action['episode_id'],
                 event_id=action['event_id'],alert_id=alert_id,shop_id=action['shop_id'],kind='stock',protected_value_rm=expected,
-                confirmed_at=now,is_demo=action['is_demo'],self_reported=True,confirmed_by_hash=sender_hash,
+                confirmed_at=now,scenario_generation=action.get('scenario_generation',0),is_demo=action['is_demo'],self_reported=True,confirmed_by_hash=sender_hash,
                 snapshot=action['snapshot'],bigquery='pending'))
             return 'recorded',language,action_id
         return confirm(self.client.transaction(max_attempts=10))

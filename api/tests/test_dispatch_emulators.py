@@ -1,4 +1,10 @@
 import asyncio
+from contextlib import contextmanager,asynccontextmanager
+import inspect
+import re
+import sys
+from google.api_core.exceptions import NotFound
+from api.tools.bigquery_queries import query_rows
 from datetime import UTC, datetime, timedelta
 import json
 import os
@@ -21,6 +27,60 @@ from api.dispatch_store import FirestoreDispatchStore
 from api.tools.cloud_events import GoogleEventSinks, create_event_sinks
 from api.tools.firestore import create_firestore_client, create_async_firestore_client, close_async_firestore_client
 from api.agents.sessions import create_session_service
+
+
+@contextmanager
+def _cleanup_scope():
+    """Exact test callbacks; independent cleanup preserves the primary failure."""
+    operations=[]
+    try:yield operations
+    finally:
+        primary=sys.exception();failures=[]
+        for operation in reversed(operations):
+            try:operation()
+            except NotFound:pass
+            except Exception as error:failures.append(type(error).__name__)
+        if failures:
+            note='Isolated emulator cleanup failed: '+', '.join(failures)
+            if primary is not None:primary.add_note(note)
+            else:raise RuntimeError(note)
+
+
+@asynccontextmanager
+async def _async_cleanup_scope():
+    operations=[]
+    try:yield operations
+    finally:
+        primary=sys.exception();failures=[]
+        for operation in reversed(operations):
+            try:
+                result=operation()
+                if inspect.isawaitable(result):await result
+            except NotFound:pass
+            except Exception as error:failures.append(type(error).__name__)
+        if failures:
+            note='Isolated ADK cleanup failed: '+', '.join(failures)
+            if primary is not None:primary.add_note(note)
+            else:raise RuntimeError(note)
+
+
+async def _delete_adk_namespace(client,root):
+    if not re.fullmatch(r'(warning-selector-test-|photo-adk-test-|adk-cleanup-test-)[0-9a-f]{32}',root):raise ValueError('Exact isolated ADK namespace required')
+    async def delete_collection(collection):
+        # list_documents includes references for missing parent documents.
+        async for document in collection.list_documents(retry=None,timeout=8):
+            async for nested in document.collections(retry=None,timeout=8):await delete_collection(nested)
+            await document.delete(retry=None,timeout=8)
+    await delete_collection(client.collection(root))
+
+
+def _create_sink_resources(sinks,subscriber,project,dataset,topic_path,subscription_path,cleanup):
+    cleanup.append(lambda:sinks.publisher.delete_topic(request={'topic':topic_path},timeout=10,retry=None))
+    sinks.publisher.create_topic(request={'name':topic_path},timeout=10,retry=None)
+    cleanup.append(lambda:subscriber.delete_subscription(request={'subscription':subscription_path},timeout=10,retry=None))
+    subscriber.create_subscription(request={'name':subscription_path,'topic':topic_path},timeout=10,retry=None)
+    cleanup.append(lambda:sinks.analytics.delete_dataset(f'{project}.{dataset}',delete_contents=True,not_found_ok=True,timeout=25,retry=None))
+    sinks.analytics.create_dataset(bigquery.Dataset(f'{project}.{dataset}'),timeout=10,retry=None)
 
 
 class Bot:
@@ -81,21 +141,22 @@ def test_actual_adk_selection_with_completed_tool_and_persistent_trace():
     async def run():
         settings=Settings(gcp_project='highground-task7-tests')
         root='warning-selector-test-'+uuid4().hex
-        selector=WarningSelector(settings,model=SelectorModel(),root_collection=root)
-        event={'event_id':'synthetic-event','level':'warning','is_demo':True}
-        result=await selector(event,'en',True,False)
-        assert result.structure=='warning_intro_actions'
-        client=create_async_firestore_client(settings)
-        sessions=create_session_service(settings,client=client,root_collection=root)
-        try:
+        async with _async_cleanup_scope() as cleanup:
+            client=create_async_firestore_client(settings)
+            cleanup.append(lambda:close_async_firestore_client(client))
+            cleanup.append(lambda:_delete_adk_namespace(client,root))
+            selector=WarningSelector(settings,model=SelectorModel(),root_collection=root)
+            cleanup.append(selector.close)
+            event={'event_id':'synthetic-event','level':'warning','is_demo':True}
+            result=await selector(event,'en',True,False)
+            assert result.structure=='warning_intro_actions'
+            sessions=create_session_service(settings,client=client,root_collection=root)
             response=await sessions.list_sessions(app_name='highground_dispatch',user_id='selection-en')
             assert len(response.sessions)==1
             session=await sessions.get_session(app_name='highground_dispatch',user_id='selection-en',session_id=response.sessions[0].id)
             assert session.state['validated_warning_structure']=='warning_intro_actions'
             assert any(event.actions.transfer_to_agent=='alert_agent' for event in session.events)
             assert any(event.author=='alert_agent' and event.is_final_response() for event in session.events)
-            await sessions.delete_session(app_name='highground_dispatch',user_id='selection-en',session_id=session.id)
-        finally:await close_async_firestore_client(client)
     asyncio.run(run())
 
 
@@ -108,34 +169,51 @@ def test_official_pubsub_bigquery_event_and_alert_sinks():
     topic='dispatch-test-'+suffix
     subscription='dispatch-test-'+suffix
     configured=Settings(gcp_project=project,pubsub_topic=topic,bigquery_dataset=dataset)
-    sinks=create_event_sinks(configured)
-    subscriber=pubsub_v1.SubscriberClient(credentials=AnonymousCredentials())
-    topic_path=sinks.publisher.topic_path(project,topic)
-    subscription_path=subscriber.subscription_path(project,subscription)
-    sinks.publisher.create_topic(request={'name':topic_path},timeout=10,retry=None)
-    subscriber.create_subscription(request={'name':subscription_path,'topic':topic_path},timeout=10,retry=None)
-    sinks.analytics.create_dataset(bigquery.Dataset(f'{project}.{dataset}'),timeout=10,retry=None)
-    for table in ('events','alerts'):
-        schema=json.loads((Path(__file__).parents[2]/'infra'/'schemas'/f'{table}.json').read_text())
-        sinks.analytics.create_table(bigquery.Table(f'{project}.{dataset}.{table}',schema=[bigquery.SchemaField.from_api_repr(field) for field in schema]),timeout=10,retry=None)
-    now=datetime.now(UTC)
-    event=dict(event_id='synthetic-'+suffix,source='demo',level='danger',lat=3.,lng=101.,radius_m=1000,
-               confidence=1.,reason='Explicit synthetic emulator integration',created_at=now,is_demo=True)
-    alert=dict(alert_id='synthetic-alert-'+suffix,event_id=event['event_id'],shop_id='synthetic-shop',
-               telegram_chat_id_hash='synthetic-hash',level='danger',language='en',is_demo=True,
-               sent_at=now,status='accepted',latency_ms=1)
-    try:
+    with _cleanup_scope() as cleanup:
+        sinks=create_event_sinks(configured);cleanup.extend([sinks.analytics.close,sinks.publisher.stop])
+        subscriber=pubsub_v1.SubscriberClient(credentials=AnonymousCredentials());cleanup.append(subscriber.close)
+        topic_path=sinks.publisher.topic_path(project,topic)
+        subscription_path=subscriber.subscription_path(project,subscription)
+        _create_sink_resources(sinks,subscriber,project,dataset,topic_path,subscription_path,cleanup)
+        for table in ('events','alerts'):
+            schema=json.loads((Path(__file__).parents[2]/'infra'/'schemas'/f'{table}.json').read_text())
+            sinks.analytics.create_table(bigquery.Table(f'{project}.{dataset}.{table}',schema=[bigquery.SchemaField.from_api_repr(field) for field in schema]),timeout=10,retry=None)
+        now=datetime.now(UTC)
+        event=dict(event_id='synthetic-'+suffix,source='demo',level='danger',lat=3.,lng=101.,radius_m=1000,
+                   confidence=1.,reason='Explicit synthetic emulator integration',created_at=now,is_demo=True)
+        alert=dict(alert_id='synthetic-alert-'+suffix,event_id=event['event_id'],shop_id='synthetic-shop',
+                   telegram_chat_id_hash='synthetic-hash',level='danger',language='en',is_demo=True,
+                   sent_at=now,status='accepted',latency_ms=1)
         sinks.publish_event(event);sinks.insert_event(event);sinks.insert_alert(alert)
         response=subscriber.pull(request={'subscription':subscription_path,'max_messages':1},timeout=10,retry=None)
         assert len(response.received_messages)==1
         assert json.loads(response.received_messages[0].message.data)['event_id']==event['event_id']
         subscriber.acknowledge(request={'subscription':subscription_path,'ack_ids':[response.received_messages[0].ack_id]},timeout=10,retry=None)
-        rows=list(sinks.analytics.query(f'SELECT event_id FROM `{project}.{dataset}.events`',retry=None,timeout=10).result(timeout=10))
+        query=query_rows(sinks.analytics,f'SELECT event_id FROM `{project}.{dataset}.events`',project=project,emulator_endpoint=os.environ['BIGQUERY_EMULATOR_HOST']);assert query.cleanup=='cleaned';rows=query.rows
         assert rows[0].event_id==event['event_id']
-        rows=list(sinks.analytics.query(f'SELECT alert_id FROM `{project}.{dataset}.alerts`',retry=None,timeout=10).result(timeout=10))
+        query=query_rows(sinks.analytics,f'SELECT alert_id FROM `{project}.{dataset}.alerts`',project=project,emulator_endpoint=os.environ['BIGQUERY_EMULATOR_HOST']);assert query.cleanup=='cleaned';rows=query.rows
         assert rows[0].alert_id==alert['alert_id']
-    finally:
-        subscriber.delete_subscription(request={'subscription':subscription_path},timeout=10,retry=None)
-        sinks.publisher.delete_topic(request={'topic':topic_path},timeout=10,retry=None)
-        sinks.analytics.delete_dataset(f'{project}.{dataset}',delete_contents=True,not_found_ok=True,timeout=10,retry=None)
-        subscriber.close();sinks.close()
+
+@pytest.mark.skipif(not os.environ.get('FIRESTORE_EMULATOR_HOST'),reason='Firestore emulator required')
+def test_adk_missing_parent_nested_records_cleanup_after_original_assertion():
+    async def run():
+        settings=Settings(gcp_project='highground-adk-cleanup-tests');root='adk-cleanup-test-'+uuid4().hex
+        primary=AssertionError('intentional assertion seam')
+        with pytest.raises(AssertionError) as caught:
+            async with _async_cleanup_scope() as cleanup:
+                client=create_async_firestore_client(settings)
+                cleanup.append(lambda:close_async_firestore_client(client))
+                cleanup.append(lambda:_delete_adk_namespace(client,root))
+                parent=client.collection(root).document('missing-parent')
+                child=parent.collection('sessions').document('missing-session').collection('events').document('event')
+                await child.set({'synthetic':True},retry=None,timeout=8)
+                assert not (await parent.get(retry=None,timeout=8)).exists
+                assert (await child.get(retry=None,timeout=8)).exists
+                raise primary
+        assert caught.value is primary
+        checker=create_async_firestore_client(settings)
+        try:
+            child=checker.collection(root).document('missing-parent').collection('sessions').document('missing-session').collection('events').document('event')
+            assert not (await child.get(retry=None,timeout=8)).exists
+        finally:await close_async_firestore_client(checker)
+    asyncio.run(run())

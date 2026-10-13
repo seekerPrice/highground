@@ -34,6 +34,12 @@ class Recipient(BaseModel):
     role: Literal['owner','worker']
 
 
+class VirtualRecipient(BaseModel):
+    model_config=ConfigDict(extra='forbid',strict=True)
+    key: str = Field(pattern=r'^fixture-[a-z0-9-]{1,80}$')
+    language: Literal['en','ms','zh','ta','bn','ne','my','id'] = 'en'
+
+
 class LiftItem(BaseModel):
     model_config = ConfigDict(extra='ignore', strict=True, allow_inf_nan=False)
     item_name: str = Field(min_length=1, max_length=100)
@@ -50,6 +56,7 @@ class Shop(BaseModel):
     lng: float = Field(ge=-180, le=180)
     recipients: list[Recipient] = Field(max_length=20)
     is_demo: bool = False
+    virtual_recipient: VirtualRecipient | None = None
     has_vehicle: bool = False
     vehicle_type: Literal['car','van','lorry','motorcycle'] | None = None
     lift_first: list[LiftItem] = Field(default_factory=list, max_length=8)
@@ -57,6 +64,7 @@ class Shop(BaseModel):
 
     @model_validator(mode='after')
     def unique_recipients(self) -> 'Shop':
+        if self.virtual_recipient and (not self.is_demo or self.recipients):raise ValueError('Virtual recipients require a synthetic shop without Telegram recipients')
         if len({r.telegram_chat_id for r in self.recipients}) != len(self.recipients):
             raise ValueError('Duplicate recipients')
         return self

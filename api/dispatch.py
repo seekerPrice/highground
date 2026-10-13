@@ -16,11 +16,12 @@ from api.tools.telegram import TelegramSendError
 class DispatchService:
     def __init__(self, store: FirestoreDispatchStore, telegram, sinks, *, hash_salt: str,
                  composer: AlertComposer | None = None, vehicle_actions=None, active_risk=None, stock_actions=None,
-                 clock: Callable[[], datetime] = lambda: datetime.now(UTC)) -> None:
+                 virtual_delivery=None, clock: Callable[[], datetime] = lambda: datetime.now(UTC)) -> None:
         if not hash_salt:
             raise ValueError('HASH_SALT is required for dispatch')
         self.store, self.telegram, self.sinks = store, telegram, sinks
         self.vehicle_actions = vehicle_actions
+        self.virtual_delivery = virtual_delivery
         self.active_risk, self.stock_actions = active_risk, stock_actions
         self.hash_salt, self.composer, self.clock = hash_salt, composer or AlertComposer(), clock
 
@@ -33,7 +34,7 @@ class DispatchService:
             decision=await asyncio.to_thread(self.active_risk.apply_event_decision,event,event['reporter_shop_id'])
             if decision.reason!='accepted':
                 await asyncio.to_thread(self.store.mark_suppressed,event['event_id'],decision.reason)
-                return {'event_id':event['event_id'],'status':'superseded','reason':decision.reason}
+                return await self.resume(event['event_id'])
         return await self.resume(event['event_id'])
 
     async def resume(self, event_id: str) -> dict:
@@ -42,6 +43,8 @@ class DispatchService:
             return {'event_id': event_id, 'status': 'busy'}
         try:
             event = await asyncio.to_thread(self.store.get_event, event_id)
+            if event.get('delivery_superseded') or (hasattr(self.store,'is_current') and not await asyncio.to_thread(self.store.is_current,event)):
+                return await self._settle_suppressed(event,owner,event.get('suppression_reason') or 'obsolete_scenario')
             if not event['prepared']:
                 if 'targets' not in event:
                     shops = await asyncio.to_thread(self.store.target_shops)
@@ -67,9 +70,11 @@ class DispatchService:
                     event['targets']=eligible
                     await asyncio.to_thread(self.store.update_event,event_id,owner,targets=eligible,suppressed_targets=suppressed)
                 target_shops = [Shop.model_validate(raw) for raw in event['targets']]
-                await self.composer.prepare(event, {r.language for shop in target_shops for r in shop.recipients},
+                await self.composer.prepare(event, {r.language for shop in target_shops for r in [*shop.recipients,*([shop.virtual_recipient] if shop.virtual_recipient and self.virtual_delivery else [])]},
                                             has_inventory=any(shop.baseline_inventory_id for shop in target_shops),
                                             has_vehicle=any(shop.has_vehicle for shop in target_shops))
+                if hasattr(self.store,'is_current') and not await asyncio.to_thread(self.store.is_current,event):
+                    return await self._settle_suppressed(event,owner,'obsolete_scenario')
                 ids = []
                 for raw in event['targets']:
                     shop = Shop.model_validate(raw)
@@ -92,18 +97,25 @@ class DispatchService:
                         action=await asyncio.to_thread(self.stock_actions.prepare,shop_event,shop,snapshot,self.hash_salt)
                         from api.dispatch_models import ActionSnapshot
                         snapshot=ActionSnapshot.model_validate(action['snapshot'])
-                    for recipient in shop.recipients:
-                        recipient_hash = session_user_id(recipient.telegram_chat_id, self.hash_salt)
+                    recipients=[*shop.recipients,*([shop.virtual_recipient] if shop.virtual_recipient and self.virtual_delivery else [])]
+                    for recipient in recipients:
+                        virtual=hasattr(recipient,'key')
+                        recipient_hash = sha256((self.hash_salt+':'+recipient.key).encode()).hexdigest() if virtual else session_user_id(recipient.telegram_chat_id, self.hash_salt)
                         alert_id = sha256(f'{event_id}:{shop.shop_id}:{recipient_hash}'.encode()).hexdigest()
                         text, snapshot, markup = await self.composer.compose(shop_event, shop, recipient.language, snapshot_override=snapshot, vehicle_action_enabled=action_enabled)
                         alert = dict(
                             alert_id=alert_id, event_id=event_id, shop_id=shop.shop_id, episode_id=shop_event.get('episode_id'),
-                            telegram_chat_id=recipient.telegram_chat_id, telegram_chat_id_hash=recipient_hash,
+                            telegram_chat_id_hash=recipient_hash,
+                            scenario_generation=event.get('scenario_generation',0),delivery_provenance='local_virtual' if virtual else 'telegram_api',
                             level=event['level'], language=recipient.language, is_demo=event['is_demo'],
                             text=text, snapshot=snapshot.model_dump(mode='json'), reply_markup=markup,
                             created_at=event['created_at'], distance_m=raw['distance_m'],
                             status='pending', bigquery='pending', sent_at=None,
                         )
+                        if virtual:
+                            alert['virtual_recipient']=recipient.key
+                            alert['reply_markup']=None
+                        else:alert['telegram_chat_id']=recipient.telegram_chat_id
                         await asyncio.to_thread(self.store.prepare_alert, alert)
                         ids.append(alert_id)
                         await asyncio.to_thread(self.store.update_event, event_id, owner)
@@ -118,56 +130,82 @@ class DispatchService:
                     if disposition=='busy':continue
                     if disposition=='superseded':
                         if alert['status'] in ('pending','retryable'):
-                            await asyncio.to_thread(self.store.update_alert,alert_id,event_id,owner,status='superseded',suppression_reason='active_risk_or_expired_episode',bigquery='done')
+                            await asyncio.to_thread(self.store.update_alert,alert_id,event_id,owner,status='superseded',suppression_reason='active_risk_or_expired_episode')
                         continue
                 try:
                     if await asyncio.to_thread(self.store.begin_send,alert_id,event_id,owner):
                         try:
-                            message_id=await asyncio.to_thread(send_alert,self.telegram,alert)
+                            if alert.get('delivery_provenance')=='local_virtual':
+                                if self.virtual_delivery is None:raise ValueError('Virtual transport disabled')
+                                await asyncio.to_thread(self.virtual_delivery.deliver,alert)
+                                message_id=None
+                            else:
+                                if self.telegram is None:raise TelegramSendError(uncertain=False)
+                                message_id=await asyncio.to_thread(send_alert,self.telegram,alert)
                         except TelegramSendError as error:
                             await asyncio.to_thread(self.store.update_alert,alert_id,event_id,owner,status='uncertain' if error.uncertain else 'retryable')
                         except Exception:
                             await asyncio.to_thread(self.store.update_alert,alert_id,event_id,owner,status='uncertain')
                         else:
                             sent_at=self.clock()
-                            await asyncio.to_thread(self.store.update_alert,alert_id,event_id,owner,status='accepted',message_id=message_id,sent_at=sent_at,
+                            await asyncio.to_thread(self.store.update_alert,alert_id,event_id,owner,status='simulated' if alert.get('delivery_provenance')=='local_virtual' else 'accepted',message_id=message_id,sent_at=sent_at,
                                                     latency_ms=max(0,int((sent_at-(event.get('processing_started_at') or event['created_at'])).total_seconds()*1000)))
                 finally:
                     if delivery_owner is not None:
                         await asyncio.to_thread(self.active_risk.release_delivery,alert['shop_id'],delivery_owner)
-            event = await asyncio.to_thread(self.store.get_event, event_id)
-            for stage, action in [('pubsub', self.sinks.publish_event), ('bigquery', self.sinks.insert_event)]:
-                if event[stage] != 'done':
-                    try:
-                        await asyncio.to_thread(action, event)
-                    except Exception:
-                        # Keep durable pending progress; external sink outcome may be ambiguous.
-                        pass
-                    else:
-                        await asyncio.to_thread(self.store.update_event, event_id, owner, **{stage: 'done'})
-            counts = Counter()
-            pending = False
-            for alert_id in event['alert_ids']:
-                alert = await asyncio.to_thread(self.store.get_alert, alert_id)
-                counts[alert['status']] += 1
-                if alert['status'] in ('accepted', 'uncertain') and alert['bigquery'] != 'done':
-                    try:
-                        await asyncio.to_thread(self.sinks.insert_alert, alert)
-                    except Exception:
-                        pass
-                    else:
-                        await asyncio.to_thread(self.store.update_alert, alert_id, event_id, owner, bigquery='done')
-                        alert['bigquery'] = 'done'
-                if alert['status'] in ('pending', 'sending', 'retryable') or alert['bigquery'] != 'done':
-                    pending = True
-            latest = await asyncio.to_thread(self.store.get_event, event_id)
-            pending |= latest['pubsub'] != 'done' or latest['bigquery'] != 'done'
-            status = 'pending' if pending else ('needs_review' if counts.get('uncertain') else 'complete')
-            await asyncio.to_thread(self.store.update_event, event_id, owner, status=status)
-            # No chat IDs, recipient hashes, private snapshots or message bodies leave this boundary.
-            return {'event_id': event_id, 'status': status, 'alerts': dict(counts)}
+            return await self._flush_sinks(event_id,owner)
         finally:
             await asyncio.to_thread(self.store.release, event_id, owner)
+
+    async def _settle_suppressed(self,event:dict,owner:str,reason:str) -> dict:
+        event_id=event['event_id']
+        children=await asyncio.to_thread(self.store.event_alert_ids,event_id)
+        ids=sorted(set(event['alert_ids'])|set(children))
+        if len(ids)>1000:raise ValueError('Historical alert scope exceeds bound')
+        await asyncio.to_thread(self.store.update_event,event_id,owner,alert_ids=ids,delivery_superseded=True,suppression_reason=reason,status='pending')
+        for alert_id in ids:
+            alert=await asyncio.to_thread(self.store.get_alert,alert_id)
+            if alert['status'] in ('pending','retryable'):
+                await asyncio.to_thread(self.store.update_alert,alert_id,event_id,owner,status='superseded',suppression_reason=reason)
+            elif alert['status']=='sending':
+                # Prior external completion is unknown; retain its honest history,
+                # never perform another send while recovering optional sinks.
+                await asyncio.to_thread(self.store.update_alert,alert_id,event_id,owner,status='uncertain')
+        return await self._flush_sinks(event_id,owner,superseded=True)
+
+    async def _flush_sinks(self,event_id:str,owner:str,*,superseded:bool=False) -> dict:
+        event = await asyncio.to_thread(self.store.get_event, event_id)
+        for stage, action in [('pubsub', self.sinks.publish_event), ('bigquery', self.sinks.insert_event)]:
+            if event[stage] != 'done':
+                try:
+                    await asyncio.to_thread(action, event)
+                except Exception:
+                    # Keep durable pending progress; external sink outcome may be ambiguous.
+                    pass
+                else:
+                    await asyncio.to_thread(self.store.update_event, event_id, owner, **{stage: 'done'})
+        counts = Counter()
+        pending = False
+        for alert_id in event['alert_ids']:
+            alert = await asyncio.to_thread(self.store.get_alert, alert_id)
+            counts[alert['status']] += 1
+            if alert['status'] in ('accepted', 'uncertain', 'simulated', 'superseded') and alert['bigquery'] != 'done':
+                try:
+                    await asyncio.to_thread(self.sinks.insert_alert, alert)
+                except Exception:
+                    pass
+                else:
+                    await asyncio.to_thread(self.store.update_alert, alert_id, event_id, owner, bigquery='done')
+                    alert['bigquery'] = 'done'
+            if alert['status'] in ('pending', 'sending', 'retryable') or alert['bigquery'] != 'done':
+                pending = True
+        latest = await asyncio.to_thread(self.store.get_event, event_id)
+        pending |= latest['pubsub'] != 'done' or latest['bigquery'] != 'done'
+        status = 'pending' if pending else 'superseded' if superseded else ('needs_review' if counts.get('uncertain') else 'complete')
+        await asyncio.to_thread(self.store.update_event, event_id, owner, status=status)
+        # No chat IDs, recipient hashes, private snapshots or message bodies leave this boundary.
+        if superseded:return {'event_id':event_id,'status':'superseded','reason':event.get('suppression_reason','obsolete_scenario')}
+        return {'event_id': event_id, 'status': status, 'alerts': dict(counts)}
 
     async def close(self) -> None:
         if self.composer.selector is not None and hasattr(self.composer.selector, 'close'):
@@ -191,10 +229,15 @@ def create_dispatch_service(settings) -> DispatchService:
     from api.vehicle_confirmations import VehicleActionStore
     from api.active_risk import ActiveRiskStore
     from api.stock_confirmations import StockActionStore
+    from api.demo_transport import LocalVirtualDelivery,require_local_demo
+    virtual=None
+    if settings.demo_virtual_delivery:
+        require_local_demo(settings)
+        virtual=LocalVirtualDelivery()
     client = create_firestore_client(settings)
     composer = AlertComposer(selector=WarningSelector(settings), destinations=DestinationLookup(client, radius_m=settings.destination_search_radius_m),
                              vehicle_minutes=settings.vehicle_action_target_minutes,
                              stock_minutes=settings.stock_action_target_minutes)
     return DispatchService(FirestoreDispatchStore(client),
-                           TelegramAPI(settings.telegram_bot_token), create_event_sinks(settings),
-                           hash_salt=settings.hash_salt, composer=composer, vehicle_actions=VehicleActionStore(client), active_risk=ActiveRiskStore(client,max_age=settings.official_max_age), stock_actions=StockActionStore(client))
+                           TelegramAPI(settings.telegram_bot_token) if settings.telegram_bot_token or virtual is None else None, create_event_sinks(settings),
+                           hash_salt=settings.hash_salt, composer=composer, virtual_delivery=virtual, vehicle_actions=VehicleActionStore(client), active_risk=ActiveRiskStore(client,max_age=settings.official_max_age), stock_actions=StockActionStore(client))

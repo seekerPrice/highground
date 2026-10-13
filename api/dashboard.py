@@ -5,20 +5,22 @@ from datetime import UTC,datetime
 import hmac
 from google.cloud.firestore_v1.base_query import FieldFilter
 from fastapi import APIRouter,HTTPException,Request,Response
-from api.dashboard_models import Dashboard,DashboardShop,DashboardEvent,DashboardStats,SourceStatus
+from api.dashboard_models import Dashboard,DashboardShop,DashboardEvent,DashboardStats,SourceStatus,ResetRequest,ResetResult
 from api.destinations import SafePoint
 from api.active_risk import ActiveRiskStore
 from api.dashboard_analytics import unavailable
+from api.demo_scenario import DemoScenarioStore,FIXTURE_ORIGIN,SHOP_IDS
 
 
 class DashboardStore:
     def __init__(self,client,settings,*,prefix='',analytics=None):
         self.client,self.settings,self.prefix=client,settings,prefix
         self.analytics=analytics
-        self.risks=ActiveRiskStore(client,risks=prefix+'active_risks',shops=prefix+'shops',current_actions=prefix+'current_vehicle_actions',max_age=settings.official_max_age)
+        self.risks=ActiveRiskStore(client,risks=prefix+'active_risks',shops=prefix+'shops',current_actions=prefix+'current_vehicle_actions',deliveries=prefix+'shop_delivery_claims',max_age=settings.official_max_age)
     def collection(self,name):return self.client.collection(self.prefix+name)
-    def synthetic(self,name: str,limit: int,since: datetime|None=None) -> tuple[list[dict],bool]:
+    def synthetic(self,name: str,limit: int,since: datetime|None=None,generation: int|None=None) -> tuple[list[dict],bool]:
         query=self.collection(name).where(filter=FieldFilter('is_demo','==',True))
+        if name in ('events','alerts','confirmations') and generation is not None:query=query.where(filter=FieldFilter('scenario_generation','==',generation))
         time_field={'events':'created_at','alerts':'created_at','confirmations':'confirmed_at'}.get(name)
         if time_field:
             if since is not None:query=query.where(filter=FieldFilter(time_field,'>=',since))
@@ -27,9 +29,18 @@ class DashboardStore:
         return [dict(d.to_dict(),**{('shop_id' if name=='shops' else 'event_id' if name=='events' else 'alert_id' if name=='alerts' else 'confirmation_id'):d.id}) for d in docs[:limit]],len(docs)<=limit
     def read(self) -> Dashboard:
         now=datetime.now(UTC);scenario=self.collection('demo_scenario').document('current').get().to_dict() or {};since=scenario.get('started_at')
-        shops,shop_complete=self.synthetic('shops',50);events,event_complete=self.synthetic('events',1000,since)
+        if scenario.get('fixture_shop_ids') is not None:
+            scope=scenario['fixture_shop_ids']
+            if len(scope)>6 or len(set(scope))!=len(scope) or not set(scope).issubset(SHOP_IDS):raise ValueError('Fixture projection exceeds bound')
+            shops=[]
+            for identity in scope:
+                row=self.collection('shops').document(identity).get().to_dict() or {}
+                if row.get('is_demo') is True and row.get('fixture_origin')==FIXTURE_ORIGIN:shops.append(dict(row,shop_id=identity))
+            shop_complete=True
+        else:shops,shop_complete=self.synthetic('shops',50)
+        events,event_complete=self.synthetic('events',1000,since,scenario.get('generation'))
         events=[e for e in events if isinstance(e.get('created_at'),datetime) and (since is None or e['created_at']>=since) and e['created_at']<=now and e.get('status')!='superseded']
-        alerts,alert_complete=self.synthetic('alerts',1000,since);facts,fact_complete=self.synthetic('confirmations',1000,since)
+        alerts,alert_complete=self.synthetic('alerts',1000,since,scenario.get('generation'));facts,fact_complete=self.synthetic('confirmations',1000,since,scenario.get('generation'))
         public_shops=[]
         for shop in shops:
             risk=self.collection('active_risks').document(shop['shop_id']).get().to_dict() or {}
@@ -57,16 +68,10 @@ class DashboardStore:
                 elif raw.get('status')=='stale':status='stale'
             elif checked:status='stale'
             sources.append(SourceStatus(source=source,status=status,checked_at=checked,note='Source observation time is unknown in this summary. A recent check does not establish an all-clear.'))
-        return Dashboard(generated_at=now,status='available' if public_shops else 'empty',scenario_started_at=since,shops=public_shops,events=public_events,destinations=destinations,sources=sources,
-            stats=self.analytics.stats(shops,events,alerts,facts,complete=all((shop_complete,event_complete,alert_complete,fact_complete))) if self.analytics else unavailable(len(shops)))
-    def reset(self) -> dict:
-        # Close episodes first: final dispatch guard rejects late old-episode writes.
-        shops,complete=self.synthetic('shops',50)
-        if not complete:raise ValueError('Synthetic shop reset exceeds bound')
-        count=sum(self.risks.reset_demo(s['shop_id']) for s in shops)
-        started=datetime.now(UTC)
-        self.collection('demo_scenario').document('current').set({'started_at':started})
-        return dict(status='reset',scenario_started_at=started.isoformat(),shops_reset=count)
+        return Dashboard(generated_at=now,status='available' if public_shops else 'empty',scenario_started_at=since,scenario_generation=scenario.get('generation',0),scenario_state=scenario.get('state','ready'),shops=public_shops,events=public_events,destinations=destinations,sources=sources,
+            stats=self.analytics.stats(shops,events,alerts,facts,complete=scenario.get('state','ready')=='ready' and all((shop_complete,event_complete,alert_complete,fact_complete))) if self.analytics else unavailable(len(shops)))
+    def reset(self,request_id: str) -> dict:
+        return DemoScenarioStore(self.client,self.risks,prefix=self.prefix).reset(request_id)
     def close(self):
         self.client.close()
         if self.analytics:self.analytics.close()
@@ -93,7 +98,7 @@ def create_dashboard_router(settings,store=None):
         response.headers['Cache-Control']='no-store'
         try:return await asyncio.to_thread(service().read)
         except Exception:raise HTTPException(503,'Dashboard temporarily unavailable',headers={'Cache-Control':'no-store'}) from None
-    @router.post('/demo/reset')
+    @router.post('/demo/reset',response_model=ResetResult)
     async def reset(request:Request,response:Response):
         config=configuration()
         if not config.demo_mode:raise HTTPException(403,'Demo mode is disabled')
@@ -103,8 +108,9 @@ def create_dashboard_router(settings,store=None):
         async for chunk in request.stream():
             payload.extend(chunk)
             if len(payload)>1000:raise HTTPException(413,'Reset request too large')
-        if bytes(payload).strip() not in (b'',b'{}'):raise HTTPException(400,'Reset accepts an empty object')
+        try:body=ResetRequest.model_validate_json(bytes(payload))
+        except ValueError:raise HTTPException(400,'Reset requires a valid stable request_id') from None
         response.headers['Cache-Control']='no-store'
-        try:return await asyncio.to_thread(service().reset)
+        try:return await asyncio.to_thread(service().reset,body.request_id)
         except Exception:raise HTTPException(503,'Demo reset unavailable') from None
     return router

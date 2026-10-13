@@ -10,6 +10,8 @@ from api.stock_confirmations import StockActionStore,StockConfirmationService
 from api.dispatch_models import Shop,ActionSnapshot,LiftItem
 from api.agents.sessions import session_user_id
 from api.tests.test_vehicle_confirmations import Sink
+from api.tests.test_dispatch_emulators import _cleanup_scope
+from api.tools.bigquery_queries import query_rows
 
 @pytest.mark.skipif(not os.environ.get('FIRESTORE_EMULATOR_HOST'),reason='Firestore emulator required')
 def test_exact_displayed_snapshot_cross_recipient_refresh_episode_and_outbox():
@@ -105,11 +107,12 @@ def test_official_stock_rows_and_conservative_demo_episode_aggregate():
     from api.tools.cloud_events import create_event_sinks
     from api.stock_confirmations import estimated_lifted_value_sql
     settings=load_settings();dataset='stock_test_'+uuid4().hex
-    sinks=create_event_sinks(Settings(gcp_project=settings.gcp_project,bigquery_dataset=dataset))
-    full=f'{settings.gcp_project}.{dataset}'
-    sinks.analytics.create_dataset(bigquery.Dataset(full),timeout=8,retry=None)
-    schema=json.loads((Path(__file__).parents[2]/'infra/schemas/confirmations.json').read_text())
-    try:
+    with _cleanup_scope() as cleanup:
+        sinks=create_event_sinks(Settings(gcp_project=settings.gcp_project,bigquery_dataset=dataset));cleanup.extend([sinks.analytics.close,sinks.publisher.stop])
+        full=f'{settings.gcp_project}.{dataset}'
+        cleanup.append(lambda:sinks.analytics.delete_dataset(full,delete_contents=True,not_found_ok=True,timeout=25,retry=None))
+        sinks.analytics.create_dataset(bigquery.Dataset(full),timeout=8,retry=None)
+        schema=json.loads((Path(__file__).parents[2]/'infra/schemas/confirmations.json').read_text())
         sinks.analytics.create_table(bigquery.Table(full+'.confirmations',schema=[bigquery.SchemaField.from_api_repr(f) for f in schema]),timeout=8,retry=None)
         rows=[('a','shop','episode',20,True),('b','shop','episode',100,True),
               ('c','shop','new-episode',30,True),('d','other','episode',20,True),('real','private','episode',999,False)]
@@ -118,10 +121,9 @@ def test_official_stock_rows_and_conservative_demo_episode_aggregate():
                 event_id=identity,shop_id=shop,kind='stock',protected_value_rm=value,is_demo=demo,confirmed_at=datetime.now(UTC))
             sinks.insert_confirmation(record)
             if identity=='b':sinks.insert_confirmation(record)
-        result=list(sinks.analytics.query(estimated_lifted_value_sql(settings.gcp_project,dataset),timeout=8,retry=None,job_retry=None).result(timeout=8,retry=None,job_retry=None))
+        query=query_rows(sinks.analytics,estimated_lifted_value_sql(settings.gcp_project,dataset),project=settings.gcp_project,emulator_endpoint=os.environ['BIGQUERY_EMULATOR_HOST'],timeout=8);assert query.cleanup=='cleaned';result=query.rows
         assert float(result[0].estimated_stock_value_reported_lifted)==150
-    finally:
-        sinks.analytics.delete_dataset(full,delete_contents=True,not_found_ok=True,timeout=8,retry=None);sinks.close()
+
 
 def test_stock_callback_feedback_fits_telegram_limit_in_all_languages():
     from api.i18n import LANGUAGES,catalog,text

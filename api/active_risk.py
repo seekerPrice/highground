@@ -7,6 +7,7 @@ from typing import Literal
 
 from google.cloud import firestore
 from api.tools.datagov import DEFAULT_MAX_AGE
+from api.demo_scenario import scenario_collection, current_scenario, event_is_current
 
 
 @dataclass(frozen=True)
@@ -20,7 +21,7 @@ class RiskState:
 @dataclass(frozen=True)
 class RiskDecision:
     episode_id: str | None
-    reason: Literal['accepted','expired','closed_episode','unattributed_source','missing_shop','simulation_mismatch','obsolete_observation','resolved_source_episode','superseded_source_watermark']
+    reason: Literal['accepted','expired','closed_episode','unattributed_source','missing_shop','simulation_mismatch','obsolete_observation','resolved_source_episode','superseded_source_watermark','obsolete_scenario']
 
 
 class ActiveRiskStore:
@@ -111,6 +112,8 @@ class ActiveRiskStore:
             prior_danger=self._view(old,shop).active_danger
             if 'danger_generation' not in old and self._view(old,shop).active_danger:
                 old={**old,'danger_generation':1,'legacy_unknown':self._view(old,shop).legacy_unknown}
+            scenario=current_scenario(self.client,scenario_collection(self.shops),tx) if event.get('is_demo') else {}
+            if not event_is_current(event,scenario,shop_id):return RiskDecision(None,'obsolete_scenario')
             source_rejection=self._source_rejection(event,tx)
             if source_rejection:return RiskDecision(None,source_rejection)
             if not shop:return RiskDecision(None,'missing_shop')
@@ -159,17 +162,20 @@ class ActiveRiskStore:
             return not state.official_danger and not state.legacy_unknown and not shop.get('is_demo',False) and any(r.get('telegram_chat_id')==sender_chat_id and r.get('role')=='owner' for r in shop.get('recipients',[]))
         return bool(self._recover(shop_id,allowed,lambda entries:{k:v for k,v in entries.items() if v['source']!='shop_report'},datetime.now(UTC),provenance='owner_declared'))
 
-    def reset_demo(self, shop_id):
+    def reset_demo(self, shop_id, *, reset_request_id=None, reset_generation=None):
         return bool(self._recover(shop_id,lambda record,shop:shop.get('is_demo') is True,
-                                  lambda entries:{k:v for k,v in entries.items() if not v.get('is_demo')},datetime.now(UTC),provenance='operator_demo_reset',clear_legacy=True))
+                                  lambda entries:{k:v for k,v in entries.items() if not v.get('is_demo')},datetime.now(UTC),provenance='operator_demo_reset',clear_legacy=True,reset_request_id=reset_request_id,reset_generation=reset_generation))
 
-    def _recover(self, shop_id, predicate, remove, at, *, provenance='official',clear_legacy=False):
+    def _recover(self, shop_id, predicate, remove, at, *, provenance='official',clear_legacy=False,reset_request_id=None,reset_generation=None):
         ref=self.client.collection(self.risks).document(shop_id);shop_ref=self.client.collection(self.shops).document(shop_id)
         current=self.client.collection(self.current_actions).document(shop_id)
         @firestore.transactional
         def recover(tx):
             record=ref.get(transaction=tx).to_dict() or {};shop=shop_ref.get(transaction=tx).to_dict() or {}
             action=current.get(transaction=tx)
+            scenario_ref=self.client.collection(scenario_collection(self.shops)).document('current')
+            scenario=scenario_ref.get(transaction=tx).to_dict() if reset_request_id is not None else None
+            if reset_request_id is not None and (not scenario or scenario.get('state')!='resetting' or scenario.get('reset_request_id')!=reset_request_id or scenario.get('generation')!=reset_generation):return 0
             if not predicate(record,shop):return 0
             prior_danger=self._view(record,shop).active_danger
             if 'danger_generation' not in record and self._view(record,shop).active_danger:
@@ -179,6 +185,7 @@ class ActiveRiskStore:
                      'recovery_provenance':provenance,'recovered_at':at}
             if not sources and not updated['legacy_unknown']:updated.update(episode_id=None,closed_at=at)
             danger=self._view(updated,shop).active_danger
+            if scenario is not None:tx.update(scenario_ref,{'done':sorted(set(scenario['done'])|{shop_id})})
             tx.set(ref,updated);tx.update(shop_ref,{'active_danger':danger,'active_episode_id':updated.get('episode_id')})
             if action.exists and not danger and (action.to_dict().get('blocked') or prior_danger or updated.get('episode_id') is None):
                 tx.update(current,{'blocked':False,'action_id':None})
@@ -193,6 +200,8 @@ class ActiveRiskStore:
         @firestore.transactional
         def claim(tx):
             lease=ref.get(transaction=tx).to_dict() or {};risk=risk_ref.get(transaction=tx).to_dict() or {};shop=shop_ref.get(transaction=tx).to_dict() or {}
+            scenario=current_scenario(self.client,scenario_collection(self.shops),tx) if event.get('is_demo') else {}
+            if not event_is_current(event,scenario,shop_id):return 'superseded',None
             source_obsolete=self._source_rejection(event,tx)
             if lease.get('until',now)>now:return 'busy',None
             state=self._view(risk,shop)
@@ -207,5 +216,5 @@ class ActiveRiskStore:
         ref=self.client.collection(self.deliveries).document(shop_id)
         @firestore.transactional
         def release(tx):
-            if (ref.get(transaction=tx).to_dict() or {}).get('owner')==owner:tx.update(ref,{'until':datetime.now(UTC)})
+            if (ref.get(transaction=tx).to_dict() or {}).get('owner')==owner:tx.update(ref,{'until':datetime.now(UTC),'released_at':datetime.now(UTC)})
         release(self.client.transaction())

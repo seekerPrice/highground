@@ -1,0 +1,10 @@
+# Dockerfile-specific root-context allowlist. No .env, credentials or local evidence.
+**
+!api/
+!api/**/
+!api/**/*.py
+!api/i18n/*.json
+!api/requirements.txt
+api/tests/
+api/fixtures/
+api/**/__pycache__/
